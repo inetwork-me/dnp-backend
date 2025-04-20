@@ -25,33 +25,15 @@ span {
   color: #4b5563;
 }
 
-.breadcrumb-list {
+.breadcrumb {
   display: flex;
   flex-wrap: wrap;
-  padding: 0;
-  margin: 1rem 0 0 0;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
   list-style: none;
-}
-.breadcrumb-list li {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.breadcrumb-item.active {
-  color: #333;
-}
-.breadcrumb-item + .breadcrumb-item::before {
-  content: "/";
-  display: inline-block;
-  padding: 0 0.5rem;
-  color: #d5d5d5;
-}
-.breadcrumb-item a {
-  color: #4b5563;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  background-color: #e9ecef57;
+  border-radius: 0.35rem;
+  margin: 20px 0;
 }
 
 .statistcs_card {

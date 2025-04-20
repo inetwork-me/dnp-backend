@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html class="loading" lang="en">
+@if (\App\Models\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
+    <html class="loading" dir="rtl" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@else
+    <html class="loading" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@endif
 
 @include('backend.layouts.components.head')
 
@@ -13,7 +17,7 @@
                 <div class="content-overlay"></div>
                 <div class="content-wrapper">
                     @include('backend.layouts.components.breadcrumb')
-                    @yield('body')
+                    @yield('content')
                 </div>
             </div>
             <!-- END : End Main Content-->

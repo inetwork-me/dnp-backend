@@ -4,7 +4,7 @@
       <div class="sidebar-header">
         <div class="logo clearfix">
           <a class="logo-text float-left" href="javascript:;">
-            <div class="logo-img"><img src="assets/img/logo.png" /></div>
+            <div class="logo-img"><img src="{{ asset('assets/img') }}/logo.png" /></div>
           </a>
           <a class="nav-toggle d-none d-lg-none d-xl-block" id="sidebarToggle" href="javascript:;">
             <svg width="20" height="20" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,11 +24,11 @@
         <div class="nav-container">
           <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
             <li class="active"><a href="index.php">
-                <img src="assets/img/svg/home.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/home.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Home</span></a>
             </li>
             <li class="has-sub nav-item">
-                <a href="javascript:;"><img src="assets/img/svg/store.png" alt=""><span class="menu-title" data-i18n="Page1">Vendors</span></a>
+                <a href="javascript:;"><img src="{{ asset('assets/img') }}/svg/store.png" alt=""><span class="menu-title" data-i18n="Page1">Vendors</span></a>
                 <ul class="menu-content">
                     <li><a href="create_vendor.php"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">Create Vendor</span></a></li>
                     <li><a href="vendors_list.php"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">Vendors List</span></a></li>
@@ -37,19 +37,42 @@
                 </ul>
             </li>
             <li><a href="page1.html">
-                <img src="assets/img/svg/sale.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/sale.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Coupons</span></a>
             </li>
+
+            <li class="has-sub nav-item">
+              <a href="javascript:;"><img src="{{ asset('assets/img') }}/svg/store.png" alt=""><span class="menu-title" data-i18n="Page1">{{ translate('Brands') }}</span></a>
+              <ul class="menu-content">
+                  <li><a href="{{ route('brands.index') }}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">{{translate('All Brands')}}</span></a></li>
+                  <li><a href="{{ route('brand_bulk_upload.index') }}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">{{translate('Upload Brands')}}</span></a></li>
+                  </li>
+              </ul>
+          </li>
+
+            <li class="has-sub nav-item">
+              <a href="javascript:;">
+                <img src="{{ asset('assets/img') }}/svg/cube.png" alt="">
+                <span class="menu-title" data-i18n="UI Kit">{{ translate('Products') }}</span>
+              </a>
+              <ul class="menu-content">
+                  <li class="has-sub"><a href="javascript:;"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="{{ translate('Categories') }}">{{ translate('Categories') }}</span></a>
+                      <ul class="menu-content">
+                          <li><a href="{{ route('categories.index') }}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Feather Icon">{{ translate('Categories') }}</span></a></li>
+                          <li><a href="{{route('categories_wise_product_discount')}}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Feather Icon">{{ translate('Categories') }}</span></a></li>
+                      </ul>
+                  </li>
+                  <li><a href="{{route('attributes.index')}}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="{{ translate('Attributes') }}">{{ translate('Attributes') }}</span></a></li>
+                  <li><a href="{{route('attributes.index')}}"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="{{ translate('Attributes') }}">{{ translate('Brands') }}</span></a></li>
+              </ul>
+          </li>
+
             <li><a href="page1.html">
-                <img src="assets/img/svg/cube.png" alt="">
-                <span class="menu-title" data-i18n="Page1">Products</span></a>
-            </li>
-            <li><a href="page1.html">
-                <img src="assets/img/svg/bag.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/bag.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Orders</span></a>
             </li>
             <li class="has-sub nav-item">
-                <a href="javascript:;"><img src="assets/img/svg/add_user.png" alt=""><span class="menu-title" data-i18n="Page1">Admin & Permissions</span></a>
+                <a href="javascript:;"><img src="{{ asset('assets/img') }}/svg/add_user.png" alt=""><span class="menu-title" data-i18n="Page1">Admin & Permissions</span></a>
                 <ul class="menu-content">
                     <li><a href="admin_users.php"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">Admins List</span></a></li>
                     <li><a href="add_role.php"><i class="ft-arrow-right submenu-icon"></i><span class="menu-item" data-i18n="Basic">Add New Role</span></a></li>
@@ -58,19 +81,19 @@
                 </ul>
             </li>
             <li><a href="page1.html">
-                <img src="assets/img/svg/users.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/users.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Customer</span></a>
             </li>
             <li><a href="page1.html">
-                <img src="assets/img/svg/receipt.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/receipt.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Invoices</span></a>
             </li>
             <li><a href="page1.html">
-                <img src="assets/img/svg/shop.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/shop.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Inventory</span></a>
             </li>
             <li><a href="page1.html">
-                <img src="assets/img/svg/badge.png" alt="">
+                <img src="{{ asset('assets/img') }}/svg/badge.png" alt="">
                 <span class="menu-title" data-i18n="Page1">Packages</span></a>
             </li>
           </ul>

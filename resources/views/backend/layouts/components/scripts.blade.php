@@ -1,5 +1,6 @@
 <div class="sidenav-overlay"></div>
 <div class="drag-target"></div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="{{ asset('assets') }}/vendors/js/vendors.min.js"></script>
 <script src="{{ asset('assets') }}/vendors/js/switchery.min.js"></script>
 <script src="{{ asset('assets') }}/js/core/app-menu.js"></script>
@@ -8,18 +9,9 @@
 <script src="{{ asset('assets') }}/js/customizer.js"></script>
 <script src="{{ asset('assets') }}/js/scroll-top.js"></script>
 <script src="{{ asset('assets') }}/js/scripts.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
-<script>
-  // Disable autoDiscover to manually configure
-  Dropzone.autoDiscover = false;
-
-  new Dropzone("#customDropzone", {
-    url: "/upload", // change to your actual endpoint
-    maxFilesize: 5, // in MB
-    acceptedFiles: ".jpg,.png,.pdf,.doc,.docx,.xls,.xlsx",
-    addRemoveLinks: true,
-  });
-</script>
+<script src="{{ asset('assets') }}/js/vendors.js"></script>
+<script src="{{ asset('assets') }}/js/aiz-core.js?v={{ rand(1000,9999) }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
   const ctx = document.getElementById('vendorPerformanceChart').getContext('2d');

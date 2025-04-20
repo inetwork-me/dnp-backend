@@ -1172,7 +1172,7 @@ if (!function_exists('uploaded_asset')) {
         if (($asset = Upload::find($id)) != null) {
             return $asset->external_link == null ? my_asset($asset->file_name) : $asset->external_link;
         }
-        return static_asset('assets/img/placeholder.jpg');
+        return asset('assets/img/placeholder.jpg');
     }
 }
 
@@ -1190,7 +1190,7 @@ if (!function_exists('my_asset')) {
             return Storage::disk(config('filesystems.default'))->url($path);
         }
 
-        return app('url')->asset('public/' . $path, $secure);
+        return app('url')->asset($path, $secure);
     }
 }
 
@@ -1204,7 +1204,7 @@ if (!function_exists('static_asset')) {
      */
     function static_asset($path, $secure = null)
     {
-        return app('url')->asset('public/' . $path, $secure);
+        return app('url')->asset($path, $secure);
     }
 }
 
@@ -1234,7 +1234,7 @@ if (!function_exists('getFileBaseURL')) {
             return env(Str::upper(env('FILESYSTEM_DRIVER')) . '_URL') . '/';
         }
 
-        return getBaseURL() . 'public/';
+        return getBaseURL();
     }
 }
 
