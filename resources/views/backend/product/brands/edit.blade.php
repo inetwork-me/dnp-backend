@@ -1,25 +1,25 @@
 @extends('backend.layouts.app')
 
+@section('title')
+{{ translate('Update Brand') }}
+@endsection
+
 @section('content')
 
-<div class="aiz-titlebar text-left mt-2 mb-3">
-    <h5 class="mb-0 h6">{{translate('Brand Information')}}</h5>
-</div>
-
-<div class="col-lg-8 mx-auto">
-    <div class="card">
-        <div class="card-body p-0">
-            <ul class="nav nav-tabs nav-fill language-bar">
-  				@foreach (get_all_active_language() as $key => $language)
-  					<li class="nav-item">
-  						<a class="nav-link text-reset @if ($language->code == $lang) active @endif py-3" href="{{ route('brands.edit', ['id'=>$brand->id, 'lang'=> $language->code] ) }}">
-  							<img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" height="11" class="mr-1">
-  							<span>{{ $language->name }}</span>
-  						</a>
-  					</li>
-	            @endforeach
-  			</ul>
-            <form class="p-4" action="{{ route('brands.update', $brand->id) }}" method="POST" enctype="multipart/form-data">
+<div class="row">
+	<div class="col-xl-12 col-lg-6 col-12">
+        <ul class="nav nav-tabs nav-fill language-bar">
+            @foreach (get_all_active_language() as $key => $language)
+                <li class="nav-item">
+                    <a class="nav-link text-reset @if ($language->code == $lang) active @endif py-3" href="{{ route('brands.edit', ['id'=>$brand->id, 'lang'=> $language->code] ) }}">
+                        <img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" height="11" class="mr-1">
+                        <span>{{ $language->name }}</span>
+                    </a>
+                </li>
+          @endforeach
+        </ul>
+		<x-form-card title="{{ translate('Update Brand') }}">
+			<form class="p-4" action="{{ route('brands.update', $brand->id) }}" method="POST" enctype="multipart/form-data">
                 <input name="_method" type="hidden" value="PATCH">
                 <input type="hidden" name="lang" value="{{ $lang }}">
                 @csrf
@@ -66,8 +66,8 @@
                     <button type="submit" class="btn btn-primary">{{translate('Save')}}</button>
                 </div>
             </form>
-        </div>
-    </div>
+		</x-form-card>
+	</div>
 </div>
 
 @endsection

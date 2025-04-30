@@ -433,20 +433,20 @@ class ProductController extends Controller
         $product->last_viewed_products()->delete();
         $product->flash_deal_products()->delete();
 
-        if (Product::destroy($id)) {
-            Cart::where('product_id', $id)->delete();
-            Wishlist::where('product_id', $id)->delete();
+        // if (Product::destroy($id)) {
+        //     Cart::where('product_id', $id)->delete();
+        //     Wishlist::where('product_id', $id)->delete();
 
-            flash(translate('Product has been deleted successfully'))->success();
+        //     flash(translate('Product has been deleted successfully'))->success();
 
-            Artisan::call('view:clear');
-            Artisan::call('cache:clear');
+        //     Artisan::call('view:clear');
+        //     Artisan::call('cache:clear');
 
-            return back();
-        } else {
-            flash(translate('Something went wrong'))->error();
-            return back();
-        }
+        //     return back();
+        // } else {
+        //     flash(translate('Something went wrong'))->error();
+        //     return back();
+        // }
     }
 
     public function bulk_product_delete(Request $request)
@@ -661,5 +661,63 @@ class ProductController extends Controller
     {
         dd('In progress');
         return $this->productService->setCategoryWiseDiscount($request->except(['_token']));
+    }
+
+    public function makeVat()
+    {
+        $productTax = \DB::table('product_taxes')->first();
+        $vat = $productTax ? $productTax->tax : 0;
+        $tax_type = $productTax ? $productTax->tax_type : 'percent';
+        return view('backend.product.products.vats', compact('vat', 'tax_type'));
+    }
+
+    public function updateVate(Request $request)
+    {
+        // Validate the input
+        $request->validate([
+            'vat' => 'required|numeric|min:0|max:100', // Adjust the validation rules as needed
+        ]);
+
+        try {
+            $products = Product::all();
+
+            foreach ($products as $product) {
+                $productTaxExists = \DB::table('product_taxes')
+                    ->where('product_id', $product->id)
+                    ->exists();
+
+                if (!$productTaxExists) {
+                    \DB::table('product_taxes')->insert([
+                        'product_id' => $product->id,
+                        'tax_id' => 3,
+                        'tax' => $request->vat,
+                        'tax_type' => $request->tax_type,
+                        'created_at' => now(),  // Optionally add timestamps
+                        'updated_at' => now()
+                    ]);
+                } else {
+                    \DB::table('product_taxes')
+                        ->where('product_id', $product->id)
+                        ->update([
+                            'tax' => $request->vat,
+                            'tax_type' => $request->tax_type,
+                            'updated_at' => now()
+                        ]);
+                }
+            }
+
+            // Use parameter binding to prevent SQL injection
+            \DB::update('UPDATE product_taxes SET tax = ?, tax_type = ?', [$request->vat, $request->tax_type]);
+
+            flash(translate('Vat Updated successfully'))->success();
+        } catch (\Exception $e) {
+            // Handle exceptions (log the error, show an error message, etc.)
+            flash(translate('Failed to update VAT'))->error();
+        }
+
+        Artisan::call('view:clear');
+        Artisan::call('cache:clear');
+
+        return back();
     }
 }

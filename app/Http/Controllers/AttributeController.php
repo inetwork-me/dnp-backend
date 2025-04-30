@@ -13,17 +13,17 @@ use Str;
 class AttributeController extends Controller
 {
     public function __construct() {
-        // $this->middleware(['permission:view_product_attributes'])->only('index');
-        // $this->middleware(['permission:edit_product_attribute'])->only('edit');
-        // $this->middleware(['permission:delete_product_attribute'])->only('destroy');
+        $this->middleware(['permission:view_product_attributes'])->only('index');
+        $this->middleware(['permission:edit_product_attribute'])->only('edit');
+        $this->middleware(['permission:delete_product_attribute'])->only('destroy');
 
-        // $this->middleware(['permission:view_product_attribute_values'])->only('show');
-        // $this->middleware(['permission:edit_product_attribute_value'])->only('edit_attribute_value');
-        // $this->middleware(['permission:delete_product_attribute_value'])->only('destroy_attribute_value');
+        $this->middleware(['permission:view_product_attribute_values'])->only('show');
+        $this->middleware(['permission:edit_product_attribute_value'])->only('edit_attribute_value');
+        $this->middleware(['permission:delete_product_attribute_value'])->only('destroy_attribute_value');
 
-        // $this->middleware(['permission:view_colors'])->only('colors');
-        // $this->middleware(['permission:edit_color'])->only('edit_color');
-        // $this->middleware(['permission:delete_color'])->only('destroy_color');
+        $this->middleware(['permission:view_colors'])->only('colors');
+        $this->middleware(['permission:edit_color'])->only('edit_color');
+        $this->middleware(['permission:delete_color'])->only('destroy_color');
     }
 
     /**

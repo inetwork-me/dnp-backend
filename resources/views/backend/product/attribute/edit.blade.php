@@ -5,7 +5,7 @@
         <h5 class="mb-0 h6">{{ translate('Attribute Information') }}</h5>
     </div>
 
-    <div class="col-lg-8 mx-auto">
+    <div class="col-lg-12 mx-auto">
         <div class="card">
             <div class="card-body p-0">
                 <ul class="nav nav-tabs nav-fill language-bar">

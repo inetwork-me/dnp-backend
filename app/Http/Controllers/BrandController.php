@@ -13,11 +13,11 @@ use Maatwebsite\Excel\Facades\Excel;
 class BrandController extends Controller
 {
     public function __construct() {
-        // $this->middleware(['permission:view_all_brands'])->only('index');
-        // $this->middleware(['permission:add_brand'])->only('create');
-        // $this->middleware(['permission:edit_brand'])->only('edit');
-        // $this->middleware(['permission:delete_brand'])->only('destroy');
-        // $this->middleware(['permission:brand_bulk_upload'])->only('upload');
+        $this->middleware(['permission:view_all_brands'])->only('index');
+        $this->middleware(['permission:add_brand'])->only('create');
+        $this->middleware(['permission:edit_brand'])->only('edit');
+        $this->middleware(['permission:delete_brand'])->only('destroy');
+        $this->middleware(['permission:brand_bulk_upload'])->only('upload');
     }
     /**
      * Display a listing of the resource.
@@ -43,6 +43,7 @@ class BrandController extends Controller
      */
     public function create()
     {
+        return view('backend.product.brands.create');
     }
 
     /**

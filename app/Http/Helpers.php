@@ -42,6 +42,7 @@ use App\Models\BusinessSetting;
 use App\Models\CustomerPackage;
 use App\Models\CustomerProduct;
 use App\Utility\SendSMSUtility;;
+
 use App\Models\AuctionProductBid;
 use App\Models\ManualPaymentMethod;
 use App\Models\SellerPackagePayment;
@@ -51,6 +52,7 @@ use App\Http\Controllers\AffiliateController;
 use App\Http\Controllers\ClubPointController;
 use App\Http\Controllers\CommissionController;
 use AizPackages\ColorCodeConverter\Services\ColorCodeConverter;
+use App\Helpers\MenuHelper;
 use App\Models\CustomerPackagePayment;
 use App\Models\EmailTemplate;
 use App\Models\FlashDealProduct;
@@ -64,6 +66,14 @@ use App\Models\PreorderProduct;
 use App\Utility\EmailUtility;
 
 //sensSMS function for OTP
+
+if (!function_exists('render_menu')) {
+    function render_menu() {
+        return MenuHelper::renderMenu(config('menu'));
+    }
+}
+
+
 if (!function_exists('sendSMS')) {
     function sendSMS($to, $from, $text, $template_id)
     {
@@ -80,6 +90,43 @@ if (!function_exists('areActiveRoutes')) {
         }
     }
 }
+
+if (!function_exists('get_product_commission')) {
+    function get_product_commission($product_id = null)
+    {
+        if ($product_id != null) {
+            $commission = \DB::select('select * from product_commissions where product_id = ' . $product_id);
+            if ($commission) {
+                return $commission[0]->commission;
+            } else {
+                $firstCommission = \DB::select('select * from product_commissions limit 1');
+                return $firstCommission ? $firstCommission[0]->commission : 0;
+            }
+        }else{
+            $firstCommission = \DB::select('select * from product_commissions limit 1');
+            return $firstCommission ? $firstCommission[0]->commission : 0;
+        }
+    }
+}
+
+if (!function_exists('get_product_vat')) {
+    function get_product_vat($product_id = null)
+    {
+        if ($product_id != null) {
+            $vat = \DB::select('select * from product_taxes where product_id = ' . $product_id);
+            if ($vat) {
+                return $vat[0]->tax;
+            } else {
+                $firstVat = \DB::select('select * from product_taxes limit 1');
+                return $firstVat ? $firstVat[0]->tax : 0;
+            }
+        } else {
+            $firstVat = \DB::select('select * from product_taxes limit 1');
+            return $firstVat ? $firstVat[0]->tax : 0;
+        }
+    }
+}
+
 
 //highlights the selected navigation on frontend
 if (!function_exists('areActiveRoutesHome')) {
@@ -992,7 +1039,7 @@ if (!function_exists('carrier_base_price')) {
 
 //return seller wise carrier list
 if (!function_exists('seller_base_carrier_list')) {
-    function seller_base_carrier_list($owner_id, $userId = null, $tempUserId= null, $shipping_info = null)
+    function seller_base_carrier_list($owner_id, $userId = null, $tempUserId = null, $shipping_info = null)
     {
         $carrier_list = array();
         $carts = ($userId != null) ? Cart::where('user_id', $userId)->active()->get() : Cart::where('temp_user_id', $tempUserId)->active()->get();
@@ -1361,8 +1408,8 @@ if (!function_exists('checkout_done')) {
             $order->save();
 
             // Order paid notification to Customer, Seller, & Admin
-            EmailUtility::order_email($order, 'paid'); 
-            
+            EmailUtility::order_email($order, 'paid');
+
             try {
                 NotificationUtility::sendOrderPlacedNotification($order);
                 calculateCommissionAffilationClubPoint($order);
@@ -1397,12 +1444,11 @@ if (!function_exists('order_re_payment_done')) {
         $order->save();
         calculateCommissionAffilationClubPoint($order);
 
-        if($order->notified == 0){
+        if ($order->notified == 0) {
             NotificationUtility::sendOrderPlacedNotification($order);
             $order->notified = 1;
             $order->save();
         }
-
     }
 }
 
@@ -1864,7 +1910,7 @@ if (!function_exists('lastViewedProducts')) {
         $lastViewedProduct->touch();
 
         $lastViewedProductsCount = LastViewedProduct::where('user_id', $user_id)->count();
-        if($lastViewedProductsCount > 12) {
+        if ($lastViewedProductsCount > 12) {
             $deleteRow = $lastViewedProductsCount - 12;
             LastViewedProduct::where('user_id', $user_id)->take($deleteRow)->delete();
         }
@@ -1877,28 +1923,28 @@ if (!function_exists('getLastViewedProducts')) {
     {
         $verified_sellers = verified_sellers_id();
 
-        $lastViewedProduct = LastViewedProduct::where('user_id', auth()->user()->id)->orderBy('updated_at','desc')
-                                ->whereIn("product_id", function ($query) use ($verified_sellers) {
-                                    $query->select('id')
-                                        ->from('products')
-                                        ->where('approved', '1')->where('published', 1)
-                                        ->when(!addon_is_activated('wholesale') ,function ($q1){
-                                            $q1->where('wholesale_product', 0);
-                                        })
-                                        ->when(!addon_is_activated('auction') ,function ($q2){
-                                            $q2->where('auction_product', 0);
-                                        })
-                                        ->when(get_setting('vendor_system_activation') == 0 ,function ($q3){
-                                            $q3->where('added_by', 'admin');
-                                        })
-                                        ->when(get_setting('vendor_system_activation') == 1 ,function ($q4) use ($verified_sellers){
-                                            $q4->where(function ($p1) use ($verified_sellers) {
-                                                $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
-                                                    $p2->whereIn('user_id', $verified_sellers);
-                                                });
-                                            });
-                                        });
-                                })->get();
+        $lastViewedProduct = LastViewedProduct::where('user_id', auth()->user()->id)->orderBy('updated_at', 'desc')
+            ->whereIn("product_id", function ($query) use ($verified_sellers) {
+                $query->select('id')
+                    ->from('products')
+                    ->where('approved', '1')->where('published', 1)
+                    ->when(!addon_is_activated('wholesale'), function ($q1) {
+                        $q1->where('wholesale_product', 0);
+                    })
+                    ->when(!addon_is_activated('auction'), function ($q2) {
+                        $q2->where('auction_product', 0);
+                    })
+                    ->when(get_setting('vendor_system_activation') == 0, function ($q3) {
+                        $q3->where('added_by', 'admin');
+                    })
+                    ->when(get_setting('vendor_system_activation') == 1, function ($q4) use ($verified_sellers) {
+                        $q4->where(function ($p1) use ($verified_sellers) {
+                            $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
+                                $p2->whereIn('user_id', $verified_sellers);
+                            });
+                        });
+                    });
+            })->get();
 
         return $lastViewedProduct;
     }
@@ -1910,17 +1956,16 @@ if (!function_exists('get_frequently_bought_products')) {
     {
         $productSelectionType = $product->frequently_bought_selection_type;
         $fqbProducts = [];
-        if($productSelectionType == 'product'){
+        if ($productSelectionType == 'product') {
             $fqbProductIds = $product->frequently_bought_products()->where('category_id', null)->pluck('frequently_bought_product_id')->toArray();
             $fqbProducts = filter_products(Product::whereIn('id', $fqbProductIds))->get();
-        }
-        elseif($productSelectionType == 'category'){
-            $fqb_product_category = $product->frequently_bought_products()->where('category_id','!=', null)->first();
+        } elseif ($productSelectionType == 'category') {
+            $fqb_product_category = $product->frequently_bought_products()->where('category_id', '!=', null)->first();
             $fqbCategoryID = $fqb_product_category != null ? $fqb_product_category->category_id : null;
-            if($fqbCategoryID != null){
+            if ($fqbCategoryID != null) {
                 $category = Category::with('childrenCategories')->find($fqbCategoryID);
 
-                $fqbProducts = $category->products()->where('id','!=',$product->id);
+                $fqbProducts = $category->products()->where('id', '!=', $product->id);
                 $fqbProducts = $product->added_by == 'admin' ? $fqbProducts->where('added_by', 'admin') : $fqbProducts->where('user_id', $product->user_id);
 
                 $fqbProducts = filter_products($fqbProducts)->orderByRaw('RAND()')->take(10)->get();
@@ -2329,14 +2374,14 @@ if (!function_exists('get_non_viewed_preorder_conversations')) {
         $userId = in_array(auth()->user()->user_type, ['admin', 'staff']) ?  get_admin()->id : auth()->id();
 
         $numberOfUnreadMsg = PreorderConversationMessage::where('receiver_viewed', 0)
-        ->whereHas('preorderConversationThread', function ($query) use ($userId) {
-            $query->where(function ($query) use ($userId) {
-                $query->where('sender_id', $userId)
-                    ->orWhere('receiver_id', $userId);
-            });
-        })
-        ->where('sender_id', '!=', $userId)
-        ->count();
+            ->whereHas('preorderConversationThread', function ($query) use ($userId) {
+                $query->where(function ($query) use ($userId) {
+                    $query->where('sender_id', $userId)
+                        ->orWhere('receiver_id', $userId);
+                });
+            })
+            ->where('sender_id', '!=', $userId)
+            ->count();
 
         return $numberOfUnreadMsg;
     }
@@ -2404,10 +2449,10 @@ if (!function_exists('ifUserHasWelcomeCouponAndNotUsed')) {
     {
         $user = auth()->user();
         $userCoupon = $user->userCoupon;
-        if($userCoupon){
-            if($userCoupon->expiry_date >=strtotime(date('d-m-Y H:i:s'))){
-                $couponUse = $userCoupon->coupon->couponUsages->where('user_id',$user->id)->first();
-                if(!$couponUse){
+        if ($userCoupon) {
+            if ($userCoupon->expiry_date >= strtotime(date('d-m-Y H:i:s'))) {
+                $couponUse = $userCoupon->coupon->couponUsages->where('user_id', $user->id)->first();
+                if (!$couponUse) {
                     return $userCoupon;
                 }
             }
@@ -2447,7 +2492,7 @@ if (!function_exists('get_pos_user_cart')) {
     {
         $cart               = [];
         $authUser           = auth()->user();
-        $owner_id           = in_array($authUser->user_type, ['admin','staff']) ? get_admin()->id : $authUser->id;
+        $owner_id           = in_array($authUser->user_type, ['admin', 'staff']) ? get_admin()->id : $authUser->id;
 
         if ($sessionUserID == null) {
             $sessionUserID = Session::has('pos.user_id') ? Session::get('pos.user_id') : null;
@@ -2520,19 +2565,19 @@ if (!function_exists('get_activate_payment_methods')) {
     function get_activate_payment_methods()
     {
         $payment_methods = PaymentMethod::where('active', 1)
-                                        ->Where(function($query){
-                                            $query->whereNull('addon_identifier')
-                                            ->orWhere(function($q){
-                                                if(addon_is_activated('paytm')){
-                                                    $q->where('addon_identifier', 'paytm');
-                                                }
-                                            })
-                                            ->orWhere(function($q){
-                                                if(addon_is_activated('african_pg')){
-                                                    $q->where('addon_identifier', 'african_pg');
-                                                }
-                                            });
-                                        });
+            ->Where(function ($query) {
+                $query->whereNull('addon_identifier')
+                    ->orWhere(function ($q) {
+                        if (addon_is_activated('paytm')) {
+                            $q->where('addon_identifier', 'paytm');
+                        }
+                    })
+                    ->orWhere(function ($q) {
+                        if (addon_is_activated('african_pg')) {
+                            $q->where('addon_identifier', 'african_pg');
+                        }
+                    });
+            });
         return $payment_methods->get();
     }
 }
@@ -2558,28 +2603,28 @@ if (!function_exists('get_wishlists')) {
     {
         $verified_sellers = verified_sellers_id();
         $wishlists = Wishlist::where('user_id', auth()->user()->id)
-                    ->whereIn("product_id", function ($query) use ($verified_sellers) {
-                        $query->select('id')
-                            ->from('products')
-                            ->where('approved', '1')->where('published', 1)
-                            ->when(!addon_is_activated('wholesale') ,function ($q1){
-                                $q1->where('wholesale_product', 0);
-                            })
-                            ->when(!addon_is_activated('auction') ,function ($q2){
-                                $q2->where('auction_product', 0);
-                            })
-                            ->when(get_setting('vendor_system_activation') == 0 ,function ($q3){
-                                $q3->where('added_by', 'admin');
-                            })
-                            ->when(get_setting('vendor_system_activation') == 1 ,function ($q4) use ($verified_sellers){
-                                $q4->where(function ($p1) use ($verified_sellers) {
-                                    $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
-                                        $p2->whereIn('user_id', $verified_sellers);
-                                    });
-                                });
-                            });
+            ->whereIn("product_id", function ($query) use ($verified_sellers) {
+                $query->select('id')
+                    ->from('products')
+                    ->where('approved', '1')->where('published', 1)
+                    ->when(!addon_is_activated('wholesale'), function ($q1) {
+                        $q1->where('wholesale_product', 0);
                     })
-                    ->latest();
+                    ->when(!addon_is_activated('auction'), function ($q2) {
+                        $q2->where('auction_product', 0);
+                    })
+                    ->when(get_setting('vendor_system_activation') == 0, function ($q3) {
+                        $q3->where('added_by', 'admin');
+                    })
+                    ->when(get_setting('vendor_system_activation') == 1, function ($q4) use ($verified_sellers) {
+                        $q4->where(function ($p1) use ($verified_sellers) {
+                            $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
+                                $p2->whereIn('user_id', $verified_sellers);
+                            });
+                        });
+                    });
+            })
+            ->latest();
         return $wishlists;
     }
 }
@@ -2597,9 +2642,9 @@ if (!function_exists('get_email_template_data')) {
 if (!function_exists('deleteProductReview')) {
     function deleteProductReview($product)
     {
-        if($product->added_by == 'seller' ){
+        if ($product->added_by == 'seller') {
             $seller = $product->user->shop;
-            foreach($product->reviews as $review){
+            foreach ($product->reviews as $review) {
                 $seller = $seller->fresh();
                 $seller->rating = (($seller->rating * $seller->num_of_reviews) - $product->rating) / max(1, $seller->num_of_reviews - 1);
                 $seller->num_of_reviews -= 1;
@@ -2762,21 +2807,22 @@ if (!function_exists('timezones')) {
 }
 
 
-function formatToArray($input) {
+function formatToArray($input)
+{
     // Remove extra quotes from the string
     $cleanedString = trim($input, '"');
-    
+
     // Split the string by commas to get each element
     $values = explode(',', $cleanedString);
-    
+
     // Filter out "NaN" and non-numeric values, convert to integers
-    $result = array_filter($values, function($value) {
+    $result = array_filter($values, function ($value) {
         return is_numeric($value);
     });
 
     // Convert numeric values to integers
     $result = array_map('intval', $result);
-    
+
     return $result;
 }
 
@@ -2785,10 +2831,10 @@ function formatToArray($input) {
 if (!function_exists('preorder_product_availability_check')) {
     function preorder_product_availability_check($product)
     {
-        if($product->is_available){
+        if ($product->is_available) {
             return true;
         }
-        $publishDate = Carbon::parse($product->available_date); 
+        $publishDate = Carbon::parse($product->available_date);
         if (Carbon::today()->greaterThanOrEqualTo($publishDate)) {
             return true;
         }
@@ -2802,11 +2848,11 @@ if (!function_exists('preorder_fill_color')) {
     function preorder_fill_color($current_order_status, $previous_order_status = 0)
     {
         $color = match (true) {
-            $current_order_status === 2 => '#28a745', 
-            $current_order_status === 3 => '#dc3545', 
-            $current_order_status === 1 || $previous_order_status == 2 => '#FF6002', 
-            $current_order_status === 0 => '#9d9da6', 
-            default => '#000000', 
+            $current_order_status === 2 => '#28a745',
+            $current_order_status === 3 => '#dc3545',
+            $current_order_status === 1 || $previous_order_status == 2 => '#FF6002',
+            $current_order_status === 0 => '#9d9da6',
+            default => '#000000',
         };
         return $color;
     }
@@ -2911,7 +2957,7 @@ if (!function_exists('preorder_status_show')) {
                 $status_name = translate('Preorder Request');
                 break;
             default:
-            $status_name = '';
+                $status_name = '';
                 break;
         }
 
@@ -2923,24 +2969,24 @@ if (!function_exists('is_review_given')) {
     function is_review_given($order)
     {
 
-         $review = PreorderProductReview::where('user_id', auth()->id())->where('preorder_product_id', $order->preorder_product->id)->first();
-         if($review){
+        $review = PreorderProductReview::where('user_id', auth()->id())->where('preorder_product_id', $order->preorder_product->id)->first();
+        if ($review) {
             return '#28a745';
-         }
-         return '#9d9da6';
+        }
+        return '#9d9da6';
     }
 }
 // preorder_discount_price
 if (!function_exists('preorder_discount_price')) {
     function preorder_discount_price($product)
     {
-        if($product->discount_start_date != null && (strtotime(date('d-m-Y')) > $product->discount_start_date || strtotime(date('d-m-Y')) < $product->discount_end_date)){
+        if ($product->discount_start_date != null && (strtotime(date('d-m-Y')) > $product->discount_start_date || strtotime(date('d-m-Y')) < $product->discount_end_date)) {
             $discount = $product->discount;
-            $discounted_price = $product->discount_type = 'flat' ? $product->unit_price - $discount : $product->unit_price - ((($product->unit_price * $discount) / 100)) ;
-        }else{
+            $discounted_price = $product->discount_type = 'flat' ? $product->unit_price - $discount : $product->unit_price - ((($product->unit_price * $discount) / 100));
+        } else {
             $discounted_price = $product->unit_price;
         }
-         return $discounted_price;
+        return $discounted_price;
     }
 }
 
@@ -2949,10 +2995,10 @@ if (!function_exists('preorder_payment_type')) {
     function preorder_payment_type($order)
     {
         $payment_type = translate('Manual');
-        if($order->final_order_status != 0){
+        if ($order->final_order_status != 0) {
             $payment_type = translate('Final Payment');
         }
-        if($order->prepayment != null){
+        if ($order->prepayment != null) {
             $payment_type = translate('Prepayment');
         }
 
@@ -2975,7 +3021,6 @@ if (!function_exists('filter_preorder_product')) {
         } else {
             return $products;
         }
-
     }
 }
 
@@ -2991,8 +3036,8 @@ function filter_single_preorder_product($product)
         }
         // Return the product if the user is not a seller (e.g., admin)
         return $product;
-    } 
-    
+    }
+
     // If vendor system is not activated, return the product directly
     return $product;
 }

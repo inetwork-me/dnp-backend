@@ -13,59 +13,8 @@
 <script src="{{ asset('assets') }}/js/aiz-core.js?v={{ rand(1000,9999) }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<script>
-  const ctx = document.getElementById('vendorPerformanceChart').getContext('2d');
 
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      datasets: [
-        {
-          label: 'Products Sales',
-          data: [20, 35, 60, 70, 45, 72, 35, 40, 55, 40, 45, 70],
-          borderColor: '#7e22ce',
-          backgroundColor: 'rgba(126, 34, 206, 0.1)',
-          tension: 0.4,
-          pointBackgroundColor: '#7e22ce',
-          fill: true
-        },
-        {
-          label: 'Clients Feedback',
-          data: [10, 30, 50, 30, 65, 12, 28, 44, 66, 55, 48, 50],
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          tension: 0.4,
-          pointBackgroundColor: '#22c55e',
-          fill: true
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        tooltip: {
-          mode: 'index',
-          intersect: false
-        },
-        legend: {
-          position: 'top'
-        }
-      },
-      interaction: {
-        mode: 'nearest',
-        axis: 'x',
-        intersect: false
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100
-        }
-      }
-    }
-  });
-</script>
+
 
 <script>
   function togglePassword() {

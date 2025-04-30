@@ -13,10 +13,10 @@ use Illuminate\Support\Str;
 class CategoryController extends Controller
 {
     public function __construct() {
-        // $this->middleware(['permission:view_product_categories'])->only('index');
-        // $this->middleware(['permission:add_product_category'])->only('create');
-        // $this->middleware(['permission:edit_product_category'])->only('edit');
-        // $this->middleware(['permission:delete_product_category'])->only('destroy');
+        $this->middleware(['permission:view_product_categories'])->only('index');
+        $this->middleware(['permission:add_product_category'])->only('create');
+        $this->middleware(['permission:edit_product_category'])->only('edit');
+        $this->middleware(['permission:delete_product_category'])->only('destroy');
     }
 
     public function index(Request $request)

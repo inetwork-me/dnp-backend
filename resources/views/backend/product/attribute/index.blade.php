@@ -51,7 +51,7 @@
                                     <td>
                                         @foreach ($attribute->attribute_values as $key => $value)
                                             <span
-                                                class="badge badge-inline badge-md bg-light">{{ $value->value }}</span>
+                                                class="badge badge-inline badge-md bg-primary">{{ $value->value }}</span>
                                         @endforeach
                                     </td>
                                     <td class="text-right w-140px">

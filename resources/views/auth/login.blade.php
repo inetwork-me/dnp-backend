@@ -7,7 +7,7 @@
 @section('content')
     <div class="row m-0">
         <div class="col-lg-12 col-12 px-4 py-3">
-            <img src="{{ uploaded_asset(get_setting('site_icon')) }}" alt="{{ translate('Site Icon') }}" class="img-fit h-100">
+            <img src="{{ uploaded_asset(get_setting('site_icon')) }}" alt="{{ translate('Site Icon') }}" >
             <h4 class="mb-2 card-title">{{ translate('Login to your account') }}</h4>
             <p>{{ translate('Welcome to') }} {{ env('APP_NAME') }}</p>
             <form class="form-default" role="form" action="{{ route('login') }}" method="POST">

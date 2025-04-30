@@ -25,7 +25,7 @@ use custom-style.css
     --soft-white: #b5b5bf;
     --gray: #6c757d;
     --gray-dark: #343a40;
-    --primary: #f77b0b;
+    --primary: #37143e;
     --hov-primary: #e56f0e;
     --soft-primary: rgba(247, 123, 11, 0.15);
     --secondary: #8f97ab;
@@ -814,7 +814,7 @@ fixed-bottom 1030*/
 /* box-shadow */
 .shadow-primary ,
 .hov-shadow-primary:hover {
-    box-shadow: -5px 5px 18px rgba(1, 158, 247, 0.39);
+    box-shadow: -5px 5px 18px #5b367069;
 }
 .shadow-secondary ,
 .hov-shadow-secondary:hover {

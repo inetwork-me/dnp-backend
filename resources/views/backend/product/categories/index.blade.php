@@ -26,7 +26,7 @@
                 <div class="card-header">
                     <span>{{ translate('All Categories') }}</span>
                     <div class="gap-10">
-                        <a href="{{ route('categories.create') }}" class="btn btn-circle btn-primary">
+                        <a href="{{ route('categories.create') }}" class="btn btn-primary">
                             <span>{{ translate('Add New category') }}</span>
                         </a>
                     </div>
