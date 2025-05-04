@@ -11,15 +11,23 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link
-        href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,700,900|Montserrat:300,400,500,600,700,800,900"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,700,900|Montserrat:300,400,500,600,700,800,900" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/feather/style.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/simple-line-icons/style.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/perfect-scrollbar.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/prism.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/switchery.min.css">
+
+    @if (\App\Models\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/bootstrap-extended.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/colors.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/components.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/themes/layout-dark.css">
+    <link rel="stylesheet" href="{{ asset('assets') }}/css-rtl/plugins/switchery.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css-rtl/custom-rtl.css">
+    @else
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/bootstrap-extended.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/colors.css">
@@ -27,7 +35,12 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/themes/layout-dark.css">
     <link rel="stylesheet" href="{{ asset('assets') }}/css/plugins/switchery.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/style.css">
+    <link rel="stylesheet" href="{{ static_asset('assets/css/bootstrap-rtl.min.css') }}">
+    @endif
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- END: Custom CSS-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

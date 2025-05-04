@@ -5,5 +5,5 @@
 @endsection
 
 @section('content')
-
+    @include('backend.layouts.components.statistics')
 @endsection

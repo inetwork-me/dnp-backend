@@ -10,6 +10,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MainSettingsController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
@@ -127,7 +128,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::post('/roles/add_permission', 'add_permission')->name('roles.permission');
     });
 
-    Route::resource('profile', ProfileController::class);
+    
 
     // Main Settings
     Route::controller(MainSettingsController::class)->group(function () {
@@ -163,4 +164,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::post('/shipping_configuration/update', 'shipping_configuration_update')->name('shipping_configuration.update');
         Route::get('/order-configuration', 'order_configuration')->name('order_configuration.index');
     });
+
+    Route::get('/all-notification', [NotificationController::class, 'index'])->name('admin.all-notification');
+
+    Route::get('/clear-cache', [AdminController::class, 'clearCache'])->name('cache.clear');
+
+    Route::get('/admin-permissions', [RoleController::class, 'create_admin_permissions']);
+
+    Route::resource('profile', ProfileController::class);
 });
