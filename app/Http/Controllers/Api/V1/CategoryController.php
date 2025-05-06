@@ -38,6 +38,10 @@ class CategoryController extends Controller
 
     public function top()
     {
-        return new CategoryCollection(Category::whereIn('id', json_decode(get_setting('home_categories')))->limit(20)->get());
+        if (get_setting('home_categories') != null) {
+            return new CategoryCollection(Category::whereIn('id', json_decode(get_setting('home_categories')))->limit(20)->get());
+        }else{
+            return new CategoryCollection(Category::where('id', 0)->get());
+        }
     }
 }

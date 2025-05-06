@@ -16,8 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable, HasApiTokens, HasRoles;
 
     protected $fillable = [
-        'name', 'email', 'password', 'address', 'city', 'postal_code', 'phone', 'country', 'provider_id', 'email_verified_at', 'verification_code',
-        'otp' ,'otp_verified','get_from'
+        'name', 'email', 'password', 'address', 'city', 'postal_code', 'phone', 'country', 'provider_id', 'email_verified_at', 'verification_code','about_content'
     ];
 
     /**
@@ -29,13 +28,19 @@ class User extends Authenticatable implements MustVerifyEmail
         'password', 'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+
+    public function staff()
+    {
+        return $this->hasOne(Staff::class);
+    }
+
+    public function uploads(){
+        return $this->hasMany(Upload::class);
+    }
 }

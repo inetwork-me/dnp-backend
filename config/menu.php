@@ -37,14 +37,7 @@ return [
         'children' => [
             ['title' => 'Create New Product', 'route' => 'products.create', 'is_route' => true],
             ['title' => 'All Products', 'route' => 'products.all', 'is_route' => true],
-            [
-                'title' => 'Categories',
-                'children' => [
-                    ['title' => 'Add Category', 'route' => 'categories.create', 'is_route' => true],
-                    ['title' => 'Categories List', 'route' => 'categories.index', 'is_route' => true],
-                    ['title' => 'Category Discounts', 'route' => 'categories_wise_product_discount', 'is_route' => true],
-                ]
-            ],
+            ['title' => 'Categories', 'route' => 'categories.index', 'is_route' => true],
             ['title' => 'Attributes', 'route' => 'attributes.index', 'is_route' => true],
             ['title' => 'VAT & Tax', 'route' => 'vats.make.products', 'is_route' => true],
         ]
@@ -95,5 +88,14 @@ return [
         'icon' => 'badge.png',
         'route' => 'page1.html',
         'is_route' => false,
+    ],
+    [
+        'title' => 'Main Settings',
+        'icon' => 'setting.png',
+        'children' => [
+            ['title' => 'Website Header', 'route' => 'website.header', 'is_route' => true],
+            ['title' => 'Website Footer', 'route' => 'website.footer', 'is_route' => true],
+            ['title' => 'Dashboard', 'route' => 'website.appearance', 'is_route' => true],
+        ]
     ],
 ];

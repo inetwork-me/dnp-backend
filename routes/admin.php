@@ -7,14 +7,17 @@ use App\Http\Controllers\AttributeController;
 use App\Http\Controllers\BlogCategoryController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\BusinessSettingsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MainSettingsController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\WebsiteController;
 
 Route::controller(AizUploadController::class)->group(function () {
     Route::post('/aiz-uploader', 'show_uploader');
@@ -172,4 +175,38 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
     Route::get('/admin-permissions', [RoleController::class, 'create_admin_permissions']);
 
     Route::resource('profile', ProfileController::class);
+
+
+    // Business Settings
+    Route::controller(BusinessSettingsController::class)->group(function () {
+        Route::post('/business-settings/update', 'update')->name('business_settings.update');
+        Route::post('/business-settings/update/activation', 'updateActivationSettings')->name('business_settings.update.activation');
+        Route::post('/payment-activation', 'updatePaymentActivationSettings')->name('payment.activation');
+        Route::get('/general-setting', 'general_setting')->name('general_setting.index');
+        Route::get('/file_system', 'file_system')->name('file_system.index');
+    });
+
+    // website setting
+    Route::group(['prefix' => 'website'], function() {
+        Route::controller(WebsiteController::class)->group(function () {
+            Route::get('/footer', 'footer')->name('website.footer');
+            Route::get('/header', 'header')->name('website.header');
+            Route::get('/appearance', 'appearance')->name('website.appearance');
+            Route::get('/select-homepage', 'select_homepage')->name('website.select-homepage');
+            Route::get('/authentication-layout-settings', 'authentication_layout_settings')->name('website.authentication-layout-settings');
+            Route::get('/pages', 'pages')->name('website.pages');
+        });
+
+        // Custom Page
+        Route::resource('custom-pages', PageController::class);
+        Route::controller(PageController::class)->group(function () {
+            Route::get('/custom-pages/sections/{id}', 'sections')->name('custom-pages.sections');
+            Route::get('/custom-pages/section-create/{id}', 'sectionCreate')->name('custom-pages.sectionCreate');
+            Route::post('/custom-pages/section-store/{id}', 'sectionStore')->name('custom-pages.sectionStore');
+            Route::get('/custom-pages/section-delete/{id}', 'sectionDelete')->name('custom-pages.sectionDelete');
+            Route::post('/custom-pages/section-update/{id}', 'sectionUpdate')->name('custom-pages.sectionUpdate');
+            Route::get('/custom-pages/edit/{id}', 'edit')->name('custom-pages.edit');
+            Route::get('/custom-pages/destroy/{id}', 'destroy')->name('custom-pages.destroy');
+        });
+    });
 });

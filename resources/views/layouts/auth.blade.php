@@ -1,77 +1,132 @@
 <!DOCTYPE html>
-<html class="loading" lang="en">
-<!-- BEGIN : Head-->
-
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <title>@yield('title')</title>
-    <link rel="icon" href="{{ uploaded_asset(get_setting('site_icon')) }}">
-    <link rel="apple-touch-icon" href="{{ uploaded_asset(get_setting('site_icon')) }}">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-touch-fullscreen" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link
-        href="https://fonts.googleapis.com/css?family=Rubik:300,400,500,700,900%7CMontserrat:300,400,500,600,700,800,900"
-        rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/feather/style.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/simple-line-icons/style.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/fonts/font-awesome/css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/perfect-scrollbar.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/prism.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/vendors/css/switchery.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/bootstrap-extended.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/colors.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/components.css">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets') }}/css/themes/layout-dark.css">
-    <link rel="stylesheet" href="{{ asset('assets') }}/css/plugins/switchery.css">
-    <link rel="stylesheet" href="{{ asset('assets') }}/css/pages/authentication.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom Styles -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: url("{{ static_asset('assets') }}/img/login_bg.jpg") no-repeat center center/cover; /* Example background image */
+    }
+
+     /* Overlay */
+     .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+      z-index: 1;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(to right, #37143e, #4e1f5a); /* Gradient from dark purple to lighter purple */
+    }
+
+    .login-container h3 {
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      display: block;
+      margin: 0 auto 20px;
+      max-width: 120px;
+    }
+
+    /* Label and input text color */
+    .form-label {
+      color: white;
+    }
+
+    .form-control {
+      background-color: #4e1f5a;
+      border-color: #6a2c7f;
+      color: white;
+    }
+
+    .form-control:focus {
+      background-color: #5a2278;
+      border-color: #9b4d93;
+      box-shadow: none;
+    }
+
+    .btn-custom {
+      background-color: #9b4d93;
+      color: white;
+      border-radius: 5px;
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .btn-custom:hover {
+      background-color: #7b3e6f;
+    }
+
+    .form-check-label {
+      color: white;
+    }
+
+    .footer-text {
+      text-align: center;
+      margin-top: 20px;
+      color: white;
+    }
+    
+    input{
+        color: white !important;
+    }
+    input::placeholder{
+        color: rgba(155, 77, 147, 0.992) !important;
+    }
+
+    @media (max-width: 576px) {
+      .login-container {
+        padding: 20px;
+      }
+      .btn-custom {
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
-<!-- END : Head-->
+<body>
+    
+  <div class="login-container">
+    <!-- Logo -->
+    <img src="{{ uploaded_asset(get_setting('site_icon')) }}" alt="Logo" class="logo">
 
-<!-- BEGIN : Body-->
+    <h3 class="mb-2 card-title">{{ translate('Login to your account') }}</h3>
+    <p class="text-white text-center">{{ translate('Welcome to') }} {{ env('APP_NAME') }}</p>
 
-<body class="vertical-layout vertical-menu 1-column auth-page navbar-sticky blank-page" data-menu="vertical-menu"
-    data-col="1-column">
-    <!-- ////////////////////////////////////////////////////////////////////////////-->
-    <div class="wrapper">
-        <div class="main-panel">
-            <!-- BEGIN : Main Content-->
-            <div class="main-content">
-                <div class="content-overlay"></div>
-                <div class="content-wrapper">
-                    <!--Login Page Starts-->
-                    <section id="login" class="auth-height">
-                        <div class="row full-height-vh m-0">
-                            <div class="col-12 d-flex align-items-center justify-content-center">
-                                <div class="card overflow-hidden">
-                                    <div class="card-content">
-                                        <div class="card-body auth-img">
-                                            @yield('content')
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    <!--Login Page Ends-->
-                </div>
-            </div>
-            <!-- END : End Main Content-->
-        </div>
-    </div>
-    <!-- ////////////////////////////////////////////////////////////////////////////-->
+    <!-- Login Form -->
+    @yield('body')
 
-    <script src="{{ asset('assets') }}/vendors/js/vendors.min.js"></script>
-    <script src="{{ asset('assets') }}/vendors/js/switchery.min.js"></script>
-    <script src="{{ asset('assets') }}/js/core/app-menu.js"></script>
-    <script src="{{ asset('assets') }}/js/core/app.js"></script>
-    <script src="{{ asset('assets') }}/js/notification-sidebar.js"></script>
-    <script src="{{ asset('assets') }}/js/customizer.js"></script>
-    <script src="{{ asset('assets') }}/js/scroll-top.js"></script>
+  </div>
+
+
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
-<!-- END : Body-->
-
 </html>

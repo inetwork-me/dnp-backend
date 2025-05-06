@@ -75,12 +75,12 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                             if (e.detail === 1) {
                                 var clickedForDeleteObject =
                                     AIZ.uploader.data.allFiles[
-                                        AIZ.uploader.data.allFiles.findIndex(
-                                            (x) =>
-                                                x.id ===
-                                                AIZ.uploader.data
-                                                    .clickedForDelete
-                                        )
+                                    AIZ.uploader.data.allFiles.findIndex(
+                                        (x) =>
+                                            x.id ===
+                                            AIZ.uploader.data
+                                                .clickedForDelete
+                                    )
                                     ];
                                 $.ajax({
                                     url:
@@ -117,7 +117,7 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                                         AIZ.uploader.updateUploaderSelected();
                                         AIZ.uploader.getAllUploads(
                                             AIZ.data.appUrl +
-                                                "/aiz-uploader/get-uploaded-files"
+                                            "/aiz-uploader/get-uploaded-files"
                                         );
                                         AIZ.uploader.data.clickedForDelete =
                                             null;
@@ -137,9 +137,9 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     var value = $(this).data("value");
                     var valueObject =
                         AIZ.uploader.data.allFiles[
-                            AIZ.uploader.data.allFiles.findIndex(
-                                (x) => x.id === value
-                            )
+                        AIZ.uploader.data.allFiles.findIndex(
+                            (x) => x.id === value
+                        )
                         ];
                     // console.log(valueObject);
 
@@ -905,14 +905,14 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
 
                 buttons = !buttons
                     ? [
-                          ["font", ["bold", "underline", "italic", "clear"]],
-                          ["para", ["ul", "ol", "paragraph"]],
-                          ["style", ["style"]],
-                          ["color", ["color"]],
-                          ["table", ["table"]],
-                          ["insert", ["link", "picture", "video"]],
-                          ["view", ["fullscreen", "undo", "redo"]],
-                      ]
+                        ["font", ["bold", "underline", "italic", "clear"]],
+                        ["para", ["ul", "ol", "paragraph"]],
+                        ["style", ["style"]],
+                        ["color", ["color"]],
+                        ["table", ["table"]],
+                        ["insert", ["link", "picture", "video"]],
+                        ["view", ["fullscreen", "undo", "redo"]],
+                    ]
                     : buttons;
                 placeholder = !placeholder ? "" : placeholder;
                 minHeight = !minHeight ? 200 : minHeight;
@@ -1032,8 +1032,8 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     $this.on("apply.daterangepicker", function (ev, picker) {
                         $this.val(
                             picker.startDate.format(format) +
-                                separator +
-                                picker.endDate.format(format)
+                            separator +
+                            picker.endDate.format(format)
                         );
                     });
                 }
@@ -1105,30 +1105,6 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     },
                     empty: empty,
                 });
-            });
-        },
-        sectionFooTable: function (section) {
-            var $this = $(section+" .aiz-table");
-
-            var empty = $this.data("empty");
-            empty = !empty ? AIZ.local.nothing_found : empty;
-
-            $this.footable({
-                breakpoints: {
-                    xs: 576,
-                    sm: 768,
-                    md: 992,
-                    lg: 1200,
-                    xl: 1400,
-                },
-                cascade: true,
-                on: {
-                    "ready.ft.table": function (e, ft) {
-                        AIZ.extra.deleteConfirm();
-                        AIZ.plugins.bootstrapSelect("refresh");
-                    },
-                },
-                empty: empty,
             });
         },
         notify: function (type = "dark", message = "") {
@@ -1254,10 +1230,10 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                             var $this = $(this).html(
                                 event.strftime(
                                     "" +
-                                        '<div class="countdown-item"><span class="countdown-digit">%-D</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%H</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%M</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%S</span></div>'
+                                    '<div class="countdown-item"><span class="countdown-digit">%-D</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%H</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%M</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%S</span></div>'
                                 )
                             );
                         });
@@ -1277,10 +1253,10 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                             var $this = $(this).html(
                                 event.strftime(
                                     "" +
-                                        '<div class="countdown-item"><span class="countdown-digit">%-D</span><span class="countdown-name">DAYS</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%H</span><span class="countdown-name">HRS</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%M</span><span class="countdown-name">MIN</span></div><span class="countdown-separator">:</span>' +
-                                        '<div class="countdown-item"><span class="countdown-digit">%S</span><span class="countdown-name">SEC</span></div>'
+                                    '<div class="countdown-item"><span class="countdown-digit">%-D</span><span class="countdown-name">DAYS</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%H</span><span class="countdown-name">HRS</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%M</span><span class="countdown-name">MIN</span></div><span class="countdown-separator">:</span>' +
+                                    '<div class="countdown-item"><span class="countdown-digit">%S</span><span class="countdown-name">SEC</span></div>'
                                 )
                             );
                         });
@@ -1322,7 +1298,7 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                             );
                             let h = Math.floor(
                                 (distance % (1000 * 60 * 60 * 24)) /
-                                    (1000 * 60 * 60)
+                                (1000 * 60 * 60)
                             );
                             let m = Math.floor(
                                 (distance % (1000 * 60 * 60)) / (1000 * 60)
@@ -1372,7 +1348,6 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     var infinite = $this.data("infinite");
                     var focusOnSelect = $this.data("focus-select");
                     var adaptiveHeight = $this.data("auto-height");
-                    var variableWidth = $this.data("variableWidth");
 
                     var vertical = $this.data("vertical");
                     var verticalXs = $this.data("vertical-xs");
@@ -1435,7 +1410,6 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     infinite = !infinite ? false : infinite;
                     focusOnSelect = !focusOnSelect ? false : focusOnSelect;
                     adaptiveHeight = !adaptiveHeight ? false : adaptiveHeight;
-                    variableWidth = !variableWidth ? false : variableWidth;
 
                     var slidesRtl =
                         $("html").attr("dir") === "rtl" && !vertical
@@ -1479,11 +1453,10 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                         focusOnSelect: focusOnSelect,
                         adaptiveHeight: adaptiveHeight,
                         slidesToScroll: 1,
-                        variableWidth: variableWidth,
                         prevArrow:
-                            '<button type="button" class="slick-prev"><i class="las la-arrow-left"></i></button>',
+                            '<button type="button" class="slick-prev"><i class="las la-angle-left"></i></button>',
                         nextArrow:
-                            '<button type="button" class="slick-next"><i class="las la-arrow-right"></i></button>',
+                            '<button type="button" class="slick-next"><i class="las la-angle-right"></i></button>',
                         responsive: [
                             {
                                 breakpoint: 1500,
@@ -2166,31 +2139,22 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
             menu.hide();
             menu.removeClass("d-none");
             $("#category-menu-bar").on("click", function (event) {
-                if (event.target.closest('.categoriesAll')) {
-                    event.stopPropagation();
-                }else{
-                    menu.slideToggle(500);
-                    if ($("#category-menu-bar-icon").hasClass("show")) {
-                        $("#category-menu-bar-icon").removeClass("show");
-                    } else {
-                        $("#category-menu-bar-icon").addClass("show");
-                    }
+                menu.slideToggle(500);
+                if ($("#category-menu-bar-icon").hasClass("show")) {
+                    $("#category-menu-bar-icon").removeClass("show");
+                } else {
+                    $("#category-menu-bar-icon").addClass("show");
                 }
-
             });
         },
         hovUserTopMenu: function () {
-            $("#nav-user-info").on("click", function (event) {
-                $(".hover-user-top-menu").toggleClass("active");
-                event.stopPropagation(); // Prevent click from bubbling to the document
-            });
-        
-            // Close menu if clicked outside
-            $(document).on("click", function (event) {
-                if (!$("#nav-user-info").is(event.target) && !$(".hover-user-top-menu").has(event.target).length) {
+            $("#nav-user-info")
+                .on("mouseover", function (event) {
+                    $(".hover-user-top-menu").addClass("active");
+                })
+                .on("mouseout", function (event) {
                     $(".hover-user-top-menu").removeClass("active");
-                }
-            });
+                });
         },
         trimAppUrl: function () {
             if (AIZ.data.appUrl.slice(-1) == "/") {

@@ -4,7 +4,7 @@
   z-index: 16;
   opacity: 1; }
 
-  
+ 
 
 .wrapper .content-overlay {
   position: absolute;
@@ -2148,7 +2148,7 @@ body[data-menu="horizontal-menu"] .app-sidebar .navigation li.active > a:before 
     .app-sidebar .navigation li:not(.is-shown) {
       position: relative;
       display: block;
-      margin-bottom: 15px;
+      margin-bottom: 0;
       }
       .app-sidebar .navigation li.has-sub > a:after {
         content: "\e844";

@@ -33,7 +33,7 @@ class MenuHelper
 
         // Adding the main icon if exists
         if (isset($item['icon'])) {
-            $html .= '<img src="' . asset('assets/img/svg/' . $item['icon']) . '" alt="">';
+            $html .= '<img src="' . static_asset('assets').'/img/svg/'.$item['icon'].'" alt="">';
         }
 
         // Menu title and the arrow icon

@@ -37,7 +37,13 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('categories/top', 'App\Http\Controllers\Api\V1\CategoryController@top');
     Route::apiResource('categories', 'App\Http\Controllers\Api\V1\CategoryController')->only('index');
     Route::get('sub-categories/{id}', 'App\Http\Controllers\Api\V1\SubCategoryController@index')->name('subCategories.index');
+    Route::apiResource('home-categories', 'App\Http\Controllers\Api\V1\HomeCategoryController')->only('index');
 
-    Route::get('filter/categories', 'App\Http\Controllers\Api\V2\FilterController@categories');
-    Route::get('filter/brands', 'App\Http\Controllers\Api\V2\FilterController@brands');
+    Route::get('filter/categories', 'App\Http\Controllers\Api\V1\FilterController@categories');
+    Route::get('filter/brands', 'App\Http\Controllers\Api\V1\FilterController@brands');
+
+    Route::apiResource('currencies', 'App\Http\Controllers\Api\V1\CurrencyController')->only('index');
+
+    Route::get('products/brand/{slug}', 'App\Http\Controllers\Api\V1\ProductController@brand')->name('api.products.brand');
+    Route::get('products/category/{id}', 'App\Http\Controllers\Api\V2\ProductController@category')->name('api.products.category');
 });

@@ -7,7 +7,7 @@
 			<h1 class="h3">{{translate('All uploaded files')}}</h1>
 		</div>
 		<div class="col-md-6 text-md-right">
-			<a href="{{ route('uploaded-files.create') }}" class="btn btn-primary">
+			<a href="{{ route('uploaded-files.create') }}" class="btn btn-circle btn-info">
 				<span>{{translate('Upload New File')}}</span>
 			</a>
 		</div>
@@ -149,9 +149,9 @@
 	</div>
 </div>
 <!-- Delete modal -->
-@include('backend.layouts.components.modals.delete_modal')
+@include('modals.delete_modal')
 <!-- Bulk Delete modal -->
-@include('backend.layouts.components.modals.bulk_delete_modal')
+@include('modals.bulk_delete_modal')
 
 @endsection
 @section('script')

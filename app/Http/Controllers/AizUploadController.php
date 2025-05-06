@@ -63,6 +63,7 @@ class AizUploadController extends Controller
     {
         return view('uploader.aiz-uploader');
     }
+    
     public function upload(Request $request)
     {
         $type = array(
@@ -166,40 +167,7 @@ class AizUploadController extends Controller
                     } catch (\Exception $e) {
                         //dd($e);
                     }
-                } 
-                // elseif ($type[$extension] == 'image' && get_setting('disable_image_optimization') == 1) {
-                //     try {
-                //         $img = Image::make($request->file('aiz_file')->getRealPath())->encode();
-                //         $height = $img->height();
-                //         $width = $img->width();
-
-                //         if ($width > 1999) {
-                //             $watermark = 'watermark-2x.png';
-                //         } else {
-                //             $watermark = 'watermark-1x.png';
-                //         }
-
-                //         // watermark Img
-                //         $watermarkImg = Image::make('public/assets/img/'.$watermark);
-                //         $wmarkWidth=$watermarkImg->width();
-                //         $wmarkHeight=$watermarkImg->height();
-                //         $x=10;
-                //         $y=10;
-                //         while($y<=$height){
-                //             $img->insert($watermarkImg,'top-left',$x,$y);
-                //             $x+=$wmarkWidth+40;
-                //             if($x>=$width){
-                //                 $x=0;
-                //                 $y+=$wmarkHeight+30;
-                //             }
-                //         }
-
-                //         $img->save(base_path('public/') . $path);
-                //         clearstatcache();
-                //     } catch (\Exception $e) {
-                //         //dd($e);
-                //     }
-                // }
+                }
 
                 if (env('FILESYSTEM_DRIVER') != 'local') {
 

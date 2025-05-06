@@ -1,16 +1,16 @@
 <div class="sidenav-overlay"></div>
 <div class="drag-target"></div>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-<script src="{{ asset('assets') }}/vendors/js/vendors.min.js"></script>
-<script src="{{ asset('assets') }}/vendors/js/switchery.min.js"></script>
-<script src="{{ asset('assets') }}/js/core/app-menu.js"></script>
-<script src="{{ asset('assets') }}/js/core/app.js"></script>
-<script src="{{ asset('assets') }}/js/notification-sidebar.js"></script>
-<script src="{{ asset('assets') }}/js/customizer.js"></script>
-<script src="{{ asset('assets') }}/js/scroll-top.js"></script>
-<script src="{{ asset('assets') }}/js/scripts.js"></script>
-<script src="{{ asset('assets') }}/js/vendors.js"></script>
-<script src="{{ asset('assets') }}/js/aiz-core.js?v={{ rand(1000, 9999) }}"></script>
+<script src="{{ static_asset('assets') }}/vendors/js/vendors.min.js"></script>
+<script src="{{ static_asset('assets') }}/vendors/js/switchery.min.js"></script>
+<script src="{{ static_asset('assets') }}/js/core/app-menu.js"></script>
+<script src="{{ static_asset('assets') }}/js/core/app.js"></script>
+<script src="{{ static_asset('assets') }}/js/notification-sidebar.js"></script>
+<script src="{{ static_asset('assets') }}/js/customizer.js"></script>
+<script src="{{ static_asset('assets') }}/js/scroll-top.js"></script>
+<script src="{{ static_asset('assets') }}/js/scripts.js"></script>
+<script src="{{ static_asset('assets') }}/js/vendors.js"></script>
+<script src="{{ static_asset('assets') }}/js/aiz-core.js?v={{ rand(1000, 9999) }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
@@ -53,6 +53,16 @@
             :
             '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 64 64" xml:space="preserve"><path fill="none" stroke="#6B7280" stroke-width="3" stroke-miterlimit="10" d="M1 32s11 15 31 15 31-15 31-15-11-15-31-15S1 32 1 32z"/><circle fill="none" stroke="#6B7280" stroke-width="3" stroke-miterlimit="10" cx="32" cy="32" r="7"/><path fill="none" stroke="#6B7280" stroke-width="3" stroke-miterlimit="10" d="M9 55 55 9"/></svg>'; // eye slash
     }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.js"></script>
+<script src="https://cdn.datatables.net/2.3.0/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.3.0/js/dataTables.semanticui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.js"></script>
+
+<script>
+    new DataTable('.example-datatable');
 </script>
 
 @yield('script')

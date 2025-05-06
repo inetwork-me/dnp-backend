@@ -78,7 +78,7 @@
         <h5 class="mb-0 h6">{{translate('Language')}}</h5>
     </div>
     <div class="card-body">
-        <table class="table aiz-table mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
                     <th data-breakpoints="lg">#</th>

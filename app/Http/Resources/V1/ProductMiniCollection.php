@@ -24,9 +24,6 @@ class ProductMiniCollection extends ResourceCollection
                     'rating' => (float) $data->rating,
                     'sales' => (int) $data->num_of_sale,
                     'is_wholesale' => $wholesale_product,
-                    'links' => [
-                        'details' => route('products.show', $data->id),
-                    ]
                 ];
             })
         ];

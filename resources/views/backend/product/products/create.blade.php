@@ -14,7 +14,7 @@
                     <ul class="nav nav-tabs flex-sm-column border-0" role="tablist" aria-orientation="vertical">
                         <!-- General -->
                         <li class="nav-item">
-                            <a class="nav-link" id="general-tab" href="#general"
+                            <a class="nav-link active" id="general-tab" href="#general"
                                 data-toggle="tab" data-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
                                 {{ translate('General') }}
                             </a>
@@ -75,7 +75,7 @@
                         @csrf
                         <div class="tab-content">
                             <!-- General -->
-                            <div class="tab-pane fade" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                                 <div class="bg-white">
                                     <!-- Product Information -->
                                     <h5 class="mb-3 pb-3 fs-17 fw-700" style="border-bottom: 1px dashed #e4e5eb;">{{translate('Product Information')}}</h5>

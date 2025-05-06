@@ -43,7 +43,7 @@
                                     <div class="input-group-text bg-soft-secondary font-weight-medium">{{ translate('Browse')}}</div>
                                 </div>
                                 <div class="form-control file-amount">{{ translate('Choose File') }}</div>
-                                <input type="hidden" name="avatar" class="selected-files" value="{{ Auth::user()->avatar_original }}">
+                                <input type="hidden" name="avatar" class="selected-files" value="{{ Auth::user()->avatar }}">
                             </div>
                             <div class="file-preview box sm">
                             </div>

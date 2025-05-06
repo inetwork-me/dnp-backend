@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Models\Product;
 use Artisan;
 use Cache;
 use Carbon\Carbon;

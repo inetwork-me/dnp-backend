@@ -17,7 +17,7 @@
             </div>
             <br>
             <div class="">
-                <a href="{{ asset('download/brands_demo.xlsx') }}" download><button class="btn btn-info">{{ translate('Download CSV')}}</button></a>
+                <a href="{{ static_asset('download/brands_demo.xlsx') }}" download><button class="btn btn-info">{{ translate('Download CSV')}}</button></a>
             </div>
         </div>
     </div>

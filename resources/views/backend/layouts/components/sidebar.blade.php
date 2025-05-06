@@ -4,7 +4,15 @@
     <div class="sidebar-header">
         <div class="logo clearfix">
             <a class="logo-text float-left" href="javascript:;">
-                <div class="logo-img"><img src="{{ asset('assets/img') }}/logo.png" /></div>
+                <div class="logo-img">
+                    @if (get_setting('system_logo_white') != null)
+                        <img class="mw-100" src="{{ uploaded_asset(get_setting('system_logo_white')) }}"
+                            class="brand-icon" alt="{{ get_setting('site_name') }}">
+                    @else
+                        <img class="mw-100" src="{{ static_asset('assets/img/logo.png') }}" class="brand-icon"
+                            alt="{{ get_setting('site_name') }}">
+                    @endif
+                </div>
             </a>
             <a class="nav-toggle d-none d-lg-none d-xl-block" id="sidebarToggle" href="javascript:;">
                 <svg width="20" height="20" viewBox="0 0 15 15" fill="none"
@@ -23,7 +31,7 @@
     <!-- main menu content-->
     <div class="sidebar-content main-menu-content">
         <div class="nav-container">
-          {!! render_menu() !!}
+            {!! render_menu() !!}
         </div>
     </div>
 

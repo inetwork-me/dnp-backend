@@ -6,6 +6,28 @@
 
 @section('content')
 
+{{-- <x-list-table
+    :tableHeaders="['Name', 'Values']"
+    :tableKeys="['name', 'attribute_values']"
+    :translatableKeys="['name']"
+    :tableData="$attributes"
+    title="All Attributes"
+    addRoute="#"
+    showRoute="#"
+    editRoute="brands.edit"
+    deleteRoute="brands.destroy"
+    :editParams="fn($item) => ['id' => $item->id, 'lang' => env('DEFAULT_LANGUAGE')]"
+    :deleteParams="fn($item) => [$item->id]"
+    :showParams="fn($item) => [$item->id]"
+    :customRenderers="[
+    'attribute_values' => fn($item) => $item->attribute_values->map(fn($val) =>
+        "<span class='badge badge-inline badge-md bg-primary'>{$val->value}</span>"
+    )->implode(' ')
+]"
+
+/> --}}
+
+
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
@@ -34,7 +56,7 @@
                     <h5 class="mb-0 h6">{{ translate('Attributes') }}</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table aiz-table mb-0">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>#</th>

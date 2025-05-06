@@ -64,8 +64,8 @@ use App\Models\PreorderConversationMessage;
 use App\Models\PreorderConversationThread;
 use App\Models\PreorderProduct;
 use App\Utility\EmailUtility;
+use Illuminate\Support\Facades\Storage;
 
-//sensSMS function for OTP
 
 if (!function_exists('render_menu')) {
     function render_menu() {
@@ -229,9 +229,7 @@ if (!function_exists('verified_sellers_id')) {
 if (!function_exists('get_system_default_currency')) {
     function get_system_default_currency()
     {
-        return Cache::remember('system_default_currency', 86400, function () {
-            return Currency::findOrFail(get_setting('system_default_currency'));
-        });
+        return Currency::findOrFail(get_setting('system_default_currency'));
     }
 }
 
@@ -1219,39 +1217,25 @@ if (!function_exists('uploaded_asset')) {
         if (($asset = Upload::find($id)) != null) {
             return $asset->external_link == null ? my_asset($asset->file_name) : $asset->external_link;
         }
-        return asset('assets/img/placeholder.jpg');
+        return static_asset('assets/img/placeholder.jpg');
     }
 }
 
 if (!function_exists('my_asset')) {
-    /**
-     * Generate an asset path for the application.
-     *
-     * @param string $path
-     * @param bool|null $secure
-     * @return string
-     */
     function my_asset($path, $secure = null)
     {
         if (config('filesystems.default') != 'local') {
             return Storage::disk(config('filesystems.default'))->url($path);
         }
 
-        return app('url')->asset($path, $secure);
+        return app('url')->asset('public/' . $path, $secure);
     }
 }
 
 if (!function_exists('static_asset')) {
-    /**
-     * Generate an asset path for the application.
-     *
-     * @param string $path
-     * @param bool|null $secure
-     * @return string
-     */
     function static_asset($path, $secure = null)
     {
-        return app('url')->asset($path, $secure);
+        return app('url')->asset('public/' . $path, $secure);
     }
 }
 
@@ -1281,7 +1265,7 @@ if (!function_exists('getFileBaseURL')) {
             return env(Str::upper(env('FILESYSTEM_DRIVER')) . '_URL') . '/';
         }
 
-        return getBaseURL();
+        return getBaseURL() . 'public/';
     }
 }
 
@@ -1309,9 +1293,7 @@ if (!function_exists('isUnique')) {
 if (!function_exists('get_setting')) {
     function get_setting($key, $default = null, $lang = false)
     {
-        $settings = Cache::remember('business_settings', 86400, function () {
-            return BusinessSetting::all();
-        });
+        $settings = BusinessSetting::all();
 
         if ($lang == false) {
             $setting = $settings->where('type', $key)->first();

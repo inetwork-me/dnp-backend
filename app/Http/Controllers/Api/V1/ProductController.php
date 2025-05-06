@@ -27,11 +27,6 @@ class ProductController extends Controller
     public function show($slug)
     {
         return new ProductDetailCollection(Product::where('slug', $slug)->get());
-        // if (Product::findOrFail($id)->digital==0) {
-        //     return new ProductDetailCollection(Product::where('id', $id)->get());
-        // }elseif (Product::findOrFail($id)->digital==1) {
-        //     return new DigitalProductDetailCollection(Product::where('id', $id)->get());
-        // }
     }
 
     public function getPrice(Request $request)
