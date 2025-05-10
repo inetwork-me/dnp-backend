@@ -29,12 +29,12 @@ class LanguageController extends Controller
     public function index(Request $request)
     {
         $languages = Language::paginate(10);
-        return view('backend.setup_configurations.languages.index', compact('languages'));
+        return view('backend.languages.index', compact('languages'));
     }
 
     public function create(Request $request)
     {
-        return view('backend.setup_configurations.languages.create');
+        return view('backend.languages.create');
     }
 
     public function store(Request $request)
@@ -68,13 +68,13 @@ class LanguageController extends Controller
         }
         $lang_keys = $lang_keys->paginate(50);
         
-        return view('backend.setup_configurations.languages.language_view', compact('language','lang_keys','sort_search'));
+        return view('backend.languages.language_view', compact('language','lang_keys','sort_search'));
     }
 
     public function edit($id)
     {
         $language = Language::findOrFail($id);
-        return view('backend.setup_configurations.languages.edit', compact('language'));
+        return view('backend.languages.edit', compact('language'));
     }
 
     public function update(Request $request, $id)
@@ -216,7 +216,7 @@ class LanguageController extends Controller
             $lang_keys = $lang_keys->where('lang_key', 'like', '%'.$sort_search.'%');
         }
         $lang_keys = $lang_keys->paginate(50);
-        return view('backend.setup_configurations.languages.app_translation', compact('language','lang_keys','sort_search'));
+        return view('backend.languages.app_translation', compact('language','lang_keys','sort_search'));
     }
 
     public function storeAppTranlsation(Request $request){

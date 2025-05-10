@@ -131,7 +131,7 @@ class BlogCategoryController extends Controller
     public function destroy($id)
     {
         BlogCategory::find($id)->delete();
-
-        return redirect('admin/blog-category');
+        flash(translate('Blog category has been deleted successfully'))->success();
+        return redirect()->route('blog-category.index');
     }
 }

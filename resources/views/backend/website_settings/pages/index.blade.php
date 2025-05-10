@@ -65,5 +65,5 @@
 @endsection
 
 @section('modal')
-    @include('modals.delete_modal')
+    @include('backend.layouts.components.modals.delete_modal')
 @endsection

@@ -59,10 +59,18 @@ return [
     ],
     [
         'title' => 'News & Blogs',
-        'icon' => 'add_user.png',
+        'icon' => 'blog.svg',
         'children' => [
             ['title' => 'Category', 'route' => 'blog-category.index', 'is_route' => true],
             ['title' => 'All Blogs', 'route' => 'blog.index', 'is_route' => true],
+        ]
+    ],
+    [
+        'title' => 'Recipes',
+        'icon' => 'blog.svg',
+        'children' => [
+            ['title' => 'Category', 'route' => 'recipe-category.index', 'is_route' => true],
+            ['title' => 'All Recipes', 'route' => 'recipe.index', 'is_route' => true],
         ]
     ],
     [
@@ -90,6 +98,24 @@ return [
         'is_route' => false,
     ],
     [
+        'title' => 'Locations',
+        'icon' => 'countries.svg',
+        'children' => [
+            ['title' => 'Countries', 'route' => 'countries.index', 'is_route' => true],
+            ['title' => 'States', 'route' => 'states.index', 'is_route' => true],
+            ['title' => 'Cities', 'route' => 'cities.index', 'is_route' => true],
+            ['title' => 'Zones', 'route' => 'zones.index', 'is_route' => true],
+        ]
+    ],
+    [
+        'title' => 'Configurations',
+        'icon' => 'config.svg',
+        'children' => [
+            ['title' => 'Currencies', 'route' => 'currency.index', 'is_route' => true],
+            ['title' => 'Languages', 'route' => 'languages.index', 'is_route' => true],
+        ]
+    ],
+    [
         'title' => 'Main Settings',
         'icon' => 'setting.png',
         'children' => [
@@ -98,4 +124,5 @@ return [
             ['title' => 'Dashboard', 'route' => 'website.appearance', 'is_route' => true],
         ]
     ],
+    
 ];

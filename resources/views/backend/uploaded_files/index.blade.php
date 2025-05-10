@@ -149,7 +149,7 @@
 	</div>
 </div>
 <!-- Delete modal -->
-@include('modals.delete_modal')
+@include('backend.layouts.components.modals.delete_modal')
 <!-- Bulk Delete modal -->
 @include('modals.bulk_delete_modal')
 

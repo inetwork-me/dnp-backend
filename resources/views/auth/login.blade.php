@@ -4,48 +4,44 @@
     {{ translate('Login to your account') }}
 @endsection
 
-@section('body')
-<form class="form-default" role="form" action="{{ route('login') }}" method="POST">
-    @csrf
-    
-    <div class="form-group mb-3">
-        <label for="email" class="text-white">{{  translate('Email') }}</label>
-        <input type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }} rounded-0" value="{{ old('email') }}"  name="email" id="email" autocomplete="off">
-        @if ($errors->has('email'))
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('email') }}</strong>
-            </span>
-        @endif
-    </div>
-        
-    <!-- password -->
-    <div class="form-group mb-3">
-        <label for="password" class="text-white" >{{  translate('Password') }}</label>
-        <div class="position-relative">
-            <input type="password" class="form-control rounded-0 {{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" id="password">
-            <i class="password-toggle las la-2x la-eye"></i>
-        </div>
-    </div>
-    
+@section('content')
+    <div class="d-flex justify-content-center align-items-center login-container">
+        <div class="login-box">
+            <div class="text-center mb-3">
+                <div class="login-title">{{ translate('Login') }}</div>
+                <div class="login-subtitle">{{ translate('Login to dashboard to access to your work') }}</div>
+            </div>
+            <form role="form" action="{{ route('login') }}" method="POST">
+                @csrf
 
-    <div class="row mb-2">
-        <!-- Remember Me -->
-        <div class="col-6">
-            <label class="aiz-checkbox">
-                <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
-                <span class="has-transition fs-12 fw-400 text-white">{{  translate('Remember Me') }}</span>
-                <span class="aiz-square-check"></span>
-            </label>
-        </div>
-        
-        <!-- Forgot password -->
-        <div class="col-6 text-right">
-            <a href="{{ route('password.request') }}" class="fs-12 fw-400 text-white"><u>{{ translate('Forgot password?')}}</u></a>
-        </div>
-    </div>
+                <div class="floating-label">
+                    <input type="email" name="email"
+                        class="form-control {{ $errors->has('email') ? ' is-invalid' : '' }}"
+                        placeholder="{{ translate('Email') }}" required>
+                    <label>{{ translate('Email') }}</label>
+                    @if ($errors->has('email'))
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $errors->first('email') }}</strong>
+                        </span>
+                    @endif
+                </div>
 
-    <div class="d-flex justify-content-between flex-sm-row flex-column mt-4">
-        <button type="submit" class="btn btn-custom">{{  translate('Login') }}</button>
+                <div class="floating-label">
+                    <input type="password" name="password" class="form-control"
+                        placeholder="{{ translate('Password') }} {{ $errors->has('password') ? ' is-invalid' : '' }}"
+                        required>
+                    <label>{{ translate('Password') }}</label>
+                </div>
+
+                <div class="form-group form-check custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="remember" name="remember"
+                        {{ old('remember') ? 'checked' : '' }}>
+                    <label class="custom-control-label" for="remember">{{ translate('Remember Me') }}</label>
+                </div>
+
+                <button type="submit" class="btn btn-login btn-block">{{ translate('Login') }}</button>
+                <a href="{{ route('password.request') }}" class="forgot-password">{{ translate('Forgot password?') }}</a>
+            </form>
+        </div>
     </div>
-</form>
 @endsection

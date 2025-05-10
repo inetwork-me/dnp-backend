@@ -1,132 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>{{ translate('Admin') }} || @yield('title')</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="app-url" content="{{ getBaseURL() }}">
+    <meta name="file-base-url" content="{{ getFileBaseURL() }}">
+    <link rel="icon" href="{{ uploaded_asset(get_setting('site_icon')) }}">
+    <link rel="apple-touch-icon" href="{{ uploaded_asset(get_setting('site_icon')) }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <!-- Custom Styles -->
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      height: 100vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      background: url("{{ static_asset('assets') }}/img/login_bg.jpg") no-repeat center center/cover; /* Example background image */
-    }
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
-     /* Overlay */
-     .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
-      z-index: 1;
-    }
+    <style>
+        body {
+            background-color: #f6f2f9;
+            height: 100vh;
+            margin: 0;
+        }
 
-    .login-container {
-      width: 100%;
-      max-width: 400px;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      background: linear-gradient(to right, #37143e, #4e1f5a); /* Gradient from dark purple to lighter purple */
-    }
+        .navbar-custom {
+            background-color: #ffffff;
+            height: 80px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
 
-    .login-container h3 {
-      color: white;
-      text-align: center;
-      margin-bottom: 20px;
-    }
+        .navbar-custom .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
 
-    .logo {
-      display: block;
-      margin: 0 auto 20px;
-      max-width: 120px;
-    }
+        .login-container {
+            height: calc(100vh - 80px);
+        }
 
-    /* Label and input text color */
-    .form-label {
-      color: white;
-    }
+        .login-box {
+            max-width: 456px;
+            width: 100%;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-    .form-control {
-      background-color: #4e1f5a;
-      border-color: #6a2c7f;
-      color: white;
-    }
+        .login-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 5px;
+        }
 
-    .form-control:focus {
-      background-color: #5a2278;
-      border-color: #9b4d93;
-      box-shadow: none;
-    }
+        .login-subtitle {
+            font-size: 18px;
+            color: #4B5563;
+            margin-bottom: 20px;
+        }
 
-    .btn-custom {
-      background-color: #9b4d93;
-      color: white;
-      border-radius: 5px;
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-    }
+        .btn-login {
+            background-color: #724582;
+            color: white;
+        }
 
-    .btn-custom:hover {
-      background-color: #7b3e6f;
-    }
+        .btn-login:hover {
+            background-color: #5f3570;
+        }
 
-    .form-check-label {
-      color: white;
-    }
+        .custom-checkbox .custom-control-input:checked~.custom-control-label::before {
+            background-color: #724582;
+            border-color: #724582;
+        }
 
-    .footer-text {
-      text-align: center;
-      margin-top: 20px;
-      color: white;
-    }
-    
-    input{
-        color: white !important;
-    }
-    input::placeholder{
-        color: rgba(155, 77, 147, 0.992) !important;
-    }
+        .forgot-password {
+            display: block;
+            margin-top: 18px;
+            color: #724582;
+            text-decoration: underline;
+            text-align: center;
+            font-weight: 500;
+        }
 
-    @media (max-width: 576px) {
-      .login-container {
-        padding: 20px;
-      }
-      .btn-custom {
-        font-size: 14px;
-      }
-    }
-  </style>
+        /* Floating Labels */
+        .floating-label {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .floating-label input {
+            height: 45px;
+            padding: 10px 10px 10px 10px;
+        }
+
+        .floating-label label {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            color: #888;
+            font-size: 14px;
+            background: white;
+            padding: 0 5px;
+            transition: 0.2s;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .floating-label input:focus+label,
+        .floating-label input:not(:placeholder-shown)+label {
+            top: -10px;
+            left: 10px;
+            font-size: 12px;
+            opacity: 1;
+            transform: translateY(0);
+            color: #724582;
+        }
+
+        .site_name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4B5563;
+        }
+    </style>
 </head>
+
 <body>
-    
-  <div class="login-container">
-    <!-- Logo -->
-    <img src="{{ uploaded_asset(get_setting('site_icon')) }}" alt="Logo" class="logo">
 
-    <h3 class="mb-2 card-title">{{ translate('Login to your account') }}</h3>
-    <p class="text-white text-center">{{ translate('Welcome to') }} {{ env('APP_NAME') }}</p>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom px-4">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <img src="{{ uploaded_asset(get_setting('system_logo_black')) }}" alt="Logo">
+            <span class="ml-2 site_name">{{ get_setting('site_name') }}</span>
+        </a>
+    </nav>
 
-    <!-- Login Form -->
-    @yield('body')
+    @yield('content')
 
-  </div>
-
-
-
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- Bootstrap 4 JS dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.form-control').on('click', function() {
+                $(this).attr('placeholder', '');
+            }).on('blur', function() {
+                if (!$(this).val()) {
+                    $(this).attr('placeholder', $(this).siblings('label').text());
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>

@@ -31,7 +31,7 @@ $customRenderers = [
     showRoute="#"
     editRoute="blog.edit"
     deleteRoute="blog.destroy"
-    :editParams="fn($item) => [$item->id]"
+    :editParams="fn($item) => [$item->id, 'lang' => env('DEFAULT_LANGUAGE')]"
     :deleteParams="fn($item) => [$item->id]"
     :showParams="fn($item) => [$item->id]"
 	:permissions="[

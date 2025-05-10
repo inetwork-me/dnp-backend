@@ -7,6 +7,7 @@
 
 @include('backend.layouts.components.head')
 
+
 <body class="vertical-layout vertical-menu 2-columns  navbar-sticky nav-collapsed" data-menu="vertical-menu" data-col="2-columns">
     @include('backend.layouts.components.nav')
     <div class="wrapper">
@@ -17,6 +18,7 @@
                 <div class="content-overlay"></div>
                 <div class="content-wrapper">
                     @include('backend.layouts.components.breadcrumb')
+                    @include('backend.layouts.components.errors')
                     @yield('content')
                 </div>
             </div>

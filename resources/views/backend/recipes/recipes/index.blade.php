@@ -1,0 +1,71 @@
+@extends('backend.layouts.app')
+
+@section('content')
+
+@section('title')
+{{ translate('All Recipes') }}
+@endsection
+
+@php
+$customRenderers = [
+    'category' => fn($item) => $item->category ? $item->category->category_name : '—',
+    'publish_status' => fn($item) => '<label class="aiz-switch aiz-switch-success mb-0">
+                                    <input type="checkbox" 
+                                        @can("publish_blog") onchange="change_status(this)" @endcan
+                                        value="' . $item->id . '" 
+                                        ' . ($item->status == 1 ? 'checked' : '') . '
+                                        @cannot("publish_blog") disabled @endcan
+                                    >
+                                    <span></span>
+                                </label>',
+];
+@endphp
+
+<x-list-table
+    :tableHeaders="['Title', 'Category','Calories','Time To Make','Status']"
+    :tableKeys="['title', 'category','calories','time_make','publish_status']"
+    :translatableKeys="[]"
+    :tableData="$recipes"
+    title="All Recipes"
+    addRoute="recipe.create"
+    showRoute="#"
+    editRoute="recipe.edit"
+    deleteRoute="recipe.destroy"
+    :editParams="fn($item) => [$item->id, 'lang' => env('DEFAULT_LANGUAGE')]"
+    :deleteParams="fn($item) => [$item->id]"
+    :showParams="fn($item) => [$item->id]"
+	:permissions="[
+        'show' => '',
+        'edit' => 'edit_blog',
+        'delete' => 'delete_blog'
+    ]"
+    :customRenderers="$customRenderers"
+/>
+
+@endsection
+
+@section('modal')
+    @include('backend.layouts.components.modals.delete_modal')
+@endsection
+
+
+@section('script')
+
+    <script type="text/javascript">
+        function change_status(el){
+            var status = 0;
+            if(el.checked){
+                var status = 1;
+            }
+            $.post('{{ route('recipe.change-status') }}', {_token:'{{ csrf_token() }}', id:el.value, status:status}, function(data){
+                if(data == 1){
+                    AIZ.plugins.notify('success', '{{ translate('Change recipe status successfully') }}');
+                }
+                else{
+                    AIZ.plugins.notify('danger', '{{ translate('Something went wrong') }}');
+                }
+            });
+        }
+    </script>
+
+@endsection

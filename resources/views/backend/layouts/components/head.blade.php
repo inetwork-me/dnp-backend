@@ -50,8 +50,9 @@
 
     <!-- END: Custom CSS-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
+    <link rel="stylesheet" href="{{ static_asset('assets') }}/css/vendors.css">
+    <link rel="stylesheet" href="{{ static_asset('assets') }}/css/aiz-core.css?v={{ rand(1000, 9999) }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.9.1/summernote.min.css" integrity="sha512-342i6c96DulZwyEUbzx5CToh/lcow8B+AJKxQBix9y7C7fueaL3kMuQAolpHKJ+yUD2uxqyZMsChru+bvZuWUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
         var AIZ = AIZ || {};
         AIZ.local = {
@@ -80,13 +81,8 @@
 
     @yield('modal')
 
-    <link rel="stylesheet" href="{{ static_asset('assets') }}/css/vendors.css">
-    <link rel="stylesheet" href="{{ static_asset('assets') }}/css/aiz-core.css?v={{ rand(1000, 9999) }}">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css"
-        integrity="sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    
+   
     <style>
         /* Normal sidebar */
         .aiz-sidebar {

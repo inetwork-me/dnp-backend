@@ -140,6 +140,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->login_by = $request->login_by ?? 'email';
         $messages = array(
             'email.required' => $request->login_by == 'email' ? translate('Email is required') : translate('Phone is required'),
             'email.email' => translate('Email must be a valid email address'),
@@ -148,7 +149,7 @@ class AuthController extends Controller
         );
         $validator = Validator::make($request->all(), [
             'password' => 'required',
-            'login_by' => 'required',
+            'login_by' => 'nullable',
             'email' => [
                 'required',
                 Rule::when($request->login_by === 'email', ['email', 'required']),
@@ -189,7 +190,7 @@ class AuthController extends Controller
                 })
                 ->first();
         }
-        
+
         if ($user != null) {
             if (!$user->banned) {
                 if (Hash::check($request->password, $user->password)) {

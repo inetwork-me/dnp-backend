@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attribute;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\CategoryTranslation;
@@ -38,7 +39,16 @@ class CategoryController extends Controller
             ->with('childrenCategories')
             ->get();
 
-        return view('backend.product.categories.create', compact('categories'));
+        $categoryOptions = Category::all()->map(function($cat) {
+            return ['value' => $cat->id, 'label' => $cat->name];
+        });
+        
+        $attributeOptions = Attribute::all()->map(function($attr) {
+            return ['value' => $attr->id, 'label' => $attr->getTranslation('name')];
+        });
+            
+
+        return view('backend.product.categories.create', compact('categories','categoryOptions','attributeOptions'));
     }
 
     public function store(Request $request)

@@ -9,15 +9,22 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BusinessSettingsController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\MainSettingsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecipeCategoryController;
+use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\StateController;
 use App\Http\Controllers\WebsiteController;
+use App\Http\Controllers\ZoneController;
 
 Route::controller(AizUploadController::class)->group(function () {
     Route::post('/aiz-uploader', 'show_uploader');
@@ -111,8 +118,20 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         // Blog
         Route::resource('blog', BlogController::class);
         Route::controller(BlogController::class)->group(function () {
+            Route::get('/blog/edit/{id}', 'edit')->name('blog.edit');
             Route::get('/blog/destroy/{id}', 'destroy')->name('blog.destroy');
             Route::post('/blog/change-status', 'change_status')->name('blog.change-status');
+        });
+        
+        // Recipes
+        Route::resource('recipe-category', RecipeCategoryController::class);
+        Route::get('/recipe-category/destroy/{id}', [RecipeCategoryController::class, 'destroy'])->name('recipe-category.destroy');
+
+        Route::resource('recipe', RecipeController::class);
+        Route::controller(RecipeController::class)->group(function () {
+            Route::get('/recipe/edit/{id}', 'edit')->name('recipe.edit');
+            Route::get('/recipe/destroy/{id}', 'destroy')->name('recipe.destroy');
+            Route::post('/recipe/change-status', 'change_status')->name('recipe.change-status');
         });
     });
 
@@ -131,7 +150,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::post('/roles/add_permission', 'add_permission')->name('roles.permission');
     });
 
-    
+
 
     // Main Settings
     Route::controller(MainSettingsController::class)->group(function () {
@@ -186,27 +205,75 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::get('/file_system', 'file_system')->name('file_system.index');
     });
 
-    // website setting
-    Route::group(['prefix' => 'website'], function() {
-        Route::controller(WebsiteController::class)->group(function () {
-            Route::get('/footer', 'footer')->name('website.footer');
-            Route::get('/header', 'header')->name('website.header');
-            Route::get('/appearance', 'appearance')->name('website.appearance');
-            Route::get('/select-homepage', 'select_homepage')->name('website.select-homepage');
-            Route::get('/authentication-layout-settings', 'authentication_layout_settings')->name('website.authentication-layout-settings');
-            Route::get('/pages', 'pages')->name('website.pages');
-        });
+    Route::controller(WebsiteController::class)->group(function () {
+        Route::get('/footer', 'footer')->name('website.footer');
+        Route::get('/header', 'header')->name('website.header');
+        Route::get('/appearance', 'appearance')->name('website.appearance');
+        Route::get('/select-homepage', 'select_homepage')->name('website.select-homepage');
+        Route::get('/authentication-layout-settings', 'authentication_layout_settings')->name('website.authentication-layout-settings');
+        Route::get('/pages', 'pages')->name('website.pages');
+    });
 
-        // Custom Page
-        Route::resource('custom-pages', PageController::class);
-        Route::controller(PageController::class)->group(function () {
-            Route::get('/custom-pages/sections/{id}', 'sections')->name('custom-pages.sections');
-            Route::get('/custom-pages/section-create/{id}', 'sectionCreate')->name('custom-pages.sectionCreate');
-            Route::post('/custom-pages/section-store/{id}', 'sectionStore')->name('custom-pages.sectionStore');
-            Route::get('/custom-pages/section-delete/{id}', 'sectionDelete')->name('custom-pages.sectionDelete');
-            Route::post('/custom-pages/section-update/{id}', 'sectionUpdate')->name('custom-pages.sectionUpdate');
-            Route::get('/custom-pages/edit/{id}', 'edit')->name('custom-pages.edit');
-            Route::get('/custom-pages/destroy/{id}', 'destroy')->name('custom-pages.destroy');
-        });
+    // Custom Page
+    Route::resource('custom-pages', PageController::class);
+    Route::controller(PageController::class)->group(function () {
+        Route::get('/custom-pages/sections/{id}', 'sections')->name('custom-pages.sections');
+        Route::get('/custom-pages/section-create/{id}', 'sectionCreate')->name('custom-pages.sectionCreate');
+        Route::post('/custom-pages/section-store/{id}', 'sectionStore')->name('custom-pages.sectionStore');
+        Route::get('/custom-pages/section-delete/{id}', 'sectionDelete')->name('custom-pages.sectionDelete');
+        Route::post('/custom-pages/section-update/{id}', 'sectionUpdate')->name('custom-pages.sectionUpdate');
+        Route::get('/custom-pages/edit/{id}', 'edit')->name('custom-pages.edit');
+        Route::get('/custom-pages/destroy/{id}', 'destroy')->name('custom-pages.destroy');
+    });
+
+    //Currency
+    Route::controller(CurrencyController::class)->group(function () {
+        Route::get('/currency', 'currency')->name('currency.index');
+        Route::get('/currency/create', 'create')->name('currency.create');
+        Route::post('/currency/store', 'store')->name('currency.store');
+        Route::get('/currency/edit/{id}', 'edit')->name('currency.edit');
+        Route::post('/currency/update/{id}', 'updateCurrency')->name('currency.update');
+        Route::post('/currency/update_status', 'update_status')->name('currency.update_status');
+        Route::get('/currency/destroy/{id}', 'destroy')->name('currency.destroy');
+    });
+
+    // Language
+    Route::resource('/languages', LanguageController::class);
+    Route::controller(LanguageController::class)->group(function () {
+        Route::post('/languages/{id}/update', 'update')->name('languages.update');
+        Route::get('/languages/destroy/{id}', 'destroy')->name('languages.destroy');
+        Route::post('/languages/update_rtl_status', 'update_rtl_status')->name('languages.update_rtl_status');
+        Route::post('/languages/update-status', 'update_status')->name('languages.update-status');
+        Route::post('/languages/key_value_store', 'key_value_store')->name('languages.key_value_store');
+
+        //Frontend Trasnlation
+        Route::post('/languages/app-translations/import', 'importEnglishFile')->name('app-translations.import');
+        Route::get('/languages/app-translations/show/{id}', 'showAppTranlsationView')->name('app-translations.show');
+        Route::post('/languages/app-translations/key_value_store', 'storeAppTranlsation')->name('app-translations.store');
+        Route::get('/languages/app-translations/export/{id}', 'exportARBFile')->name('app-translations.export');
+    });
+
+    // Countries
+    Route::resource('countries', CountryController::class);
+    Route::controller(CountryController::class)->group(function () {
+        Route::get('/countries/edit/{id}', 'edit')->name('countries.edit');
+        Route::get('/countries/destroy/{id}', 'destroy')->name('countries.destroy');
+        Route::post('/countries/status', 'updateStatus')->name('countries.status');
+    });
+
+    // States
+    Route::resource('states', StateController::class);
+    Route::post('/states/status', [StateController::class, 'updateStatus'])->name('states.status');
+
+    // Zones
+    Route::resource('zones', ZoneController::class);
+    Route::get('/zones/destroy/{id}', [ZoneController::class, 'destroy'])->name('zones.destroy');
+
+    // Cities
+    Route::resource('cities', CityController::class);
+    Route::controller(CityController::class)->group(function () {
+        Route::get('/cities/edit/{id}', 'edit')->name('cities.edit');
+        Route::get('/cities/destroy/{id}', 'destroy')->name('cities.destroy');
+        Route::post('/cities/status', 'updateStatus')->name('cities.status');
     });
 });

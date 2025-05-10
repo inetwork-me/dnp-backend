@@ -61,10 +61,8 @@ span {
     align-items: center;
 }
 
-.statistcs_card .card-body {
-    display: flex;
-    align-items: center;
-    gap: 30px;
+.statistcs_card {
+    border-radius: 20px !important;
 }
 
 .statistcs_card .statistcs_data {
@@ -84,7 +82,10 @@ span {
 }
 
 .statistcs_card .card-footer {
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb !important;
+    display: flex !important;
+    justify-content: start !important;
+    align-items: center !important;
 }
 
 .statistcs_card .card-footer > div {
@@ -119,6 +120,7 @@ span {
     height: 49px !important;
     font-size: 14px;
     font-weight: 400;
+    border-radius: 10px;
 }
 
 .statistcs_card .password-container {
@@ -297,6 +299,18 @@ span {
     font-weight: 400;
 }
 
+.card-danger,
+.card-danger .card-header {
+    background: var(--danger) !important;
+    border-radius:15px !important;
+}
+
+.card-danger .card-body *,
+.card-danger .card-header *{
+    color: white !important;
+    border-radius:15px !important;
+}
+
 .vendor_card .card-footer {
     display: flex;
     justify-content: space-between;
@@ -335,12 +349,12 @@ span {
 .btn-outline-primary {
     color: #724582 !important;
     border-color: #724582 !important;
-    font-size: 16px;
-    font-weight: 500;
-    height: 43px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    height: 43px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .gap-10 {
@@ -503,4 +517,33 @@ span {
     padding: 15px !important;
     border-radius: 20px !important;
     letter-spacing: 0.3px !important;
+}
+
+.btn-primary{
+    background-color: #724582 !important;
+    border-color: #724582 !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    height: 43px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+[data-toggle="aizuploader"]{
+    height: 49px !important;
+}
+
+.form-control.file-amount {
+    height: 49px !important;
+    display: flex !important;
+    align-items: center !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+.statistcs_card .text-muted {
+    color: #724582 !important;
+    font-weight: bold;
+    font-size: 12px;
 }
