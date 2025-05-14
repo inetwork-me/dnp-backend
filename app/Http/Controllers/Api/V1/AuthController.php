@@ -23,14 +23,85 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
+    // public function signup(Request $request)
+    // {
+    //     $messages = array(
+    //         'name.required' => translate('Name is required'),
+    //         'email_or_phone.required' => $request->register_by == 'email' ? translate('Email is required') : translate('Phone is required'),
+    //         'email_or_phone.email' => translate('Email must be a valid email address'),
+    //         'email_or_phone.numeric' => translate('Phone must be a number.'),
+    //         'email_or_phone.unique' => $request->register_by == 'email' ? translate('The email has already been taken') : translate('The phone has already been taken'),
+    //         'password.required' => translate('Password is required'),
+    //         'password.confirmed' => translate('Password confirmation does not match'),
+    //         'password.min' => translate('Minimum 6 digits required for password')
+    //     );
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required',
+    //         'password' => 'required|min:6|confirmed',
+    //         'email_or_phone' => [
+    //             'required',
+    //             Rule::when($request->register_by === 'email', ['email', 'unique:users,email']),
+    //             Rule::when($request->register_by === 'phone', ['numeric', 'unique:users,phone']),
+    //         ],
+    //         'g-recaptcha-response' => [
+    //             Rule::when(get_setting('google_recaptcha') == 1, ['required', new Recaptcha()], ['sometimes'])
+    //         ]
+    //     ], $messages);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'result' => false,
+    //             'message' => $validator->errors()->all()
+    //         ]);
+    //     }
+
+    //     $user = new User();
+    //     $user->name = $request->name;
+    //     if ($request->register_by == 'email') {
+
+    //         $user->email = $request->email_or_phone;
+    //     }
+    //     if ($request->register_by == 'phone') {
+    //         $user->phone = $request->email_or_phone;
+    //     }
+    //     $user->password = bcrypt($request->password);
+    //     $user->verification_code = rand(100000, 999999);
+    //     $user->save();
+
+
+    //     $user->email_verified_at = Carbon::now();
+    //     // if ($user->email != null) {
+    //     //     if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
+    //     //         $user->email_verified_at = date('Y-m-d H:m:s');
+    //     //     }
+    //     // }
+
+    //     // if ($user->email_verified_at == null) {
+    //     //     if ($request->register_by == 'email') {
+    //     //         try {
+    //     //             $user->notify(new AppEmailVerificationNotification());
+    //     //         } catch (\Exception $e) {
+    //     //         }
+    //     //     } else {
+    //     //         $otpController = new OTPVerificationController();
+    //     //         $otpController->send_code($user);
+    //     //     }
+    //     // }
+
+    //     $user->save();
+    //     //create token
+    //     $user->createToken('tokens')->plainTextToken;
+
+    //     return $this->loginSuccess($user);
+    // }
+    
     public function signup(Request $request)
     {
         $messages = array(
             'name.required' => translate('Name is required'),
-            'email_or_phone.required' => $request->register_by == 'email' ? translate('Email is required') : translate('Phone is required'),
-            'email_or_phone.email' => translate('Email must be a valid email address'),
-            'email_or_phone.numeric' => translate('Phone must be a number.'),
-            'email_or_phone.unique' => $request->register_by == 'email' ? translate('The email has already been taken') : translate('The phone has already been taken'),
+            'email.required' => translate('Email is required'),
+            'email.email' => translate('Email must be a valid email address'),
+            'email.unique' => translate('The email has already been taken'),
             'password.required' => translate('Password is required'),
             'password.confirmed' => translate('Password confirmation does not match'),
             'password.min' => translate('Minimum 6 digits required for password')
@@ -40,12 +111,8 @@ class AuthController extends Controller
             'password' => 'required|min:6|confirmed',
             'email_or_phone' => [
                 'required',
-                Rule::when($request->register_by === 'email', ['email', 'unique:users,email']),
-                Rule::when($request->register_by === 'phone', ['numeric', 'unique:users,phone']),
+                ['email', 'unique:users,email'],
             ],
-            'g-recaptcha-response' => [
-                Rule::when(get_setting('google_recaptcha') == 1, ['required', new Recaptcha()], ['sometimes'])
-            ]
         ], $messages);
 
         if ($validator->fails()) {
@@ -57,13 +124,7 @@ class AuthController extends Controller
 
         $user = new User();
         $user->name = $request->name;
-        if ($request->register_by == 'email') {
-
-            $user->email = $request->email_or_phone;
-        }
-        if ($request->register_by == 'phone') {
-            $user->phone = $request->email_or_phone;
-        }
+        $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->verification_code = rand(100000, 999999);
         $user->save();

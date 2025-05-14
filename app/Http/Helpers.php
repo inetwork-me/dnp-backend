@@ -73,6 +73,12 @@ if (!function_exists('render_menu')) {
     }
 }
 
+if (!function_exists('render_cms_menu')) {
+    function render_cms_menu() {
+        return MenuHelper::renderCMSMenu(config('cms_menu'));
+    }
+}
+
 
 if (!function_exists('sendSMS')) {
     function sendSMS($to, $from, $text, $template_id)

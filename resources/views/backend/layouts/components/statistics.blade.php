@@ -1,6 +1,7 @@
-
+<div class="row">
+    
 @foreach ($dashboard_statistics as $state)
-    <div class="col-3">
+    <div class="col-md-6">
         <x-statistics-card
             title="{{ $state['name'] }}"
             icon="{!! $state['icon'] !!}"
@@ -10,3 +11,5 @@
     </div>
 @endforeach
 
+
+</div>

@@ -10,6 +10,9 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BusinessSettingsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\CMS\HomeController;
+use App\Http\Controllers\CMS\PostController;
+use App\Http\Controllers\CMS\PostTypeController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\LanguageController;
@@ -122,7 +125,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
             Route::get('/blog/destroy/{id}', 'destroy')->name('blog.destroy');
             Route::post('/blog/change-status', 'change_status')->name('blog.change-status');
         });
-        
+
         // Recipes
         Route::resource('recipe-category', RecipeCategoryController::class);
         Route::get('/recipe-category/destroy/{id}', [RecipeCategoryController::class, 'destroy'])->name('recipe-category.destroy');
@@ -275,5 +278,31 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::get('/cities/edit/{id}', 'edit')->name('cities.edit');
         Route::get('/cities/destroy/{id}', 'destroy')->name('cities.destroy');
         Route::post('/cities/status', 'updateStatus')->name('cities.status');
+    });
+
+    // CMS
+    Route::group(['prefix' => 'cms', 'as' => 'cms.'], function () {
+        Route::get('/', [HomeController::class,'index'])->name('home');
+        
+        // Custom Post Types
+        Route::resource('cpt', PostTypeController::class);
+        Route::controller(PostTypeController::class)->group(function () {
+            Route::get('/cpt/edit/{id}', 'edit')->name('cpt.edit');
+            Route::get('/cpt/destroy/{id}', 'index')->name('cpt.destroy');
+        });
+        
+        // Posts
+        Route::resource('posts', PostController::class);
+        Route::controller(PostController::class)->group(function () {
+            Route::get('/posts/edit/{id}', 'edit')->name('posts.edit');
+            Route::get('/posts/destroy/{id}', 'index')->name('posts.destroy');
+        });
+
+        // ACF
+        Route::resource('field-groups', PostTypeController::class);
+        Route::controller(PostTypeController::class)->group(function () {
+            Route::get('/field-groups/edit/{id}', 'edit')->name('field-groups.edit');
+            Route::get('/field-groups/destroy/{id}', 'index')->name('field-groups.destroy');
+        });
     });
 });

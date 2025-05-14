@@ -19,6 +19,10 @@ span {
     font-family: "Inter", sans-serif !important;
 }
 
+body{
+    background: #F7F7F8 !important;
+}
+
 .welcome_nav_txt {
     font-size: 20px;
     font-weight: 600;
@@ -302,13 +306,13 @@ span {
 .card-danger,
 .card-danger .card-header {
     background: var(--danger) !important;
-    border-radius:15px !important;
+    border-radius: 15px !important;
 }
 
 .card-danger .card-body *,
-.card-danger .card-header *{
+.card-danger .card-header * {
     color: white !important;
-    border-radius:15px !important;
+    border-radius: 15px !important;
 }
 
 .vendor_card .card-footer {
@@ -488,14 +492,14 @@ span {
     font-weight: 500 !important;
 }
 
-.table-card .table_btn{
+.table-card .table_btn {
     border: 1px solid rgb(0 0 0 / 17%) !important;
     padding: 10px !important;
     border-radius: 10px !important;
     text-align: center !important;
 }
 
-.table-card .action-btns{
+.table-card .action-btns {
     gap: 10px !important;
     display: flex !important;
     align-items: center !important;
@@ -519,7 +523,7 @@ span {
     letter-spacing: 0.3px !important;
 }
 
-.btn-primary{
+.btn-primary {
     background-color: #724582 !important;
     border-color: #724582 !important;
     font-size: 16px !important;
@@ -530,7 +534,7 @@ span {
     justify-content: center !important;
 }
 
-[data-toggle="aizuploader"]{
+[data-toggle="aizuploader"] {
     height: 49px !important;
 }
 
@@ -546,4 +550,58 @@ span {
     color: #724582 !important;
     font-weight: bold;
     font-size: 12px;
+}
+
+.admin_statistcs{
+    border-radius: 15px !important;
+}
+
+.admin_statistcs .card-body {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+}
+
+.admin_statistcs .card-footer .card_footer_statistics {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.admin_statistcs .statistcs_data{
+    display: flex;
+    flex-direction :column;
+}
+
+.admin_statistcs .statistcs_data .statistcs_data_title{
+    font-size: 16px;
+    font-weight: 400;
+    color: #374151;
+}
+
+.admin_statistcs .statistcs_data .statistcs_data_number {
+    font-size: 20px;
+    color: #030712;
+    font-weight: 600;
+}
+
+.admin_statistcs .card_footer_statistics > span {
+    font-size: 15px;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.admin_statistcs .card_footer_statistics > div {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 15px;
+}
+
+.admin_statistcs .statistics_icon{
+    margin: 0 15px 0 0 !important;
+    background: #ecdaf4 !important;
+    border-radius: 12px !important;
+    color: #6f2987 !important;
+    padding: 15px !important;
 }

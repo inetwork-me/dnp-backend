@@ -59,10 +59,6 @@ class ProductDetailCollection extends ResourceCollection
                     ];
                 }
 
-                $whole_sale = [];
-                if (addon_is_activated('wholesale')) {
-                    $whole_sale =  ProductWholesaleResource::collection($data->stocks->first()->wholesalePrices);
-                }
                 return [
                     'id' => (int)$data->id,
                     'name' => $data->getTranslation('name'),
@@ -93,8 +89,7 @@ class ProductDetailCollection extends ResourceCollection
                     'downloads' => $data->pdf ? uploaded_asset($data->pdf) : null,
                     'video_link' => $data->video_link != null ?  $data->video_link : "",
                     'brand' => $brand,
-                    'link' => route('product', $data->slug),
-                    'wholesale' => $whole_sale,
+                    'link' => route('products.show', $data->slug),
                     'est_shipping_time' => (int)$data->est_shipping_days,
 
                 ];

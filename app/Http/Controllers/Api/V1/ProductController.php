@@ -19,9 +19,12 @@ use App\Models\Color;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return new ProductMiniCollection(Product::latest()->paginate(10));
+        if ($request->has('count_per_page'))
+            return new ProductMiniCollection(Product::latest()->paginate($request->has('count_per_page')));
+        else
+            return new ProductMiniCollection(Product::latest()->paginate(10));
     }
 
     public function show($slug)
@@ -35,8 +38,6 @@ class ProductController extends Controller
         $str = '';
         $tax = 0;
         $quantity = 1;
-
-
 
         if ($request->has('quantity') && $request->quantity != null) {
             $quantity = $request->quantity;
@@ -138,8 +139,6 @@ class ProductController extends Controller
 
     public function category($id, Request $request)
     {
-
-
         $category = Category::where('slug', $id)->first();
 
         $category_ids = CategoryUtility::children_ids($category->id);

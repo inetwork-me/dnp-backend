@@ -8,10 +8,16 @@
 @include('backend.layouts.components.head')
 
 
-<body class="vertical-layout vertical-menu 2-columns  navbar-sticky nav-collapsed" data-menu="vertical-menu" data-col="2-columns">
+<body class="vertical-layout vertical-menu 2-columns  navbar-sticky nav-collapsed" data-menu="vertical-menu"
+    data-col="2-columns">
     @include('backend.layouts.components.nav')
     <div class="wrapper">
-        @include('backend.layouts.components.sidebar')
+        @if (Request::is('admin/cms*'))
+            @include('backend.layouts.components.cms-sidebar')
+        @else
+            @include('backend.layouts.components.sidebar')
+        @endif
+
         <div class="main-panel">
             <!-- BEGIN : Main Content-->
             <div class="main-content">

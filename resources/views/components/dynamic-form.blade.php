@@ -99,6 +99,24 @@
                             @if (!empty($field['hint']))
                                 <small class="text-muted">{{ translate($field['hint']) }}</small>
                             @endif
+                        @elseif ($field['type'] === 'checkboxes')
+                            <label class="d-block">{{ translate($field['label']) }}</label>
+                            <div class="row">
+                                @foreach ($field['options'] as $option)
+                                    <div class="form-check col-md-6" style=" display: flex; align-items: center; gap: 8px; ">
+                                        <input class=""
+                                            type="checkbox"
+                                            name="{{ $fieldName }}[]"
+                                            id="{{ $fieldName }}_{{ $option['value'] }}"
+                                            value="{{ $option['value'] }}"
+                                            @if (!empty($option['checked']) || (is_array(old($fieldName)) && in_array($option['value'], old($fieldName)))) checked @endif>
+                                        <label class="form-check-label" for="{{ $fieldName }}_{{ $option['value'] }}">
+                                            {{ $option['label'] }}
+                                        </label>
+                                    </div>
+                                @endforeach
+                            </div>
+
                         @elseif ($field['type'] === 'file')
                             <input type="file" id="{{ $field['label'] }}" name="{{ $fieldName }}"
                                 placeholder="{{ translate($field['label']) }}" class="form-control"
