@@ -10,6 +10,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BusinessSettingsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\CMS\ACFController;
 use App\Http\Controllers\CMS\HomeController;
 use App\Http\Controllers\CMS\PostController;
 use App\Http\Controllers\CMS\PostTypeController;
@@ -299,10 +300,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         });
 
         // ACF
-        Route::resource('field-groups', PostTypeController::class);
-        Route::controller(PostTypeController::class)->group(function () {
-            Route::get('/field-groups/edit/{id}', 'edit')->name('field-groups.edit');
-            Route::get('/field-groups/destroy/{id}', 'index')->name('field-groups.destroy');
+        Route::resource('acf', ACFController::class);
+        Route::controller(ACFController::class)->group(function () {
+            Route::get('/acf/edit/{id}', 'edit')->name('acf.edit');
+            Route::get('/acf/fields/{id}', 'fields')->name('acf.fields');
+            Route::get('/acf/edit-field/{id}', 'editField')->name('acf.field.edit');
+            Route::put('/acf/update-field/{id}', 'updateField')->name('acf.field.update');
+            Route::get('/acf/destroy/{id}', 'index')->name('acf.destroy');
         });
     });
 });

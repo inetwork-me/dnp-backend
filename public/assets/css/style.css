@@ -19,8 +19,8 @@ span {
     font-family: "Inter", sans-serif !important;
 }
 
-body{
-    background: #F7F7F8 !important;
+body {
+    background: #f7f7f8 !important;
 }
 
 .welcome_nav_txt {
@@ -552,7 +552,7 @@ body{
     font-size: 12px;
 }
 
-.admin_statistcs{
+.admin_statistcs {
     border-radius: 15px !important;
 }
 
@@ -568,12 +568,12 @@ body{
     gap: 10px;
 }
 
-.admin_statistcs .statistcs_data{
+.admin_statistcs .statistcs_data {
     display: flex;
-    flex-direction :column;
+    flex-direction: column;
 }
 
-.admin_statistcs .statistcs_data .statistcs_data_title{
+.admin_statistcs .statistcs_data .statistcs_data_title {
     font-size: 16px;
     font-weight: 400;
     color: #374151;
@@ -598,10 +598,45 @@ body{
     font-size: 15px;
 }
 
-.admin_statistcs .statistics_icon{
+.admin_statistcs .statistics_icon {
     margin: 0 15px 0 0 !important;
     background: #ecdaf4 !important;
     border-radius: 12px !important;
     color: #6f2987 !important;
     padding: 15px !important;
+}
+
+.add_form {
+    border-radius: 15px !important;
+}
+
+.add_form .card-header {
+    border-radius: 15px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding: 20px !important;
+}
+
+.remove-field,
+.remove-rule,
+.add-and-rule,
+.remove-field-group {
+    height: 49px !important;
+    font-size: 17px !important;
+    font-weight: bold !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+}
+
+.btn-primary,
+.btn-outline-primary {
+    font-weight: 400 !important;
+    border-radius: 10px !important;
+    font-size: 17px !important;
+    font-weight: 500 !important;
+}
+
+.remove-rule-and {
+    display: flex !important;
+    gap: 10px !important;
 }

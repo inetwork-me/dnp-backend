@@ -54,7 +54,7 @@ return [
     [
         'title' => 'ACF',
         'icon' => 'cms.png',
-        'route' => 'home',
+        'route' => 'cms.acf.index',
         'is_route' => true,
     ],
     [

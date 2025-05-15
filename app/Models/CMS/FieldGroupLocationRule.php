@@ -9,13 +9,10 @@ class FieldGroupLocationRule extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'field_group_id',
-        'rule_key',     // e.g. post_type
-        'operator',     // e.g. is_equal_to
-        'value',        // e.g. service or page
-        'group',        // rule group (to group by "OR")
-    ];
+
+    protected $table = 'field_group_rules';
+
+    protected $guarded = [];
 
     public function fieldGroup()
     {

@@ -68,13 +68,15 @@ use Illuminate\Support\Facades\Storage;
 
 
 if (!function_exists('render_menu')) {
-    function render_menu() {
+    function render_menu()
+    {
         return MenuHelper::renderMenu(config('menu'));
     }
 }
 
 if (!function_exists('render_cms_menu')) {
-    function render_cms_menu() {
+    function render_cms_menu()
+    {
         return MenuHelper::renderCMSMenu(config('cms_menu'));
     }
 }
@@ -108,7 +110,7 @@ if (!function_exists('get_product_commission')) {
                 $firstCommission = \DB::select('select * from product_commissions limit 1');
                 return $firstCommission ? $firstCommission[0]->commission : 0;
             }
-        }else{
+        } else {
             $firstCommission = \DB::select('select * from product_commissions limit 1');
             return $firstCommission ? $firstCommission[0]->commission : 0;
         }
@@ -1213,6 +1215,45 @@ if (!function_exists('app_timezone')) {
     function app_timezone()
     {
         return config('app.timezone');
+    }
+}
+
+if (!function_exists('custom_fields')) {
+    function custom_fields()
+    {
+        return [
+            ['value' => 'text',           'label' => translate('Text'),        'icon' => 'fa-solid fa-i-cursor'],
+            ['value' => 'password',       'label' => translate('Password'),    'icon' => 'fa-solid fa-key'],
+            ['value' => 'email',          'label' => translate('Email'),       'icon' => 'fa-regular fa-envelope'],
+            ['value' => 'number',         'label' => translate('Number'),      'icon' => 'fa-solid fa-hashtag'],
+            ['value' => 'tel',            'label' => translate('Phone'),       'icon' => 'fa-solid fa-phone'],
+            ['value' => 'url',            'label' => translate('URL'),         'icon' => 'fa-solid fa-link'],
+            ['value' => 'search',         'label' => translate('Search'),      'icon' => 'fa-solid fa-magnifying-glass'],
+            ['value' => 'date',           'label' => translate('Date'),        'icon' => 'fa-regular fa-calendar-days'],
+            ['value' => 'datetime-local', 'label' => translate('Datetime'),    'icon' => 'fa-regular fa-clock'],
+            ['value' => 'month',          'label' => translate('Month'),       'icon' => 'fa-solid fa-calendar-alt'],
+            ['value' => 'week',           'label' => translate('Week'),        'icon' => 'fa-solid fa-calendar-week'],
+            ['value' => 'time',           'label' => translate('Time'),        'icon' => 'fa-regular fa-clock'],
+            ['value' => 'color',          'label' => translate('Color'),       'icon' => 'fa-solid fa-palette'],
+            ['value' => 'file',           'label' => translate('File'),        'icon' => 'fa-solid fa-file-arrow-up'],
+            ['value' => 'checkbox',       'label' => translate('Checkbox'),    'icon' => 'fa-regular fa-square-check'],
+            ['value' => 'radio',          'label' => translate('Radio'),       'icon' => 'fa-regular fa-dot-circle'],
+            ['value' => 'range',          'label' => translate('Range'),       'icon' => 'fa-solid fa-sliders-h'],
+            ['value' => 'hidden',         'label' => translate('Hidden'),      'icon' => 'fa-solid fa-eye-slash'],
+            ['value' => 'select',         'label' => translate('Select'),      'icon' => 'fa-solid fa-caret-down'],
+        ];
+    }
+}
+
+if (!function_exists('get_custom_field_by_value')) {
+    function get_custom_field_by_value($value)
+    {
+        foreach (custom_fields() as $field) {
+            if ($field['value'] === $value) {
+                return $field;
+            }
+        }
+        return null;
     }
 }
 

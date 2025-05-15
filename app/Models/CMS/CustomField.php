@@ -9,16 +9,13 @@ class CustomField extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'field_group_id',
-        'name',
-        'label',
-        'type',
-        'required',
-        'default_value',
-        'options',
-        'order',
+    protected $guarded = [];
+
+    protected $casts = [
+        // 'choices' => 'array',
+        'options' => 'array',
     ];
+
 
     public function group()
     {

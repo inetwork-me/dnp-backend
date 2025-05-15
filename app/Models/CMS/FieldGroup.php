@@ -7,16 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class FieldGroup extends Model
 {
-    protected $fillable = [
-        'title',
-        'position',
-        'style',
-        'instruction_placement',
-        'label_placement',
-        'description',
-    ];
+    protected $guarded = [];
 
-    public function fields()
+    public function customFields()
     {
         return $this->hasMany(CustomField::class);
     }
