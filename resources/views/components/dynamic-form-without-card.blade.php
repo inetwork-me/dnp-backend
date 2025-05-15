@@ -7,11 +7,7 @@
     'submitLabel' => 'Save',
     'fields' => [],
 ])
-<div class="card statistcs_card add_form m-0 mb-3">
-    <div class="card-header">
-        <span>{{ translate($title) }}</span>
-    </div>
-    <form class="form-horizontal w-100" action="{{ $action }}"
+<form class="form-horizontal w-100" action="{{ $action }}"
         method="{{ in_array(strtoupper($method), ['GET']) ? 'GET' : 'POST' }}"
         @if ($enctype) enctype="{{ $enctype }}" @endif>
         <div class="card-body">
@@ -140,4 +136,3 @@
             @endif
         </div>
     </form>
-</div>

@@ -33,7 +33,7 @@ return [
     [
         'title' => 'Media Gallery',
         'icon' => 'media_gallery.png',
-        'route' => 'home',
+        'route' => 'uploaded-files.index',
         'is_route' => true,
     ],
     [
@@ -48,7 +48,7 @@ return [
     [
         'title' => 'Settings',
         'icon' => 'setting.png',
-        'route' => 'home',
+        'route' => 'cms.settings.appearance',
         'is_route' => true,
     ],
     [

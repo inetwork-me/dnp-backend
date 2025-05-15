@@ -640,3 +640,17 @@ body {
     display: flex !important;
     gap: 10px !important;
 }
+
+.dropdown-toggle::after {
+    border: 0;
+    content: "\f107";
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900;
+    font-size: 80%;
+    margin-left: 0.3rem;
+}
+
+.la, .las {
+    font-family: 'Font Awesome 6 Free' !important;
+    font-weight: 900;
+}

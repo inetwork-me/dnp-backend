@@ -30,12 +30,18 @@ use App\Http\Controllers\StateController;
 use App\Http\Controllers\WebsiteController;
 use App\Http\Controllers\ZoneController;
 
+Route::resource('/uploaded-files', AizUploadController::class);
 Route::controller(AizUploadController::class)->group(function () {
     Route::post('/aiz-uploader', 'show_uploader');
     Route::post('/aiz-uploader/upload', 'upload');
     Route::get('/aiz-uploader/get-uploaded-files', 'get_uploaded_files');
     Route::post('/aiz-uploader/get_file_by_ids', 'get_preview_files');
     Route::get('/aiz-uploader/download/{id}', 'attachment_download')->name('download_attachment');
+
+    Route::any('/uploaded-files/file-info', 'file_info')->name('uploaded-files.info');
+    Route::get('/uploaded-files/destroy/{id}', 'destroy')->name('uploaded-files.destroy');
+    Route::post('/bulk-uploaded-files-delete', 'bulk_uploaded_files_delete')->name('bulk-uploaded-files-delete');
+    Route::get('/all-file', 'all_file');
 });
 
 Route::post('/language', [LanguageController::class, 'changeLanguage'])->name('language.change');
@@ -209,14 +215,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::get('/file_system', 'file_system')->name('file_system.index');
     });
 
-    Route::controller(WebsiteController::class)->group(function () {
-        Route::get('/footer', 'footer')->name('website.footer');
-        Route::get('/header', 'header')->name('website.header');
-        Route::get('/appearance', 'appearance')->name('website.appearance');
-        Route::get('/select-homepage', 'select_homepage')->name('website.select-homepage');
-        Route::get('/authentication-layout-settings', 'authentication_layout_settings')->name('website.authentication-layout-settings');
-        Route::get('/pages', 'pages')->name('website.pages');
-    });
+
 
     // Custom Page
     Route::resource('custom-pages', PageController::class);
@@ -283,15 +282,15 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
 
     // CMS
     Route::group(['prefix' => 'cms', 'as' => 'cms.'], function () {
-        Route::get('/', [HomeController::class,'index'])->name('home');
-        
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+
         // Custom Post Types
         Route::resource('cpt', PostTypeController::class);
         Route::controller(PostTypeController::class)->group(function () {
             Route::get('/cpt/edit/{id}', 'edit')->name('cpt.edit');
             Route::get('/cpt/destroy/{id}', 'index')->name('cpt.destroy');
         });
-        
+
         // Posts
         Route::resource('posts', PostController::class);
         Route::controller(PostController::class)->group(function () {
@@ -307,6 +306,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
             Route::get('/acf/edit-field/{id}', 'editField')->name('acf.field.edit');
             Route::put('/acf/update-field/{id}', 'updateField')->name('acf.field.update');
             Route::get('/acf/destroy/{id}', 'index')->name('acf.destroy');
+        });
+
+        // Settings
+        Route::controller(WebsiteController::class)->group(function () {
+            Route::get('/footer', 'footer')->name('settings.footer');
+            Route::get('/header', 'header')->name('settings.header');
+            Route::get('/appearance', 'appearance')->name('settings.appearance');
+            Route::get('/pages', 'pages')->name('settings.pages');
         });
     });
 });
