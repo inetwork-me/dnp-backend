@@ -1,5 +1,5 @@
 @if(count($combinations) > 0)
-<table class="table table-bordered aiz-table">
+<table class="table table-bordered">
 	<thead>
 		<tr>
 			<td class="text-center">

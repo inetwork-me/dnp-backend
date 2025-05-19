@@ -59,13 +59,13 @@
                                 name="{{ $fieldName }}{{ !empty($field['multiple']) ? '[]' : '' }}"
                                 id="{{ $fieldName }}" {{ !empty($field['multiple']) ? 'multiple' : '' }}
                                 {{ $isRequired }}
+                                
                                 @foreach ($options as $attr => $val)
             @if (is_scalar($val))
             {{ $attr }}="{{ e($val) }}"
             @endif @endforeach>
-                                @if (empty($field['multiple']))
-                                    <option value="">{{ translate('Select ' . $field['label']) }}</option>
-                                @endif
+
+                                <option value="">{{ translate('Select ' . $field['label']) }}</option>
                                 @foreach ($field['options'] as $option)
                                     @php
                                         $selected = '';

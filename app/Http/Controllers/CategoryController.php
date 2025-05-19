@@ -66,11 +66,14 @@ class CategoryController extends Controller
         $category->meta_title = $request->meta_title;
         $category->meta_description = $request->meta_description;
 
-        if ($request->parent_id != "0") {
+
+        if ($request->parent_id != null) {
             $category->parent_id = $request->parent_id;
 
             $parent = Category::find($request->parent_id);
             $category->level = $parent->level + 1 ;
+        }else{
+            $category->parent_id = "0";
         }
 
         if ($request->slug != null) {
