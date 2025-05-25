@@ -28,11 +28,17 @@ class AppEmailVerificationNotification extends Notification
     {
         $array['view'] = 'emails.app_verification';
         $array['subject'] = translate('Email Verification');
-        $array['content'] = translate('Please enter the code:'.$notifiable->verification_code);
+        $array['content'] = translate('Please enter the code:' . $notifiable->verification_code);
 
         return (new MailMessage)
-            ->view('emails.app_verification', ['array' => $array])
-            ->subject(translate('Email Verification - ').env('APP_NAME'));
+            ->subject(__('Email Verification') . ' - ' . config('app.name'))
+            ->line(__('Please enter the code: :code', ['code' => $notifiable->verification_code]))
+            ->line(__('If you did not request this, no further action is required.'))
+            ->salutation(__('Regards, :app', ['app' => config('app.name')]));
+
+
+        // ->view('emails.app_verification', ['array' => $array])
+        // ->subject(translate('Email Verification - ').env('APP_NAME'));
     }
 
     public function toArray($notifiable)

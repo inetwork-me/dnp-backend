@@ -17,10 +17,10 @@ class PasswordResetController extends Controller
 {
     public function forgetRequest(Request $request)
     {
-        if ($request->send_code_by == 'email') {
-            $user = User::where('email', $request->email_or_phone)->first();
-        } else {
+        if ($request->send_code_by == 'phone') {
             $user = User::where('phone', $request->email_or_phone)->first();
+        } else {
+            $user = User::where('email', $request->email_or_phone)->first();
         }
 
 
@@ -35,6 +35,9 @@ class PasswordResetController extends Controller
             $user->verification_code = rand(100000, 999999);
             $user->save();
         }
+
+        $user->notify(new AppEmailVerificationNotification($user->verification_code));
+
 
         return response()->json([
             'result' => true,

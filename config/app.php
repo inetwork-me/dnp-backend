@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'DNP'),
 
     /*
     |--------------------------------------------------------------------------
@@ -171,7 +171,7 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         KingFlamez\Rave\RaveServiceProvider::class,
-        
+
         /*
          * Package Service Providers...
          */
