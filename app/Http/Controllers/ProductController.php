@@ -238,7 +238,7 @@ class ProductController extends Controller
         $this->frequentlyBoughtProductService->store($request->only([
             'product_id', 'frequently_bought_selection_type', 'fq_bought_product_ids', 'fq_bought_product_category_id'
         ]));
-       
+
         // Product Translations
         $request->merge(['lang' => env('DEFAULT_LANGUAGE')]);
         ProductTranslation::create($request->only([
@@ -258,10 +258,9 @@ class ProductController extends Controller
                     'value' => $valueValue,
                     'language_id' => $request->lang
                 ]);
-                
             }
         }
-        
+
         flash(translate('Product has been inserted successfully'))->success();
 
         Artisan::call('view:clear');
@@ -302,8 +301,8 @@ class ProductController extends Controller
             ->where('digital', 0)
             ->with('childrenCategories')
             ->get();
-        $product_specifications = DB::table('product_specifications')->where('product_id', $product->id)->where('language_id',$lang)->get();
-        return view('backend.product.products.edit', compact('product', 'categories', 'tags', 'lang','product_specifications'));
+        $product_specifications = DB::table('product_specifications')->where('product_id', $product->id)->where('language_id', $lang)->get();
+        return view('backend.product.products.edit', compact('product', 'categories', 'tags', 'lang', 'product_specifications'));
     }
 
     /**
@@ -401,7 +400,6 @@ class ProductController extends Controller
                     'value' => $valueValue,
                     'language_id' => $request->lang
                 ]);
-                
             }
         }
 
@@ -409,7 +407,7 @@ class ProductController extends Controller
 
         Artisan::call('view:clear');
         Artisan::call('cache:clear');
-        if($request->has('tab') && $request->tab != null){
+        if ($request->has('tab') && $request->tab != null) {
             return Redirect::to(URL::previous() . "#" . $request->tab);
         }
         return back();
@@ -430,8 +428,8 @@ class ProductController extends Controller
         $product->stocks()->delete();
         $product->taxes()->delete();
         $product->frequently_bought_products()->delete();
-        $product->last_viewed_products()->delete();
-        $product->flash_deal_products()->delete();
+        // $product->last_viewed_products()->delete();
+        // $product->flash_deal_products()->delete();
 
         // if (Product::destroy($id)) {
         //     Cart::where('product_id', $id)->delete();
@@ -478,9 +476,9 @@ class ProductController extends Controller
 
         //VAT & Tax
         $this->productTaxService->product_duplicate_store($product->taxes, $product_new);
-        
+
         // Product Categories
-        foreach($product->product_categories as $product_category){
+        foreach ($product->product_categories as $product_category) {
             ProductCategory::insert([
                 'product_id' => $product_new->id,
                 'category_id' => $product_category->category_id,
@@ -652,7 +650,8 @@ class ProductController extends Controller
         return view('partials.product.product_search', compact('products'));
     }
 
-    public function get_selected_products(Request $request){
+    public function get_selected_products(Request $request)
+    {
         $products = product::whereIn('id', $request->product_ids)->get();
         return  view('partials.product.frequently_bought_selected_product', compact('products'));
     }

@@ -23,7 +23,7 @@ class Product extends Model
         return $product_translations != null ? $product_translations->$field : $this->$field;
     }
 
-    
+
     public function product_translations()
     {
         return $this->hasMany(ProductTranslation::class);
@@ -33,7 +33,7 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
-    
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'product_categories');
@@ -88,7 +88,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductTax::class);
     }
-    
+
     public function specifications()
     {
         return $this->hasMany(ProductSpecification::class);
@@ -123,14 +123,14 @@ class Product extends Model
     {
         return $this->hasMany(Cart::class);
     }
-    
+
     public function scopeIsApprovedPublished($query)
     {
         return $query->where('approved', '1')->where('published', 1);
     }
 
-    public function last_viewed_products()
-    {
-        return $this->hasMany(LastViewedProduct::class);
-    }
+    // public function last_viewed_products()
+    // {
+    //     return $this->hasMany(LastViewedProduct::class);
+    // }
 }

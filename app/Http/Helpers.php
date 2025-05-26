@@ -56,7 +56,7 @@ use App\Helpers\MenuHelper;
 use App\Models\CustomerPackagePayment;
 use App\Models\EmailTemplate;
 use App\Models\FlashDealProduct;
-use App\Models\LastViewedProduct;
+// use App\Models\LastViewedProduct;
 use App\Models\PaymentMethod;
 use App\Models\UserCoupon;
 use App\Models\NotificationType;
@@ -1929,55 +1929,55 @@ if (!function_exists('get_home_page_classified_products')) {
 }
 
 // Customers Last viewed Products
-if (!function_exists('lastViewedProducts')) {
-    function lastViewedProducts($product_id, $user_id)
-    {
-        $lastViewedProduct = LastViewedProduct::firstOrCreate([
-            'user_id' => $user_id,
-            'product_id' => $product_id
-        ]);
-        $lastViewedProduct->touch();
+// if (!function_exists('lastViewedProducts')) {
+//     function lastViewedProducts($product_id, $user_id)
+//     {
+//         $lastViewedProduct = LastViewedProduct::firstOrCreate([
+//             'user_id' => $user_id,
+//             'product_id' => $product_id
+//         ]);
+//         $lastViewedProduct->touch();
 
-        $lastViewedProductsCount = LastViewedProduct::where('user_id', $user_id)->count();
-        if ($lastViewedProductsCount > 12) {
-            $deleteRow = $lastViewedProductsCount - 12;
-            LastViewedProduct::where('user_id', $user_id)->take($deleteRow)->delete();
-        }
-    }
-}
+//         $lastViewedProductsCount = LastViewedProduct::where('user_id', $user_id)->count();
+//         if ($lastViewedProductsCount > 12) {
+//             $deleteRow = $lastViewedProductsCount - 12;
+//             LastViewedProduct::where('user_id', $user_id)->take($deleteRow)->delete();
+//         }
+//     }
+// }
 
 // get auth users last viewed Products
-if (!function_exists('getLastViewedProducts')) {
-    function getLastViewedProducts()
-    {
-        $verified_sellers = verified_sellers_id();
+// if (!function_exists('getLastViewedProducts')) {
+//     function getLastViewedProducts()
+//     {
+//         $verified_sellers = verified_sellers_id();
 
-        $lastViewedProduct = LastViewedProduct::where('user_id', auth()->user()->id)->orderBy('updated_at', 'desc')
-            ->whereIn("product_id", function ($query) use ($verified_sellers) {
-                $query->select('id')
-                    ->from('products')
-                    ->where('approved', '1')->where('published', 1)
-                    ->when(!addon_is_activated('wholesale'), function ($q1) {
-                        $q1->where('wholesale_product', 0);
-                    })
-                    ->when(!addon_is_activated('auction'), function ($q2) {
-                        $q2->where('auction_product', 0);
-                    })
-                    ->when(get_setting('vendor_system_activation') == 0, function ($q3) {
-                        $q3->where('added_by', 'admin');
-                    })
-                    ->when(get_setting('vendor_system_activation') == 1, function ($q4) use ($verified_sellers) {
-                        $q4->where(function ($p1) use ($verified_sellers) {
-                            $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
-                                $p2->whereIn('user_id', $verified_sellers);
-                            });
-                        });
-                    });
-            })->get();
+//         $lastViewedProduct = LastViewedProduct::where('user_id', auth()->user()->id)->orderBy('updated_at', 'desc')
+//             ->whereIn("product_id", function ($query) use ($verified_sellers) {
+//                 $query->select('id')
+//                     ->from('products')
+//                     ->where('approved', '1')->where('published', 1)
+//                     ->when(!addon_is_activated('wholesale'), function ($q1) {
+//                         $q1->where('wholesale_product', 0);
+//                     })
+//                     ->when(!addon_is_activated('auction'), function ($q2) {
+//                         $q2->where('auction_product', 0);
+//                     })
+//                     ->when(get_setting('vendor_system_activation') == 0, function ($q3) {
+//                         $q3->where('added_by', 'admin');
+//                     })
+//                     ->when(get_setting('vendor_system_activation') == 1, function ($q4) use ($verified_sellers) {
+//                         $q4->where(function ($p1) use ($verified_sellers) {
+//                             $p1->where('added_by', 'admin')->orWhere(function ($p2) use ($verified_sellers) {
+//                                 $p2->whereIn('user_id', $verified_sellers);
+//                             });
+//                         });
+//                     });
+//             })->get();
 
-        return $lastViewedProduct;
-    }
-}
+//         return $lastViewedProduct;
+//     }
+// }
 
 // Get related product
 if (!function_exists('get_frequently_bought_products')) {
@@ -2611,7 +2611,7 @@ if (!function_exists('get_activate_payment_methods')) {
     }
 }
 // notification
-if (! function_exists('flash_message')) {
+if (!function_exists('flash_message')) {
     function flash_message($message, $level = 'info')
     {
         $notifications = session('flash_notification', collect());
