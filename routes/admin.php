@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CouponController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AizUploadController;
@@ -88,6 +89,14 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'prevent-ba
         Route::get('/brands/destroy/{id}', 'destroy')->name('brands.destroy');
         Route::get('/brand-bulk-upload', 'upload')->name('brand_bulk_upload.index');
         Route::post('/brand-bulk-upload/store', 'bulk_upload')->name('brand_bulk_upload');
+    });
+
+    // coupons
+    // Coupons
+    Route::resource('coupons', CouponController::class);
+    Route::controller(CouponController::class)->group(function () {
+        Route::get('/coupons/edit/{id}',    'edit')->name('coupons.update');
+        Route::get('/coupons/destroy/{id}', 'destroy')->name('coupons.destroy');
     });
 
     // products

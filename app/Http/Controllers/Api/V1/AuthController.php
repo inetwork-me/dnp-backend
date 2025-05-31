@@ -97,6 +97,7 @@ class AuthController extends Controller
 
     public function signup(Request $request)
     {
+        // Custom error messages
         $messages = array(
             'name.required' => translate('Name is required'),
             'email.required' => translate('Email is required'),
@@ -106,10 +107,12 @@ class AuthController extends Controller
             'password.confirmed' => translate('Password confirmation does not match'),
             'password.min' => translate('Minimum 6 digits required for password')
         );
+
+        // Validate name, email+unique, password+confirmation
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'password' => 'required|min:6|confirmed',
+            'name' => 'required|string',
             'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:6|confirmed',
 
         ], $messages);
 
@@ -117,18 +120,22 @@ class AuthController extends Controller
             return response()->json([
                 'result' => false,
                 'message' => $validator->errors()->all()
-            ]);
+            ], 422);
         }
 
+        // create user 
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->verification_code = rand(100000, 999999);
+
+        // At this point, if you want to enforce email verification, you could
+        // check a BusinessSetting. For now, we'll mark email_verified_at immediately.
+        $user->email_verified_at = Carbon::now();
         $user->save();
 
 
-        $user->email_verified_at = Carbon::now();
         // if ($user->email != null) {
         //     if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
         //         $user->email_verified_at = date('Y-m-d H:m:s');
