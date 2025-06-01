@@ -29,7 +29,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::apiResource('banners', 'App\Http\Controllers\Api\V1\BannerController')->only('index');
     Route::get('brands/top', 'App\Http\Controllers\Api\V1\BrandController@top');
     Route::get('all-brands', [ProductController::class, 'getBrands'])->name('allBrands');
-    Route::apiResource('brands', 'App\Http\Controllers\Api\V1\BrandController')->only('index');
+    // Route::apiResource('brands', 'App\Http\Controllers\Api\V1\BrandController')->only('index');
     Route::apiResource('business-settings', 'App\Http\Controllers\Api\V1\BusinessSettingController')->only('index');
     Route::get('category/info/{slug}', 'App\Http\Controllers\Api\V1\CategoryController@info');
     Route::get('categories/featured', 'App\Http\Controllers\Api\V1\CategoryController@featured');
@@ -50,4 +50,6 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     Route::apiResource('products', 'App\Http\Controllers\Api\V1\ProductController')->except(['store', 'update', 'destroy']);
 
+    Route::get('brands', [BrandController::class, 'index']);
+    Route::post('brands', [BrandController::class, 'store']);
 });

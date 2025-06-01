@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
+
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\BrandCollection;
 use Cache;
@@ -129,7 +130,8 @@ class ProductController extends Controller
                     'variation' => $str,
                     'max_limit' => $max_limit,
                     'in_stock' => $in_stock,
-                    'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image)
+                    'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image),
+
                 ]
 
             ]

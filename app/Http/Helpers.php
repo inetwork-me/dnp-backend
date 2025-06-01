@@ -301,13 +301,13 @@ if (!function_exists('format_price')) {
         }
 
         if (get_setting('symbol_format') == 1) {
-            return currency_symbol() . $fomated_price;
+            return $fomated_price;
         } else if (get_setting('symbol_format') == 3) {
-            return currency_symbol() . ' ' . $fomated_price;
+            return $fomated_price;
         } else if (get_setting('symbol_format') == 4) {
-            return $fomated_price . ' ' . currency_symbol();
+            return $fomated_price;
         }
-        return $fomated_price . currency_symbol();
+        return $fomated_price;
     }
 }
 

@@ -23,6 +23,10 @@ class ProductMiniCollection extends ResourceCollection
                     'main_price' => home_discounted_base_price($data),
                     'rating' => (float) $data->rating,
                     'sales' => (int) $data->num_of_sale,
+                    'current_stock' =>  $data->current_stock,
+                    'category'  => get_single_category($data->category_id),
+
+
                 ];
             })
         ];
