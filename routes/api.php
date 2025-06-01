@@ -53,3 +53,17 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('brands', [BrandController::class, 'index']);
     Route::post('brands', [BrandController::class, 'store']);
 });
+
+
+Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function () {
+    Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
+    Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
+    Route::post('password/confirm_reset', 'App\Http\Controllers\Api\V1\PasswordResetController@confirmReset');
+    Route::post('password/resend_code', 'App\Http\Controllers\Api\V1\PasswordResetController@resendCode');
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('brands', [BrandController::class, 'index']);
+        Route::post('brands', [BrandController::class, 'store']);
+    });
+
+    Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
+});
