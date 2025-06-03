@@ -45,7 +45,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::apiResource('currencies', 'App\Http\Controllers\Api\V1\CurrencyController')->only('index');
 
     Route::get('products', 'App\Http\Controllers\Api\V1\ProductController@index');
-    Route::get('products/category/{id}', 'App\Http\Controllers\Api\V2\ProductController@category')->name('api.products.category');
+    // Route::get('products/category/{id}', 'App\Http\Controllers\Api\V2\ProductController@category')->name('api.products.category');
     Route::get('products/brand/{slug}', 'App\Http\Controllers\Api\V1\ProductController@brand')->name('api.products.brand');
 
     Route::apiResource('products', 'App\Http\Controllers\Api\V1\ProductController')->except(['store', 'update', 'destroy']);
@@ -56,14 +56,24 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
 
 Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function () {
-    Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
-    Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
-    Route::post('password/confirm_reset', 'App\Http\Controllers\Api\V1\PasswordResetController@confirmReset');
-    Route::post('password/resend_code', 'App\Http\Controllers\Api\V1\PasswordResetController@resendCode');
+    // Now “login” is under “v2/auth”:
+    Route::group(['prefix' => 'auth'], function () {
+        Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
+        Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
+        Route::post('password/confirm_reset', 'App\Http\Controllers\Api\V1\PasswordResetController@confirmReset');
+        Route::post('password/resend_code', 'App\Http\Controllers\Api\V1\PasswordResetController@resendCode');
+    });
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('brands', [BrandController::class, 'index']);
         Route::post('brands', [BrandController::class, 'store']);
+        Route::get('brands/{id}', [BrandController::class, 'show']);
+        Route::put('brands/{id}', [BrandController::class, 'update']);
+        Route::delete('brands/{id}', [BrandController::class, 'destroy']);
     });
 
-    Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
+    // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:
+    Route::group(['prefix' => 'auth'], function () {
+        Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
+    });
 });
