@@ -27,7 +27,7 @@ class ProductService
 
         // Process tags
         $tags = !empty($collection['tags'][0])
-            ? implode(',', array_map(fn($tag) => $tag->value, json_decode($collection['tags'][0])))
+            ? implode(',', array_map(fn ($tag) => $tag->value, json_decode($collection['tags'][0])))
             : '';
         $collection['tags'] = $tags;
 
@@ -106,8 +106,14 @@ class ProductService
         }
 
         // Check publication status
-        $published = !in_array($collection['button'], ['unpublish', 'draft']);
-        unset($collection['button']);
+        // $published = !in_array($collection['button'], ['unpublish', 'draft']);
+        // unset($collection['button']);
+        $published = false;
+
+        if (isset($collection['button'])) {
+            $published = in_array($collection['button'], ['unpublish', 'draft'], true);
+            unset($collection['button']);
+        }
 
         // Handle custom attributes
         $customAttributes = [];
@@ -155,7 +161,7 @@ class ProductService
 
         // Process tags
         $tags = !empty($collection['tags'][0])
-            ? implode(',', array_map(fn($tag) => $tag->value, json_decode($collection['tags'][0])))
+            ? implode(',', array_map(fn ($tag) => $tag->value, json_decode($collection['tags'][0])))
             : '';
         $collection['tags'] = $tags;
 

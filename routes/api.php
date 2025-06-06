@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V2\ApiCouponController;
+use App\Http\Controllers\Api\V2\ApiLanguagesController;
+use App\Http\Controllers\Api\V2\ApiProductCategoryController;
+use App\Http\Controllers\Api\V2\ApiProductController;
+use App\Http\Controllers\Api\V2\ApiSettingController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -54,8 +59,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::post('brands', [BrandController::class, 'store']);
 });
 
-
-Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function () {
+Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(function () {
     // Now “login” is under “v2/auth”:
     Route::group(['prefix' => 'auth'], function () {
         Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -70,6 +74,27 @@ Route::group(['prefix' => 'v2', 'middleware' => ['app_language']], function () {
         Route::get('brands/{id}', [BrandController::class, 'show']);
         Route::put('brands/{id}', [BrandController::class, 'update']);
         Route::delete('brands/{id}', [BrandController::class, 'destroy']);
+        Route::apiResource('coupons', ApiCouponController::class);
+
+        // Route::get('/products',          [ApiProductController::class, 'index']);
+        Route::apiResource('products', ApiProductController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::apiResource('products/categories', ApiProductCategoryController::class)->only(['index']);
+
+        Route::get('/products/{product}', [ApiProductController::class, 'show']);
+        // Route::post('/products',          [ApiProductController::class, 'store']);
+        Route::put('/products/{product}', [ApiProductController::class, 'update']);
+        // Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
+
+
+        // CMS API 
+        Route::apiResource('languages', ApiLanguagesController::class);
+        Route::get('/settings', [ApiSettingController::class, 'index']);
+
+        // Update a single setting
+        Route::patch('/settings', [ApiSettingController::class, 'update']);
+
+        // Batch update multiple settings
+        Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:
