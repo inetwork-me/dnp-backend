@@ -15,23 +15,23 @@ class ProductSpecificationsTableSeeder extends Seeder
     public function run()
     {
         // Example: seed a couple of specs for product #1 in default language
-        DB::table('product_specifications')->insert([
-            [
-                'product_id' => 1,
-                'key' => 'color',
-                'value' => 'red',
-                'language_id' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'product_id' => 1,
-                'key' => 'weight',
-                'value' => '2kg',
-                'language_id' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
+        // DB::table('product_specifications')->insert([
+        //     [
+        //         'product_id' => 1,
+        //         'key' => 'color',
+        //         'value' => 'red',
+        //         'language_id' => null,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        //     [
+        //         'product_id' => 1,
+        //         'key' => 'weight',
+        //         'value' => '2kg',
+        //         'language_id' => null,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ],
+        // ]);
     }
 }

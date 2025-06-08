@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\V2\ApiLanguagesController;
 use App\Http\Controllers\Api\V2\ApiProductCategoryController;
 use App\Http\Controllers\Api\V2\ApiProductController;
 use App\Http\Controllers\Api\V2\ApiSettingController;
+use App\Http\Controllers\Api\V2\ApiMenuController;
+use App\Http\Controllers\Api\V2\ApiPostsController;
+use App\Http\Controllers\Api\V2\ApiPostTypesController;
+use App\Http\Controllers\Api\V2\ApiPostTypeCategoryController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -95,6 +99,17 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         // Batch update multiple settings
         Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
+
+
+    Route::apiResource('menus', ApiMenuController::class);
+    Route::patch('menus/{menu}/default', [ApiMenuController::class, 'setDefault']);
+
+    Route::apiResource('post-types', ApiPostTypesController::class);
+
+Route::apiResource('posts', ApiPostsController::class);
+
+Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
+
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:

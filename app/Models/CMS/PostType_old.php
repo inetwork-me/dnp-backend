@@ -5,7 +5,7 @@ namespace App\Models\CMS;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PostType extends Model
+class PostType_old extends Model
 {
     use HasFactory;
 
