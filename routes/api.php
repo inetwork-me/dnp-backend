@@ -38,7 +38,7 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 });
 
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
-    Route::get('settings', 'App\Http\Controllers\Api\V1\ApiSettingsController@index');
+    Route::get('settings', 'App\Http\Controllers\Api\V1\websiteSettingController@index');
 
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');
