@@ -5,23 +5,36 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
-class websiteSettingController extends Controller
+class WebsiteSettingController extends Controller
 {
     /**
-     * Return all settings as an object keyed by `key`.
+     * Return settings grouped by prefix, stripping the prefix from inner keys.
      */
     public function index()
     {
+        // Fetch all settings as key => value
         $all = Setting::all()->pluck('value', 'key')->toArray();
-        // Example returned shape:
-        // [
-        //   "site_logo"       => [ "default" => "data:image/png;base64,..." ],
-        //   "site_title"      => [ "en" => "My Site", "ar" => "موقعي" ],
-        //   "contact_email"   => [ "default" => "hello@example.com" ],
-        //   // … etc …
-        // ]
-        return response()->json($all);
+
+        $grouped = [];
+
+        foreach ($all as $key => $value) {
+            if (strpos($key, '_') === false) {
+                $group = 'other';
+                $innerKey = $key;
+            } else {
+                list($group, $innerKey) = explode('_', $key, 2);
+            }
+
+            // Initialize group if needed
+            if (!isset($grouped[$group])) {
+                $grouped[$group] = [];
+            }
+
+            // Use innerKey without prefix
+            $grouped[$group][$innerKey] = $value;
+        }
+
+        return response()->json($grouped);
     }
 }
