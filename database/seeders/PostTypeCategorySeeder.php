@@ -14,18 +14,18 @@ class PostTypeCategorySeeder extends Seeder
         $now = Carbon::now();
 
         // Fetch all existing post types
-        $postTypes = DB::table('post_types')->select('id','slug')->get();
+        $postTypes = DB::table('post_types')->select('id', 'slug')->get();
 
         foreach ($postTypes as $type) {
-            DB::table('post_type_categories')->insert([
+            DB::table('post_type_categories')->insertOrIgnore([
                 'post_type_id' => $type->id,
                 // unique slug per type
                 'slug'         => "{$type->slug}-general",
                 // multilingual name JSON
                 'name'         => json_encode([
-                                    'en' => 'General',
-                                    'ar' => 'عام',
-                                ]),
+                    'en' => 'General',
+                    'ar' => 'عام',
+                ]),
                 'created_at'   => $now,
                 'updated_at'   => $now,
             ]);

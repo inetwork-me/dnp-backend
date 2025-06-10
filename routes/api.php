@@ -13,6 +13,11 @@ use App\Http\Controllers\Api\V2\ApiMenuController;
 use App\Http\Controllers\Api\V2\ApiPostsController;
 use App\Http\Controllers\Api\V2\ApiPostTypesController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoryController;
+use App\Http\Controllers\Api\V2\ApiMediaController;
+use App\Http\Controllers\Api\V2\ApiFolderController;
+use App\Http\Controllers\Api\V2\ApiTagController;
+use App\Http\Controllers\Api\V2\ApiBlockController;
+use App\Http\Controllers\Api\V2\ApiUserController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -101,15 +106,25 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
 
 
-    Route::apiResource('menus', ApiMenuController::class);
-    Route::patch('menus/{menu}/default', [ApiMenuController::class, 'setDefault']);
+        Route::apiResource('menus', ApiMenuController::class);
+        Route::patch('menus/{menu}/default', [ApiMenuController::class, 'setDefault']);
 
-    Route::apiResource('post-types', ApiPostTypesController::class);
+        Route::apiResource('post-types', ApiPostTypesController::class);
 
-Route::apiResource('posts', ApiPostsController::class);
+        Route::apiResource('posts', ApiPostsController::class);
 
-Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
+        Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
 
+
+        Route::apiResource('media', ApiMediaController::class);
+        Route::delete('media/bulk', [ApiMediaController::class, 'bulkDestroy']);
+        Route::apiResource('folders', ApiFolderController::class);
+        Route::post('folders/reorder', [ApiFolderController::class, 'reorder']);
+        Route::apiResource('tags', ApiTagController::class);
+
+        Route::apiResource('blocks', ApiBlockController::class);
+
+        Route::apiResource('users', ApiUserController::class);
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:

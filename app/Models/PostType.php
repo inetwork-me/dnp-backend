@@ -7,13 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostType extends Model
 {
-    protected $fillable = ['slug','label'];
+    protected $fillable = ['slug', 'label'];
 
     public function posts()
     {
         return $this->hasMany(Post::class);
     }
-      public function categories()
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+    public function categories()
     {
         return $this->hasMany(PostTypeCategory::class);
     }
