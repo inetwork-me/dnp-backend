@@ -21,6 +21,9 @@ use App\Http\Controllers\Api\V2\ApiUserController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
+    // TODO 
+    // Delete THIS API SECURITY ISSUE
+    Route::post('password/change', 'App\Http\Controllers\Api\V1\PasswordResetController@changepassword');
     Route::post('signup', 'App\Http\Controllers\Api\V1\AuthController@signup');
     Route::post('social-login', 'App\Http\Controllers\Api\V1\AuthController@socialLogin');
     Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
