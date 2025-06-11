@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V2\UserCollection;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,8 +25,8 @@ class ApiUserController extends Controller
         }
 
         $users = $query->paginate($perPage);
-
-        return response()->json($users);
+        return new UserCollection($users);
+        // return response()->json($users);
     }
 
     /**
