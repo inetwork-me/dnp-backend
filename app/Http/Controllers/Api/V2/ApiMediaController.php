@@ -8,6 +8,7 @@ use App\Models\Media;
 use App\Jobs\ProcessMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;    // ← add this
 
 class ApiMediaController extends Controller
 {
@@ -55,13 +56,37 @@ class ApiMediaController extends Controller
                 'public'
             );
 
+            // 2) Derive defaults from filename or EXIF
+            $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            // turn "my_cat-picture_01" → "My Cat Picture 01"
+            $fallback = Str::of($baseName)
+                ->replace(['-', '_'], ' ')
+                ->trim()
+                ->title();
+
+            // try EXIF ImageDescription if JPEG/TIFF
+            $altText = $fallback;
+            if (in_array($file->getClientMimeType(), ['image/jpeg', 'image/tiff'], true)) {
+                try {
+                    $exif = @exif_read_data($file->getRealPath());
+                    if (!empty($exif['ImageDescription'])) {
+                        $altText = trim($exif['ImageDescription']);
+                    }
+                } catch (\Throwable $e) {
+                    // ignore if EXIF fails
+                }
+            }
+
+            // caption can be the same as altText (or you could pull from IPTC, etc.)
+            $captionText = $altText;
+
             $media = Media::create([
                 'filename'  => $file->getClientOriginalName(),
                 'path'      => $path,
                 'mime_type' => $file->getClientMimeType(),
                 'size'      => $file->getSize(),
                 'folder_id' => $req->folder_id,
-                'metadata'  => ['alt_text' => [], 'caption' => []],
+                'metadata'  => ['alt_text' => $altText, 'caption' => $captionText],
             ]);
 
             if ($req->filled('tags')) {
