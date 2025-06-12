@@ -17,6 +17,7 @@ class StoreMediaRequest extends FormRequest
                 'mimetypes:' .
                     'image/*,' .
                     'video/*,' .
+                    'image/x-icon,' .
                     'audio/*,' .
                     'application/pdf,' .
                     'application/msword,' .
