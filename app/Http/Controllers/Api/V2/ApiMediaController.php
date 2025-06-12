@@ -50,45 +50,51 @@ class ApiMediaController extends Controller
     public function store(StoreMediaRequest $req)
     {
         $out = [];
+
         foreach ($req->file('files') as $file) {
             $path = $file->storePublicly(
                 'media/' . now()->format('Y/m/d'),
                 'public'
             );
 
-            // 2) Derive defaults from filename or EXIF
+            // 1) derive fallback alt/caption from filename
             $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            // turn "my_cat-picture_01" → "My Cat Picture 01"
             $fallback = Str::of($baseName)
                 ->replace(['-', '_'], ' ')
                 ->trim()
                 ->title();
 
-            // try EXIF ImageDescription if JPEG/TIFF
-            $altText = $fallback;
+            $altText     = (string) $fallback;
+            $captionText = $altText;
+
+            // 2) try EXIF for JPEG/TIFF
             if (in_array($file->getClientMimeType(), ['image/jpeg', 'image/tiff'], true)) {
                 try {
                     $exif = @exif_read_data($file->getRealPath());
                     if (!empty($exif['ImageDescription'])) {
-                        $altText = trim($exif['ImageDescription']);
+                        $altText     = trim($exif['ImageDescription']);
+                        $captionText = $altText;
                     }
                 } catch (\Throwable $e) {
-                    // ignore if EXIF fails
+                    // ignore
                 }
             }
 
-            // caption can be the same as altText (or you could pull from IPTC, etc.)
-            $captionText = $altText;
-
+            // 3) create Media record
             $media = Media::create([
-                'filename'  => $file->getClientOriginalName(),
-                'path'      => $path,
-                'mime_type' => $file->getClientMimeType(),
-                'size'      => $file->getSize(),
-                'folder_id' => $req->folder_id,
-                'metadata'  => ['alt_text' => $altText, 'caption' => $captionText],
+                'filename'   => $file->getClientOriginalName(),
+                'path'       => $path,
+                'mime_type'  => $file->getClientMimeType(),
+                'size'       => $file->getSize(),
+                'folder_id'  => $req->folder_id,
+                'metadata'   => [
+                    'alt_text'    => ['default' => $altText],
+                    'caption'     => ['default' => $captionText],
+                    'derivatives' => [],
+                ],
             ]);
 
+            // 4) sync tags
             if ($req->filled('tags')) {
                 $media->tags()->sync(
                     collect($req->tags)
@@ -96,12 +102,18 @@ class ApiMediaController extends Controller
                 );
             }
 
-            ProcessMedia::dispatch($media);
-            $out[] = $media;
+            // 5) only dispatch ProcessMedia for GD-supported types
+            $gdTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+            if (in_array($media->mime_type, $gdTypes, true)) {
+                ProcessMedia::dispatch($media);
+            }
+
+            $out[] = $media->load('tags', 'folder');
         }
 
         return response()->json($out, 201);
     }
+
 
     /**
      * GET /api/v2/media/{media}
