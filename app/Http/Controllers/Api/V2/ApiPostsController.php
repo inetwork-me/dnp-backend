@@ -30,7 +30,7 @@ class ApiPostsController extends Controller
             'slug'           => ['required', 'alpha_dash', 'max:255'],
             'content'        => ['nullable', 'array'],
             'blocks'        => ['nullable', 'array'],
-            'featured_image' => ['nullable', 'url'],
+            // 'featured_image' => ['nullable', 'url'],
             'status'         => ['in:draft,published'],
             'published_at'   => ['nullable', 'date'],
         ]);
