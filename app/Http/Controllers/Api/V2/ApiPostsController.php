@@ -60,9 +60,6 @@ class ApiPostsController extends Controller
     public function update(Request $request, Post $post)
     {
         $data = $request->validate([
-            'title'        => ['required', 'array'],
-            'title.en'     => ['required', 'string'],
-            'title.ar'     => ['required', 'string'],
             'slug'         => [
                 'required', 'alpha_dash', 'max:255',
                 Rule::unique('posts', 'slug')
@@ -71,11 +68,15 @@ class ApiPostsController extends Controller
             ],
             'content'      => ['nullable', 'array'],
             'blocks'      => ['nullable', 'array'],
-            'featured_image' => ['nullable', 'url'],
+            // 'featured_image' => ['nullable', 'array'],
             'status'       => ['in:draft,published'],
             'published_at' => ['nullable', 'date'],
         ]);
 
+        // Manually pull in featured_image from the raw payload
+        if ($request->has('featured_image')) {
+            $data['featured_image'] = $request->input('featured_image');
+        }
         $post->update($data);
         return $post;
     }

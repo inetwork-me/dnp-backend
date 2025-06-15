@@ -24,6 +24,7 @@ class Post extends Model
     'content'       => 'array',   // your block JSON
     'published_at'  => 'datetime',
     'blocks'       => 'array',
+    'featured_image' => 'array'
 
   ];
 
