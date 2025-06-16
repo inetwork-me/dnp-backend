@@ -9,6 +9,7 @@ class Post extends Model
 {
   protected $fillable = [
     'post_type_id',
+    'category_id',
     'title',
     'description',
     'slug',
@@ -44,7 +45,7 @@ class Post extends Model
 
   public function category()
   {
-    return $this->belongsTo(PostTypeCategory::class, 'post_type_category_id');
+    return $this->belongsTo(PostTypeCategory::class, 'category_id');
   }
 
 

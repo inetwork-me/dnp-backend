@@ -66,6 +66,13 @@ class WebsitePostResource extends JsonResource
             'featured_image' => $this->featured_image,
             'author'         => $author,
             'blocks'         => $blocks,
+            'category' => $this->whenLoaded('category', function () {
+                return [
+                    'id'   => $this->category->id,
+                    'name' => $this->category->name,  // array [en,ar]
+                    'slug' => $this->category->slug,  // if you want
+                ];
+            }),
         ];
     }
 }

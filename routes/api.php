@@ -12,7 +12,6 @@ use App\Http\Controllers\Api\V2\ApiSettingController;
 use App\Http\Controllers\Api\V2\ApiMenuController;
 use App\Http\Controllers\Api\V2\ApiPostsController;
 use App\Http\Controllers\Api\V2\ApiPostTypesController;
-use App\Http\Controllers\Api\V2\ApiPostTypeCategoryController;
 use App\Http\Controllers\Api\V2\ApiMediaController;
 use App\Http\Controllers\Api\V2\ApiFolderController;
 use App\Http\Controllers\Api\V2\ApiTagController;
@@ -21,6 +20,7 @@ use App\Http\Controllers\Api\V2\ApiUserController;
 use App\Http\Controllers\Api\V1\WebsiteCartController;
 use App\Http\Controllers\Api\V1\WebsiteOrderController;
 use App\Http\Controllers\Api\V2\ApiOrderController;
+use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -136,7 +136,9 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         Route::apiResource('posts', ApiPostsController::class);
 
-        Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
+        // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
+        Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class);
+        // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
 
 
         Route::apiResource('media', ApiMediaController::class);

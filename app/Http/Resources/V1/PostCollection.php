@@ -21,7 +21,8 @@ class PostCollection extends ResourceCollection
                     // 'blocks' => $data->blocks,
                     'featured_image' => $data->featured_image,
                     'created_at' => $data->created_at,
-                    'author' => $data->author
+                    'author' => $data->author,
+                    'category' => $data->category
                     // $data
                     // 'author'         => new UserResource($data->author),
 

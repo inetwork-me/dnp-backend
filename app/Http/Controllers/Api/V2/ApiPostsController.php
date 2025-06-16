@@ -24,6 +24,7 @@ class ApiPostsController extends Controller
     {
         $payload = $request->validate([
             'post_type'      => ['required', 'exists:post_types,slug'],
+            'category_id'    => ['nullable', 'exists:post_type_categories,id'],
             'title'          => ['required', 'array'],
             'title.en'       => ['required', 'string'],
             'title.ar'       => ['required', 'string'],
@@ -41,6 +42,7 @@ class ApiPostsController extends Controller
         $post = Post::create([
             'post_type_id'   => $pt->id,
             'title'          => $payload['title'],
+            'category_id'    => $payload['category_id'],
             'description'    => $payload['description'],
             'slug'           => $payload['slug'],
             'content'        => $payload['content'] ?? [],
@@ -68,6 +70,8 @@ class ApiPostsController extends Controller
                     ->where(fn ($q) => $q->where('post_type_id', $post->post_type_id))
                     ->ignore($post->id)
             ],
+            'category_id'    => ['sometimes', 'exists:post_type_categories,id'],
+
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
             'featured_image' => ['nullable', 'array'],

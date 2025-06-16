@@ -6,7 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostTypeCategory extends Model
 {
-    protected $casts = ['name' => 'array'];
+    protected $fillable = [
+        'post_type_id',
+        'name',
+        'slug',
+    ];
+
+    protected $casts = [
+        'name' => 'array',
+    ];
 
     public function postType()
     {

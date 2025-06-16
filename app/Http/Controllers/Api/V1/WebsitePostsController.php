@@ -33,7 +33,8 @@ class WebsitePostsController extends Controller
             ->posts()
             ->with(
                 'postType:id,slug,label',
-                'author:id,name,email'
+                'author:id,name,email',
+                'category:id,name,slug'
             )
             ->latest('created_at');
 
