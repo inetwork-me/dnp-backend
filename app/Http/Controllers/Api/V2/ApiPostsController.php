@@ -27,10 +27,11 @@ class ApiPostsController extends Controller
             'title'          => ['required', 'array'],
             'title.en'       => ['required', 'string'],
             'title.ar'       => ['required', 'string'],
+            'description'    => ['nullable', 'array'],
             'slug'           => ['required', 'alpha_dash', 'max:255'],
             'content'        => ['nullable', 'array'],
-            'blocks'        => ['nullable', 'array'],
-            // 'featured_image' => ['nullable', 'url'],
+            'blocks'         => ['nullable', 'array'],
+            'featured_image' => ['nullable', 'array'],
             'status'         => ['in:draft,published'],
             'published_at'   => ['nullable', 'date'],
         ]);
@@ -40,11 +41,11 @@ class ApiPostsController extends Controller
         $post = Post::create([
             'post_type_id'   => $pt->id,
             'title'          => $payload['title'],
-            'description'          => $payload['description'],
+            'description'    => $payload['description'],
             'slug'           => $payload['slug'],
             'content'        => $payload['content'] ?? [],
-            'blocks'        => $payload['blocks'] ?? [],
-            'featured_image' => $payload['featured_image'] ?? null,
+            'blocks'         => $payload['blocks'] ?? [],
+            'featured_image' => $payload['featured_image'] ?? [],
             'status'         => $payload['status'] ?? 'draft',
             'published_at'   => $payload['published_at'] ?? null,
             'author_id'      => auth()->id(),
@@ -67,17 +68,17 @@ class ApiPostsController extends Controller
                     ->where(fn ($q) => $q->where('post_type_id', $post->post_type_id))
                     ->ignore($post->id)
             ],
-            'content'      => ['nullable', 'array'],
-            'blocks'      => ['nullable', 'array'],
-            // 'featured_image' => ['nullable', 'array'],
-            'status'       => ['in:draft,published'],
-            'published_at' => ['nullable', 'date'],
+            'content'        => ['nullable', 'array'],
+            'blocks'         => ['nullable', 'array'],
+            'featured_image' => ['nullable', 'array'],
+            'description'    => ['nullable', 'array'],
+            'status'         => ['in:draft,published'],
+            'published_at'   => ['nullable', 'date'],
         ]);
 
         // Manually pull in featured_image from the raw payload
         if ($request->has('featured_image')) {
             $data['featured_image'] = $request->input('featured_image');
-            $data['description'] = $request->input('description');
         }
 
         $post->update($data);
