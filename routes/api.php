@@ -47,6 +47,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('settings', 'App\Http\Controllers\Api\V1\websiteSettingController@index');
     Route::get('posts/{slug}', 'App\Http\Controllers\Api\V1\WebsitePostsController@show');
     Route::get('post-types/{postType:slug}/posts', 'App\Http\Controllers\Api\V1\WebsitePostsController@indexByType');
+    Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class)->only('index');
 
 
     // CART
