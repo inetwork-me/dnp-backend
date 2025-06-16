@@ -40,6 +40,7 @@ class ApiPostsController extends Controller
         $post = Post::create([
             'post_type_id'   => $pt->id,
             'title'          => $payload['title'],
+            'description'          => $payload['description'],
             'slug'           => $payload['slug'],
             'content'        => $payload['content'] ?? [],
             'blocks'        => $payload['blocks'] ?? [],
@@ -76,7 +77,9 @@ class ApiPostsController extends Controller
         // Manually pull in featured_image from the raw payload
         if ($request->has('featured_image')) {
             $data['featured_image'] = $request->input('featured_image');
+            $data['description'] = $request->input('description');
         }
+
         $post->update($data);
         return $post;
     }
