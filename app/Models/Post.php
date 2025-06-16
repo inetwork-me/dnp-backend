@@ -10,6 +10,7 @@ class Post extends Model
   protected $fillable = [
     'post_type_id',
     'title',
+    'description',
     'slug',
     'content',
     'blocks',
@@ -21,6 +22,7 @@ class Post extends Model
 
   protected $casts = [
     'title'         => 'array',   // { en:string, ar:string }
+    'description'   => 'array',   // { en: string, ar: string }
     'content'       => 'array',   // your block JSON
     'published_at'  => 'datetime',
     'blocks'       => 'array',
