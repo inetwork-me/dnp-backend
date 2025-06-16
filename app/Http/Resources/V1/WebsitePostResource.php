@@ -64,6 +64,7 @@ class WebsitePostResource extends JsonResource
             'title'          => $this->title,          // or localize here
             'content'        => $this->content,        // or localize here
             'featured_image' => $this->featured_image,
+            'seo' => $this->seo,
             'author'         => $author,
             'blocks'         => $blocks,
             'category' => $this->whenLoaded('category', function () {

@@ -16,6 +16,7 @@ class Post extends Model
     'content',
     'blocks',
     'featured_image',
+    'seo',
     'status',
     'published_at',
     'author_id',
@@ -27,7 +28,8 @@ class Post extends Model
     'content'       => 'array',   // your block JSON
     'published_at'  => 'datetime',
     'blocks'       => 'array',
-    'featured_image' => 'array'
+    'featured_image' => 'array',
+    'seo'            => 'array'
 
   ];
 
