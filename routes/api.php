@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\V2\ApiFolderController;
 use App\Http\Controllers\Api\V2\ApiTagController;
 use App\Http\Controllers\Api\V2\ApiBlockController;
 use App\Http\Controllers\Api\V2\ApiUserController;
+use App\Http\Controllers\Api\V1\WebsiteCartController;
+use App\Http\Controllers\Api\V1\WebsiteOrderController;
+use App\Http\Controllers\Api\V2\ApiOrderController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -44,6 +47,18 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('settings', 'App\Http\Controllers\Api\V1\websiteSettingController@index');
     Route::get('posts/{slug}', 'App\Http\Controllers\Api\V1\WebsitePostsController@show');
     Route::get('post-types/{postType:slug}/posts', 'App\Http\Controllers\Api\V1\WebsitePostsController@indexByType');
+
+
+    // CART
+    Route::get('cart', [WebsiteCartController::class, 'current']);
+    Route::post('cart/items', [WebsiteCartController::class, 'addItem']);
+    Route::put('cart/items/{item}', [WebsiteCartController::class, 'updateItem']);
+    Route::delete('cart/items/{item}', [WebsiteCartController::class, 'removeItem']);
+
+    // ORDERS / CHECKOUT
+    Route::post('checkout', [WebsiteOrderController::class, 'store']);
+    Route::get('orders', [WebsiteOrderController::class, 'index']);
+    Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
 
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');
@@ -133,6 +148,10 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::apiResource('blocks', ApiBlockController::class);
 
         Route::apiResource('users', ApiUserController::class);
+
+
+        Route::get('orders', [ApiOrderController::class, 'index']);
+        Route::get('orders/{order}', [ApiOrderController::class, 'show']);
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:
