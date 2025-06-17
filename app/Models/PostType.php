@@ -9,6 +9,11 @@ class PostType extends Model
 {
     protected $fillable = ['slug', 'label'];
 
+    protected $casts = [
+        'label'         => 'array',   // { en:string, ar:string }
+
+
+    ];
     public function posts()
     {
         return $this->hasMany(Post::class);

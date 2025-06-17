@@ -43,9 +43,9 @@ class ApiPostsController extends Controller
         $post = Post::create([
             'post_type_id'   => $pt->id,
             'title'          => $payload['title'],
-            'category_id'    => $payload['category_id'],
-            'description'    => $payload['description'],
-            'seo'    => $payload['seo'],
+            'category_id'    => $payload['category_id'] ?? null,
+            'description'    => $payload['description'] ?? [],
+            'seo'    => $payload['seo'] ?? [],
             'slug'           => $payload['slug'],
             'content'        => $payload['content'] ?? [],
             'blocks'         => $payload['blocks'] ?? [],

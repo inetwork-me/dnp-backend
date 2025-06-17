@@ -50,11 +50,20 @@ class WebsitePostResource extends JsonResource
 
         // 3) Safely include author if loaded
         $author = null;
-        if ($this->relationLoaded('author') && $this->author) {
+        if ($this->whenLoaded('author') && $this->author) {
             $author = [
                 'id'    => $this->author->id,
                 'name'  => $this->author->name,
                 'email' => $this->author->email,
+            ];
+        }
+
+        $category = null;
+        if ($this->whenLoaded('category') && $this->category) {
+            $category = [
+                'id'   => $this->category->id,
+                'name' => $this->category->name,  // array [en,ar]
+                'slug' => $this->category->slug,
             ];
         }
 
@@ -67,13 +76,7 @@ class WebsitePostResource extends JsonResource
             'seo' => $this->seo,
             'author'         => $author,
             'blocks'         => $blocks,
-            'category' => $this->whenLoaded('category', function () {
-                return [
-                    'id'   => $this->category->id,
-                    'name' => $this->category->name,  // array [en,ar]
-                    'slug' => $this->category->slug,  // if you want
-                ];
-            }),
+            'category' => $category
         ];
     }
 }

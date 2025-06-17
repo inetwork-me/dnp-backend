@@ -17,8 +17,8 @@ class ApiPostTypesController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'slug'  => ['required','alpha_dash','unique:post_types,slug'],
-            'label' => ['required','string','max:255'],
+            'slug'  => ['required', 'alpha_dash', 'unique:post_types,slug'],
+            'label' => ['required', 'array'],
         ]);
 
         return response()->json(PostType::create($data), 201);
@@ -32,17 +32,20 @@ class ApiPostTypesController extends Controller
     public function update(Request $request, PostType $postType)
     {
         $data = $request->validate([
-            'slug'  => ['required','alpha_dash', Rule::unique('post_types','slug')->ignore($postType->id)],
-            'label' => ['required','string','max:255'],
+            'slug'  => ['required', 'alpha_dash', Rule::unique('post_types', 'slug')->ignore($postType->id)],
+            'label' => ['required', 'array'],
         ]);
 
         $postType->update($data);
         return $postType;
     }
 
-    public function destroy(PostType $postType)
+    public function destroy($id)
     {
-        $postType->delete();
+        if ($post = PostType::find($id)) {
+            $post->delete();
+        }
+
         return response()->noContent();
     }
 }

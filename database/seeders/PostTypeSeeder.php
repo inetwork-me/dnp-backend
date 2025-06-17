@@ -14,14 +14,20 @@ class PostTypeSeeder extends Seeder
         $now = Carbon::now();
         DB::table('post_types')->insertOrIgnore([
             [
-                'slug'       => 'page',
-                'label'      => 'Page',
+                'slug'       => 'pages',
+                'label'         => json_encode([
+                    'en' => 'Pages',
+                    'ar' => 'الصفحات',
+                ]),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
-                'slug'       => 'blog',
-                'label'      => 'Blog',
+                'slug'       => 'blogs',
+                'label'         => json_encode([
+                    'en' => 'Blogs',
+                    'ar' => 'المدونات',
+                ]),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
