@@ -29,7 +29,7 @@ class ApiPostsController extends Controller
             'title.en'       => ['required', 'string'],
             'title.ar'       => ['required', 'string'],
             'description'    => ['nullable', 'array'],
-            'slug'           => ['required', 'alpha_dash', 'max:255'],
+            'slug'  => ['required', 'alpha_dash', 'unique:post,slug'],
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
             'fields'         => ['nullable', 'array'],
@@ -68,14 +68,8 @@ class ApiPostsController extends Controller
     public function update(Request $request, Post $post)
     {
         $data = $request->validate([
-            'slug'         => [
-                'required', 'alpha_dash', 'max:255',
-                Rule::unique('posts', 'slug')
-                    ->where(fn ($q) => $q->where('post_type_id', $post->post_type_id))
-                    ->ignore($post->id)
-            ],
+            'slug'  => ['required', 'alpha_dash', 'unique:post,slug'],
             'category_id'    => ['sometimes', 'exists:post_type_categories,id'],
-
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
             'fields'         => ['nullable', 'array'],
