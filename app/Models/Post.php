@@ -20,6 +20,7 @@ class Post extends Model
     'status',
     'published_at',
     'author_id',
+    'fields'
   ];
 
   protected $casts = [
@@ -29,7 +30,8 @@ class Post extends Model
     'published_at'  => 'datetime',
     'blocks'       => 'array',
     'featured_image' => 'array',
-    'seo'            => 'array'
+    'seo'            => 'array',
+    'fields'            => 'array'
 
   ];
 

@@ -19,6 +19,7 @@ class ApiPostTypesController extends Controller
         $data = $request->validate([
             'slug'  => ['required', 'alpha_dash', 'unique:post_types,slug'],
             'label' => ['required', 'array'],
+            'fields' => ['nullable', 'array'],
         ]);
 
         return response()->json(PostType::create($data), 201);
@@ -34,6 +35,8 @@ class ApiPostTypesController extends Controller
         $data = $request->validate([
             'slug'  => ['required', 'alpha_dash', Rule::unique('post_types', 'slug')->ignore($postType->id)],
             'label' => ['required', 'array'],
+            'fields' => ['nullable', 'array'],
+
         ]);
 
         $postType->update($data);

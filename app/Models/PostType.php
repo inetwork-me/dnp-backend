@@ -7,10 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class PostType extends Model
 {
-    protected $fillable = ['slug', 'label'];
+    protected $fillable = [
+        'slug', 'label',         'fields',    // ← add this
+    ];
 
     protected $casts = [
         'label'         => 'array',   // { en:string, ar:string }
+        'fields'        => 'array',
+
 
 
     ];

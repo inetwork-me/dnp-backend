@@ -32,6 +32,7 @@ class ApiPostsController extends Controller
             'slug'           => ['required', 'alpha_dash', 'max:255'],
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
+            'fields'         => ['nullable', 'array'],
             'featured_image' => ['nullable', 'array'],
             'seo' => ['nullable', 'array'],
             'status'         => ['in:draft,published'],
@@ -49,6 +50,7 @@ class ApiPostsController extends Controller
             'slug'           => $payload['slug'],
             'content'        => $payload['content'] ?? [],
             'blocks'         => $payload['blocks'] ?? [],
+            'fields'         => $payload['fields'] ?? [],
             'featured_image' => $payload['featured_image'] ?? [],
             'status'         => $payload['status'] ?? 'draft',
             'published_at'   => $payload['published_at'] ?? null,
@@ -76,6 +78,7 @@ class ApiPostsController extends Controller
 
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
+            'fields'         => ['nullable', 'array'],
             'featured_image' => ['nullable', 'array'],
             'description'    => ['nullable', 'array'],
             'seo'    => ['nullable', 'array'],

@@ -15,6 +15,11 @@ class WebsitePostResource extends JsonResource
      */
     public function toArray($request): array
     {
+
+        $type   = $this->postType;           // eager-load in controller: with('postType')
+        $defs   = $type->fields ?? [];       // array of field‐defs
+        $values = $this->fields   ?? [];     // from Post::$casts
+
         // 1) Prepare raw blocks as an array
         $rawBlocks = $this->blocks;
         if (is_string($rawBlocks)) {
@@ -73,10 +78,13 @@ class WebsitePostResource extends JsonResource
             'title'          => $this->title,          // or localize here
             'content'        => $this->content,        // or localize here
             'featured_image' => $this->featured_image,
+            'created_at' => $this->created_at,
             'seo' => $this->seo,
             'author'         => $author,
             'blocks'         => $blocks,
-            'category' => $category
+            'category' => $category,
+            'fields' => $this->fields,
+
         ];
     }
 }
