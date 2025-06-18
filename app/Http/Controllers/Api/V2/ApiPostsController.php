@@ -69,7 +69,7 @@ class ApiPostsController extends Controller
     {
         $data = $request->validate([
             'slug'  => ['required', 'alpha_dash', 'unique:post,slug'],
-            'category_id'    => ['sometimes', 'exists:post_type_categories,id'],
+            'category_id'    => ['nullable', 'exists:post_type_categories,id'],
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
             'fields'         => ['nullable', 'array'],
