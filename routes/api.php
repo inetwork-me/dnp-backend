@@ -19,6 +19,9 @@ use App\Http\Controllers\Api\V2\ApiBlockController;
 use App\Http\Controllers\Api\V2\ApiUserController;
 use App\Http\Controllers\Api\V1\WebsiteCartController;
 use App\Http\Controllers\Api\V1\WebsiteOrderController;
+use App\Http\Controllers\Api\V2\ApiFormController;
+use App\Http\Controllers\Api\V2\ApiFormFieldController;
+use App\Http\Controllers\Api\V2\ApiFormSubmissionController;
 use App\Http\Controllers\Api\V2\ApiOrderController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
 
@@ -48,6 +51,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('posts/{slug}', 'App\Http\Controllers\Api\V1\WebsitePostsController@show');
     Route::get('post-types/{postType:slug}/posts', 'App\Http\Controllers\Api\V1\WebsitePostsController@indexByType');
     Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class)->only('index');
+    // Route::get('v2/forms/{form:slug}', [ApiFormController::class, 'show']);
+    Route::get('forms/slug/{slug}', [ApiFormController::class, 'showBySlug']);
+
+    // Public submission endpoint by slug
+    Route::post('forms/slug/{slug}/submit', [ApiFormSubmissionController::class, 'submit']);
 
 
     // CART
@@ -151,6 +159,21 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::apiResource('blocks', ApiBlockController::class);
 
         Route::apiResource('users', ApiUserController::class);
+
+        Route::prefix('forms')->group(function () {
+            Route::get('/', [ApiFormController::class, 'index']);
+            Route::post('/', [ApiFormController::class, 'store']);
+            Route::get('{form}', [ApiFormController::class, 'show']);
+            Route::put('{form}', [ApiFormController::class, 'update']);
+            Route::delete('{form}', [ApiFormController::class, 'destroy']);
+
+            Route::post('{form}/fields', [ApiFormFieldController::class, 'store']);
+            Route::put('{form}/fields/{field}', [ApiFormFieldController::class, 'update']);
+            Route::delete('{form}/fields/{field}', [ApiFormFieldController::class, 'destroy']);
+
+            Route::get('{form}/submissions', [ApiFormSubmissionController::class, 'index']);
+        });
+
 
 
         Route::get('orders', [ApiOrderController::class, 'index']);

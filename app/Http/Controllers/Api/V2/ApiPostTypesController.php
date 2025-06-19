@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\V2\PostTypeCollection;
 use App\Models\PostType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ApiPostTypesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return PostType::orderBy('id')->get();
+
+        $perPage = $request->query('per_page', 100);
+        $postType = PostType::orderBy('created_at', 'desc')->paginate($perPage);
+        return new PostTypeCollection($postType);
     }
 
     public function store(Request $request)
