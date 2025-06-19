@@ -46,7 +46,7 @@ class WebsitePostResource extends JsonResource
 
             $blocks[] = [
                 'blockId' => $block['blockId'] ?? null,
-                // 'name'    => $block['name']    ?? null,
+                'name'    => $block['name']    ?? null,
                 // 'label'   => $block['label']   ?? null,
                 // 'icon'    => $block['icon']    ?? null,
                 'fields'  => $fields,
