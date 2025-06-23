@@ -40,7 +40,7 @@ class ProductService
         // Set default meta data
         $collection['meta_title'] = $collection['meta_title'] ?? $collection['name'];
         $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
-        $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
+        // $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
 
         // Handle shipping cost
         $shipping_cost = isset($collection['shipping_type']) && $collection['shipping_type'] === 'flat_rate'
@@ -174,7 +174,7 @@ class ProductService
         // Set meta data defaults
         $collection['meta_title'] = $collection['meta_title'] ?? $collection['name'];
         $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
-        $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
+        // $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
 
         if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
             $collection = $collection->except(['name', 'unit', 'description']);

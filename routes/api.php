@@ -52,6 +52,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::get('post-types/{postType:slug}/posts', 'App\Http\Controllers\Api\V1\WebsitePostsController@indexByType');
     Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class)->only('index');
     Route::apiResource('post-types', ApiPostTypesController::class)->only('show');
+    Route::apiResource('products/categories', ApiProductCategoryController::class)->only(['index']);
 
     // Route::get('v2/forms/{form:slug}', [ApiFormController::class, 'show']);
     Route::get('forms/slug/{slug}', [ApiFormController::class, 'showBySlug']);

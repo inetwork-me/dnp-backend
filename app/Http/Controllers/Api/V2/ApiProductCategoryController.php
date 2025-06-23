@@ -15,7 +15,7 @@ class ApiProductCategoryController extends Controller
     public function index(Request $request)
     {
 
-        $parent_id = $request->query('parent_id');
+        $parent_id = $request->query('parent_id') ?? 0;
 
         if ($parent_id) {
             $category = Category::where('slug', $parent_id)->first();

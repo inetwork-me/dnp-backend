@@ -10,11 +10,12 @@ class Product extends Model
 
     protected $guarded = ['choice_attributes'];
 
-    protected $with = ['product_translations', 'taxes', 'thumbnail'];
+    protected $with = ['product_translations', 'taxes'];
 
     protected $casts = [
         'product_service_custom_data' => 'array', // Cast to array for easy manipulation
-        'label' => 'array'
+        'label' => 'array',
+        'thumbnail' => 'array'
     ];
 
     public function getTranslation($field = '', $lang = false)
@@ -114,10 +115,10 @@ class Product extends Model
         return $this->hasMany(AuctionProductBid::class);
     }
 
-    public function thumbnail()
-    {
-        return $this->belongsTo(Upload::class, 'thumbnail_img');
-    }
+    // public function thumbnail()
+    // {
+    //     return $this->belongsTo(Upload::class, 'thumbnail_img');
+    // }
 
     public function scopePhysical($query)
     {

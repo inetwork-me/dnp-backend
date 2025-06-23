@@ -69,7 +69,10 @@ class ProductDetailCollection extends ResourceCollection
                     'shop_name' => $data->added_by == 'admin' ? translate('In House Product') : $data->user->shop->name,
                     'shop_logo' => $data->added_by == 'admin' ? uploaded_asset(get_setting('header_logo')) : uploaded_asset($data->user->shop->logo) ?? "",
                     'photos' => $photos,
-                    'thumbnail_image' => uploaded_asset($data->thumbnail_img),
+                    // 'thumbnail_image' => uploaded_asset($data->thumbnail_img),
+
+                    'thumbnail' => $data->thumbnail,
+                    'thumbnail' => $data->label,
                     'tags' => explode(',', $data->tags),
                     'price_high_low' => (float)explode('-', home_discounted_base_price($data, false))[0] == (float)explode('-', home_discounted_price($data, false))[1] ? format_price((float)explode('-', home_discounted_price($data, false))[0]) : "From " . format_price((float)explode('-', home_discounted_price($data, false))[0]) . " to " . format_price((float)explode('-', home_discounted_price($data, false))[1]),
                     'choice_options' => $this->convertToChoiceOptions(json_decode($data->choice_options)),

@@ -106,32 +106,33 @@ class ApiProductController extends Controller
             'flash_deal_id', 'flash_discount', 'flash_discount_type'
         ]);
 
-        // 4) Decode the Base64‐encoded thumbnail_img
-        $base64String = $payload['thumbnail_img'];
-        if (!preg_match('/^data:image\/(\w+);base64,/', $base64String, $typeMatch)) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['Logo must be a valid Base64‐encoded image string.'],
-            ], 422);
-        }
-        $imageType = strtolower($typeMatch[1]); // e.g. png, jpeg, jpg, gif
+        // // 4) Decode the Base64‐encoded thumbnail_img
+        // $base64String = $payload['thumbnail_img'];
+        // if (!preg_match('/^data:image\/(\w+);base64,/', $base64String, $typeMatch)) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'errors'  => ['Logo must be a valid Base64‐encoded image string.'],
+        //     ], 422);
+        // }
+        // $imageType = strtolower($typeMatch[1]); // e.g. png, jpeg, jpg, gif
 
-        $base64Data = substr($base64String, strpos($base64String, ',') + 1);
-        $decodedImage = base64_decode($base64Data);
-        if ($decodedImage === false) {
-            return response()->json([
-                'success' => false,
-                'errors'  => ['Failed to decode Base64 image data.'],
-            ], 422);
-        }
+        // $base64Data = substr($base64String, strpos($base64String, ',') + 1);
+        // $decodedImage = base64_decode($base64Data);
+        // if ($decodedImage === false) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'errors'  => ['Failed to decode Base64 image data.'],
+        //     ], 422);
+        // }
 
-        // 5) Generate a unique filename and store under public/uploads/brands/
-        $productname = $payload['name'];
-        $filename = $productname . Str::random(10) . '.' . $imageType;
-        $path = 'uploads/products/' . $productname . '/' . $filename;
-        Storage::disk('public')->put($path, $decodedImage);
-        $thumbnail_img = Storage::url($path);
-        $payload['thumbnail_img'] = $thumbnail_img;
+        // // 5) Generate a unique filename and store under public/uploads/brands/
+        // $productname = $payload['name'];
+        // $filename = $productname . Str::random(10) . '.' . $imageType;
+        // $path = 'uploads/products/' . $productname . '/' . $filename;
+        // Storage::disk('public')->put($path, $decodedImage);
+        // $thumbnail_img = Storage::url($path);
+        // $payload['thumbnail_img'] = $thumbnail_img;
+
 
         // Extract optional bundle_items
         $bundleItems = $payload['bundle_items'] ?? [];
