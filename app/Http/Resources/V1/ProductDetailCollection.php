@@ -62,6 +62,7 @@ class ProductDetailCollection extends ResourceCollection
                 return [
                     'id' => (int)$data->id,
                     'name' => $data->getTranslation('name'),
+                    'label' => $data->label,
                     'added_by' => $data->added_by,
                     'seller_id' => $data->user->id,
                     'shop_id' => $data->added_by == 'admin' ? 0 : $data->user->shop->id,
