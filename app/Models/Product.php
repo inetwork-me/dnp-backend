@@ -14,6 +14,7 @@ class Product extends Model
 
     protected $casts = [
         'product_service_custom_data' => 'array', // Cast to array for easy manipulation
+        'label' => 'array'
     ];
 
     public function getTranslation($field = '', $lang = false)
