@@ -57,6 +57,7 @@ class ApiProductController extends Controller
         $query = Product::query()
             ->with(['categories', 'stocks', 'taxes']) // eager-load relationships as needed
             ->where('auction_product', 0)
+            ->where('type', $request->query('type'))
             ->where('wholesale_product', 0);
 
         if (!empty($search)) {
@@ -88,7 +89,7 @@ class ApiProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
-        $product->load(['categories', 'stocks', 'taxes', 'frequently_bought_products']);
+        $product->load(['categories', 'stocks', 'taxes', 'frequently_bought_products', 'bundleItems']);
         return response()->json([
             'data' => $product,
         ]);
@@ -131,6 +132,12 @@ class ApiProductController extends Controller
         Storage::disk('public')->put($path, $decodedImage);
         $thumbnail_img = Storage::url($path);
         $payload['thumbnail_img'] = $thumbnail_img;
+
+        // Extract optional bundle_items
+        $bundleItems = $payload['bundle_items'] ?? [];
+        unset($payload['bundle_items']);
+
+        // Create product
         $product = $this->productService->store($payload);
 
         // Attach categories
@@ -191,6 +198,15 @@ class ApiProductController extends Controller
 
         // Artisan::call('view:clear');
         // Artisan::call('cache:clear');
+        if (!empty($bundleItems) && $product->type === 'bundle') {
+            $sync = [];
+            foreach ($bundleItems as $item) {
+                $sync[$item['product_id']] = ['quantity' => $item['quantity']];
+            }
+            $product->bundleItems()->sync($sync);
+        }
+
+        $product->load(['categories', 'stocks', 'taxes', 'bundleItems']);
 
         return response()->json([
             'data' => $product,

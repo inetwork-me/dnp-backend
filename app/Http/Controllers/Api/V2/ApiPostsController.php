@@ -16,7 +16,7 @@ class ApiPostsController extends Controller
 
         return Post::where('post_type_id', $pt->id)
             ->with('postType')
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->get();
     }
 

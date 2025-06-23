@@ -36,15 +36,24 @@ class ProductRequest extends FormRequest
         $rules['unit']         = 'sometimes|required';
         $rules['min_qty']      = 'sometimes|required|numeric';
         $rules['unit_price']    = 'sometimes|required|numeric|gt:0';
+
         if ($this->get('discount_type') == 'amount') {
             $rules['discount'] = 'sometimes|required|numeric|lt:unit_price';
         } else {
             $rules['discount'] = 'sometimes|required|numeric|lt:100';
         }
+
         $rules['current_stock'] = 'sometimes|required|numeric';
         $rules['starting_bid']  = 'sometimes|required|numeric|min:1';
         $rules['auction_date_range']  = 'sometimes|required';
 
+        // --- NEW: PRODUCT TYPE & BUNDLES ---
+        $rules['type']                 = ['required', Rule::in(['simple', 'bundle', 'subscription', 'service'])];
+
+        // Only when type=bundle
+        $rules['bundle_items']              = 'nullable|array';
+        $rules['bundle_items.*.product_id'] = 'required_if:type,bundle|exists:products,id';
+        $rules['bundle_items.*.quantity'] = 'required_if:type,bundle|integer|min:1';
         return $rules;
     }
 

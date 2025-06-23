@@ -23,6 +23,15 @@ class Product extends Model
         return $product_translations != null ? $product_translations->$field : $this->$field;
     }
 
+    public function bundleItems()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'bundle_product',
+            'bundle_id',
+            'product_id'
+        )->withPivot('quantity');
+    }
 
     public function product_translations()
     {
