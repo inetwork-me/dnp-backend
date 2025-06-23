@@ -78,7 +78,7 @@ class ProductDetailCollection extends ResourceCollection
                     'choice_options' => $this->convertToChoiceOptions(json_decode($data->choice_options)),
                     'colors' => json_decode($data->colors) ?? [],
                     'has_discount' => home_base_price($data, false) != home_discounted_base_price($data, false),
-                    'discount' => "-" . discount_in_percentage($data) . "%",
+                    'discount' => discount_in_percentage($data),
                     'stroked_price' => home_base_price($data),
                     'main_price' => home_discounted_base_price($data),
                     'calculable_price' => $calculable_price,
