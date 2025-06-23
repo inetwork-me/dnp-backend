@@ -121,7 +121,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         // Route::get('/products',          [ApiProductController::class, 'index']);
         Route::apiResource('products', ApiProductController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::apiResource('products/categories', ApiProductCategoryController::class)->only(['index']);
+        Route::apiResource('products/categories', ApiProductCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
 
         Route::get('/products/{product}', [ApiProductController::class, 'show']);
         // Route::post('/products',          [ApiProductController::class, 'store']);

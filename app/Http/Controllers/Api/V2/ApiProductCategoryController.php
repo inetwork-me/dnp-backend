@@ -28,6 +28,30 @@ class ApiProductCategoryController extends Controller
         return new CategoryCollection($categories);
     }
 
+    public function store(Request $request)
+    {
+        // 1. Validate only the fields you expect:
+        $data = $request->validate([
+            'name'       => 'nullable|string|max:255',
+            'slug'       => 'nullable|string|unique:categories,slug',
+            'label'       => 'nullable|array',
+            // …any other category columns…
+        ]);
+
+        // 2. firstOrCreate needs an attribute‐array for lookup,
+        //    and an (optional) values‐array for setting defaults.
+        //    If you only care about unique by name, you could do:
+        $category = Category::firstOrCreate(
+            ['name' => $data['name']],  // lookup by name
+            $data                       // fill any other fields
+        );
+
+        return response()->json([
+            'message' => 'Category saved successfully.',
+            'data'    => $category,
+        ]);
+    }
+
     public function info($slug)
     {
         return new CategoryCollection(Category::where('slug', $slug)->get());
