@@ -30,6 +30,10 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
     // TODO 
     // Delete THIS API SECURITY ISSUE
     Route::post('password/change', 'App\Http\Controllers\Api\V1\PasswordResetController@changepassword');
+
+
+
+
     Route::post('signup', 'App\Http\Controllers\Api\V1\AuthController@signup');
     Route::post('social-login', 'App\Http\Controllers\Api\V1\AuthController@socialLogin');
     Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
@@ -41,6 +45,8 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
         Route::get('user', 'App\Http\Controllers\Api\V1\AuthController@user');
         Route::get('resend_code', 'App\Http\Controllers\Api\V1\AuthController@resendCode');
         Route::post('confirm_code', 'App\Http\Controllers\Api\V1\AuthController@confirmCode');
+        Route::get('orders', [WebsiteOrderController::class, 'index']);
+        Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
     });
 
     Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
@@ -69,9 +75,13 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     // ORDERS / CHECKOUT
     Route::post('checkout', [WebsiteOrderController::class, 'store']);
-    Route::get('orders', [WebsiteOrderController::class, 'index']);
-    Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
 
+
+    Route::middleware('auth:sanctum')->group(function () {
+
+        Route::get('orders', [WebsiteOrderController::class, 'index']);
+        Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+    });
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');
     Route::get('languages', 'App\Http\Controllers\Api\V1\LanguageController@getList');
