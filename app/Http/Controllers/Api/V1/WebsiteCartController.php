@@ -24,10 +24,24 @@ class WebsiteCartController extends Controller
             'status'  => 'open',
         ]);
 
-        return response()->json(
-            $cart->load('items.product')
-        );
+        // eager-load each item’s product
+        $cart->load('items.product');
+
+        // total items (assuming each `item` has a `quantity` column)
+        $totalCount = $cart->items->sum('quantity');
+
+        // total price = sum of (quantity × unit_price)
+        $totalPrice = $cart->items->sum(function ($item) {
+            return $item->quantity * $item->product->price;
+        });
+
+        return response()->json([
+            'cart'        => $cart,
+            'total_count' => $totalCount,
+            'total_price' => $totalPrice,
+        ]);
     }
+
 
     /** POST /api/cart/items **/
     public function addItem(Request $request)
