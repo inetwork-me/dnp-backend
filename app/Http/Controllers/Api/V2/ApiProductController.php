@@ -223,7 +223,7 @@ class ApiProductController extends Controller
     {
         $payload = $request->except([
             '_token', 'sku', 'choice', 'tax_id', 'tax', 'tax_type',
-            'flash_deal_id', 'flash_discount', 'flash_discount_type'
+            'flash_deal_id', 'flash_discount', 'flash_discount_type',
         ]);
 
         $this->productService->update($payload, $product);

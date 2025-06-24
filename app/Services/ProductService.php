@@ -166,9 +166,9 @@ class ProductService
         $collection['tags'] = $tags;
 
         // Handle discount dates
-        [$discount_start_date, $discount_end_date] = $collection['date_range']
-            ? array_map('strtotime', explode(' to ', $collection['date_range']))
-            : [null, null];
+        // [$discount_start_date, $discount_end_date] = $collection['date_range']
+        //     ? array_map('strtotime', explode(' to ', $collection['date_range']))
+        //     : [null, null];
         unset($collection['date_range']);
 
         // Set meta data defaults
@@ -176,14 +176,14 @@ class ProductService
         // $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
         // $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
 
-        if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
-            $collection = $collection->except(['name', 'unit', 'description']);
-        }
+        // if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
+        //     $collection = $collection->except(['name', 'unit', 'description']);
+        // }
         unset($collection['lang']);
 
         // Handle shipping cost
         if (isset($collection['shipping_type'])) {
-            $shipping_cost = $collection['shipping_type'] === 'flat_rate' ? $collection['flat_shipping_cost'] : 0;
+            // $shipping_cost = $collection['shipping_type'] === 'flat_rate' ? $collection['flat_shipping_cost'] : 0;
             unset($collection['flat_shipping_cost']);
         } else {
             $shipping_cost = 0;
@@ -252,17 +252,17 @@ class ProductService
         }
         unset($collection['product_service_custom_data']);
 
-        $data = $collection->merge(compact(
-            'discount_start_date',
-            'discount_end_date',
-            'shipping_cost',
-            'slug',
-            'colors',
-            'choice_options',
-            'attributes'
-        ))->toArray();
+        // $data = $collection->merge(compact(
+        //     'discount_start_date',
+        //     'discount_end_date',
+        //     'shipping_cost',
+        //     'slug',
+        //     'colors',
+        //     'choice_options',
+        //     'attributes'
+        // ))->toArray();
 
-        $data['product_service_custom_data'] = ($customAttributes);
+        // $data['product_service_custom_data'] = ($customAttributes);
 
 
         $product->update($data);

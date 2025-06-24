@@ -37,14 +37,14 @@ class ProductRequest extends FormRequest
         $rules['min_qty']      = 'sometimes|required|numeric';
         $rules['unit_price']    = 'sometimes|required|numeric|gt:0';
 
-        if ($this->get('discount_type') == 'amount') {
-            $rules['discount'] = 'sometimes|required|numeric|lt:unit_price';
-        } else {
-            $rules['discount'] = 'sometimes|required|numeric|lt:100';
-        }
+        // if ($this->get('discount_type') == 'amount') {
+        //     $rules['discount'] = 'sometimes|required|numeric|lt:unit_price';
+        // } else {
+        //     $rules['discount'] = 'sometimes|required|numeric|lt:100';
+        // }
 
         $rules['current_stock'] = 'sometimes|required|numeric';
-        $rules['starting_bid']  = 'sometimes|required|numeric|min:1';
+        // $rules['starting_bid']  = 'sometimes|required|numeric|min:1';
         $rules['auction_date_range']  = 'sometimes|required';
 
         // --- NEW: PRODUCT TYPE & BUNDLES ---
@@ -74,14 +74,14 @@ class ProductRequest extends FormRequest
             'min_qty.numeric'           => translate('Minimum purchase must be numeric'),
             'unit_price.required'       => translate('Unit price is required'),
             'unit_price.numeric'        => translate('Unit price must be numeric'),
-            'discount.required'         => translate('Discount is required'),
-            'discount.numeric'          => translate('Discount must be numeric'),
+            // 'discount.required'         => translate('Discount is required'),
+            // 'discount.numeric'          => translate('Discount must be numeric'),
             'discount.lt'               => translate('Discount should be less than unit price'),
             'current_stock.required'    => translate('Current stock is required'),
             'current_stock.numeric'     => translate('Current stock must be numeric'),
-            'starting_bid.required'     => translate('Starting Bid is required'),
-            'starting_bid.numeric'      => translate('Starting Bid must be numeric'),
-            'starting_bid.required'     => translate('Minimum Starting Bid is 1'),
+            // 'starting_bid.required'     => translate('Starting Bid is required'),
+            // 'starting_bid.numeric'      => translate('Starting Bid must be numeric'),
+            // 'starting_bid.required'     => translate('Minimum Starting Bid is 1'),
             'auction_date_range.required' => translate('Auction Date Range is required')
         ];
     }
