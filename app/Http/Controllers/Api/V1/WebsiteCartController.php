@@ -32,7 +32,7 @@ class WebsiteCartController extends Controller
 
         // total price = sum of (quantity × unit_price)
         $totalPrice = $cart->items->sum(function ($item) {
-            return $item->quantity * $item->product->price;
+            return $item->quantity * $item->product->unit_price;
         });
 
         return response()->json([
