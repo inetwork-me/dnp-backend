@@ -30,7 +30,7 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        return new ProductDetailCollection(Product::where('slug', $slug)->get());
+        return Product::where('slug', $slug)->firstOrFail();
     }
 
     public function getPrice(Request $request)
