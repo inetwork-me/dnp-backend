@@ -90,9 +90,9 @@ class ApiProductController extends Controller
     public function show(Product $product): JsonResponse
     {
         $product->load(['categories', 'stocks', 'taxes', 'frequently_bought_products', 'bundleItems']);
-        return response()->json([
-            'data' => $product,
-        ]);
+        return response()->json(
+            $product,
+        );
     }
 
     /**
