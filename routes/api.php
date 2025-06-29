@@ -81,7 +81,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
-        Route::post('/reviews', [WebsiteReviewController::class, 'store']);
+        Route::post('reviews', [WebsiteReviewController::class, 'store']);
     });
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');
@@ -192,6 +192,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         Route::get('orders', [ApiOrderController::class, 'index']);
         Route::get('orders/{order}', [ApiOrderController::class, 'show']);
+        Route::put('orders/{order}/status', [ApiOrderController::class, 'updateStatus']);
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:

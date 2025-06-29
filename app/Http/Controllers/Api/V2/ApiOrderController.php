@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V2\OrderCollection;
 use App\Models\Order;
+use Illuminate\Validation\Rule;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ApiOrderController extends Controller
@@ -26,6 +28,36 @@ class ApiOrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        return $order->load('items.product');
+        return $order->load('items.product', 'statusHistories.user');
+    }
+
+
+    public function updateStatus(Request $request, Order $order): JsonResponse
+    {
+        $data = $request->validate([
+            'status' => [
+                'required',
+                Rule::in([
+                    'pending',
+                    'processing',
+                    'approved',
+                    'shipped',
+                    'refunded',
+                    'completed',
+                    'cancelled',
+                ]),
+            ],
+        ]);
+
+        // This triggers your OrderObserver->updating() and writes the history record
+        $order->update(['status' => $data['status']]);
+
+        // Reload to include the fresh history
+        $order->load('statusHistories.user');
+
+        return response()->json([
+            'message' => 'Order status updated',
+            'data'    => $order,
+        ]);
     }
 }

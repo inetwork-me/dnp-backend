@@ -44,4 +44,10 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+    public function statusHistories()
+    {
+        return $this->hasMany(OrderStatusHistory::class)
+            ->with('user')        // eager‐load the actor
+            ->orderByDesc('created_at');
+    }
 }

@@ -82,7 +82,8 @@ class ProductRequest extends FormRequest
             // 'starting_bid.required'     => translate('Starting Bid is required'),
             // 'starting_bid.numeric'      => translate('Starting Bid must be numeric'),
             // 'starting_bid.required'     => translate('Minimum Starting Bid is 1'),
-            'auction_date_range.required' => translate('Auction Date Range is required')
+            'auction_date_range.required' => translate('Auction Date Range is required'),
+            'is_top_selling' => ['sometimes', 'boolean'],
         ];
     }
 

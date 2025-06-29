@@ -16,6 +16,7 @@ class Product extends Model
         'product_service_custom_data' => 'array', // Cast to array for easy manipulation
         'label' => 'array',
         'thumbnail' => 'array',
+        'thumbnails' => 'array',
         'desc' => 'array',
         'specs' => 'array',
         'howtouse' => 'array',
@@ -23,6 +24,7 @@ class Product extends Model
         'shipping' => 'array',
         'returns' => 'array',
         'is_top_selling' => 'boolean',
+        'multimedia' => 'array'
 
     ];
 
