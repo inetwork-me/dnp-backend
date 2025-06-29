@@ -30,7 +30,33 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        return Product::where('slug', $slug)->firstOrFail();
+        $product = Product::where('slug', $slug)
+            ->withCount([
+                'reviews as one_star_count'   => fn ($q) => $q->where('rating', 1),
+                'reviews as two_star_count'   => fn ($q) => $q->where('rating', 2),
+                'reviews as three_star_count' => fn ($q) => $q->where('rating', 3),
+                'reviews as four_star_count'  => fn ($q) => $q->where('rating', 4),
+                'reviews as five_star_count'  => fn ($q) => $q->where('rating', 5),
+            ])
+            ->with('reviews.user')
+            ->firstOrFail();
+
+        $counts = [
+            1 => $product->one_star_count,
+            2 => $product->two_star_count,
+            3 => $product->three_star_count,
+            4 => $product->four_star_count,
+            5 => $product->five_star_count,
+        ];
+
+        $total = array_sum($counts);
+        $pct   = array_map(fn ($c) => $total ? round($c / $total * 100, 1) : 0, $counts);
+        $reviews_info = [
+            'total_reviews' => $total,
+            'percentage' => $pct,
+            'stars_counts' => $counts,
+        ];
+        return response()->json(compact('product', 'reviews_info'));
     }
 
     public function getPrice(Request $request)

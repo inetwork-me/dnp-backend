@@ -81,6 +81,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+        Route::post('/reviews', [WebsiteReviewController::class, 'store']);
     });
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');

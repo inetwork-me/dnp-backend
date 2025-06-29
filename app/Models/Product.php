@@ -24,6 +24,7 @@ class Product extends Model
         'returns' => 'array',
     ];
 
+
     public function getTranslation($field = '', $lang = false)
     {
         $lang = $lang == false ? App::getLocale() : $lang;
