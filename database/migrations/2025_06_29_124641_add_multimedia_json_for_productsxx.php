@@ -15,8 +15,7 @@ return new class extends Migration
             //
             $table
                 ->json('multimedia')
-                ->nullable()
-                ->default('[]');
+                ->nullable();
         });
     }
 
