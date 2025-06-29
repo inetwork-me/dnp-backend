@@ -58,7 +58,8 @@ class ApiProductController extends Controller
             ->with(['categories', 'stocks', 'taxes']) // eager-load relationships as needed
             ->where('auction_product', 0)
             ->where('type', $request->query('type'))
-            ->where('wholesale_product', 0);
+            ->where('wholesale_product', 0)
+            ->when($request->boolean('is_top_selling'), fn ($q) => $q->where('is_top_selling', true));
 
         if (!empty($search)) {
             $query->where('name', 'like', "%{$search}%")

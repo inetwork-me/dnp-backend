@@ -22,8 +22,15 @@ class Product extends Model
         'caution' => 'array',
         'shipping' => 'array',
         'returns' => 'array',
+        'is_top_selling' => 'boolean',
+
     ];
 
+
+    public function scopeTopSelling($query)
+    {
+        return $query->where('is_top_selling', true);
+    }
 
     public function getTranslation($field = '', $lang = false)
     {

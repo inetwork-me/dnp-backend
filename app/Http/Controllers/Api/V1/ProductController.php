@@ -22,11 +22,31 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('count_per_page'))
-            return new ProductMiniCollection(Product::latest()->paginate($request->has('count_per_page')));
-        else
-            return new ProductMiniCollection(Product::latest()->paginate(10));
+        // 1. Determine how many items per page (default to 10)
+        $perPage = $request->query('count_per_page', 10);
+
+        // 2. Build base query, ordered by most recent
+        $query = Product::latest()
+            // 3. Filter by “type” if provided (e.g. physical, digital, bundle…)
+            ->when(
+                $request->filled('type'),
+                fn ($q) =>
+                $q->where('type', $request->query('type'))
+            )
+            // 4. Filter by top-selling flag if ?is_top_selling=true
+            ->when(
+                $request->boolean('is_top_selling'),
+                fn ($q) =>
+                $q->where('is_top_selling', true)
+            );
+
+        // 5. Paginate
+        $products = $query->paginate($perPage);
+
+        // 6. Wrap in your mini-collection and return
+        return new ProductMiniCollection($products);
     }
+
 
     public function show($slug)
     {
