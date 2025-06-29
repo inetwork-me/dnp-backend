@@ -58,8 +58,13 @@ class ProductController extends Controller
                 'reviews as four_star_count'  => fn ($q) => $q->where('rating', 4),
                 'reviews as five_star_count'  => fn ($q) => $q->where('rating', 5),
             ])
+            ->withAvg('reviews as avg_rating', 'rating')
             ->with('reviews.user')
             ->firstOrFail();
+        // round the avg_rating to one decimal place (or leave as-is)
+        $avg = $product->avg_rating !== null
+            ? round($product->avg_rating, 1)
+            : 0;
 
         $counts = [
             1 => $product->one_star_count,
@@ -75,6 +80,7 @@ class ProductController extends Controller
             'total_reviews' => $total,
             'percentage' => $pct,
             'stars_counts' => $counts,
+            'avg_rating'    => $avg,
         ];
         return response()->json(compact('product', 'reviews_info'));
     }
