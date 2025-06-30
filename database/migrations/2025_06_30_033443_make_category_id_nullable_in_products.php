@@ -13,11 +13,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             //
-            if (!Schema::hasColumn('products', 'multimedia')) {
-                $table
-                    ->json('multimedia')
-                    ->nullable();
-            }
+            $table->unsignedBigInteger('category_id')->nullable()->change();
         });
     }
 
@@ -28,7 +24,6 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             //
-            $table->dropColumn('multimedia');
         });
     }
 };

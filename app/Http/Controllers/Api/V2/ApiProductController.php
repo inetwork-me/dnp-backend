@@ -90,7 +90,7 @@ class ApiProductController extends Controller
      */
     public function show(Product $product): JsonResponse
     {
-        $product->load(['categories', 'stocks', 'taxes', 'frequently_bought_products', 'bundleItems']);
+        $product->load(['categories', 'stocks', 'taxes', 'frequently_bought_products', 'bundleItems', 'packageDetails']);
         return response()->json([
             'data' => $product,
         ]);
@@ -106,6 +106,10 @@ class ApiProductController extends Controller
             '_token', 'sku', 'choice', 'tax_id', 'tax', 'tax_type',
             'flash_deal_id', 'flash_discount', 'flash_discount_type'
         ]);
+
+        $packageDetails = $payload['package_details'] ?? null;
+        unset($payload['package_details']);
+
 
         // // 4) Decode the Base64‐encoded thumbnail_img
         // $base64String = $payload['thumbnail_img'];
@@ -142,9 +146,19 @@ class ApiProductController extends Controller
         // Create product
         $product = $this->productService->store($payload);
 
-        // Attach categories
-        $product->categories()->attach($request->category_ids);
+        // Handle package-specific details
+        if ($product->type === 'package' && $packageDetails) {
+            $product->packageDetails()->create([
+                'min_months' => $packageDetails['min_months'] ?? 0,
+                'min_products' => $packageDetails['min_products'] ?? 0,
+                'points' => $packageDetails['points'] ?? 0,
+            ]);
+        }
 
+        // Attach categories
+        if ($request->filled('category_ids')) {
+            $product->categories()->attach($request->category_ids);
+        }
         // VAT & Tax
         if ($request->tax_id) {
             $this->productTaxService->store($request->only([
@@ -227,8 +241,20 @@ class ApiProductController extends Controller
             'flash_deal_id', 'flash_discount', 'flash_discount_type',
         ]);
 
-        $this->productService->update($payload, $product);
+        $packageDetails = $payload['package_details'] ?? null;
+        unset($payload['package_details']);
 
+        $this->productService->update($payload, $product);
+        if ($product->type === 'package' && $packageDetails) {
+            $product->packageDetails()->updateOrCreate(
+                ['product_id' => $product->id],
+                [
+                    'min_months' => $packageDetails['min_months'] ?? 0,
+                    'min_products' => $packageDetails['min_products'] ?? 0,
+                    'points' => $packageDetails['points'] ?? 0,
+                ]
+            );
+        }
         // Sync categories
         $product->categories()->sync($request->category_ids);
 

@@ -28,6 +28,10 @@ class Product extends Model
 
     ];
 
+    public function packageDetails()
+    {
+        return $this->hasOne(PackageDetail::class);
+    }
 
     public function scopeTopSelling($query)
     {

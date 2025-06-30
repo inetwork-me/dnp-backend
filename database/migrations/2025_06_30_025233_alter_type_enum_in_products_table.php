@@ -13,11 +13,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             //
-            if (!Schema::hasColumn('products', 'multimedia')) {
-                $table
-                    ->json('multimedia')
-                    ->nullable();
-            }
+            DB::statement("ALTER TABLE products MODIFY type ENUM('simple', 'session', 'bundle','package', 'subscription', 'service') NOT NULL DEFAULT 'simple'");
         });
     }
 
@@ -28,7 +24,6 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             //
-            $table->dropColumn('multimedia');
         });
     }
 };

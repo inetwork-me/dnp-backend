@@ -31,9 +31,9 @@ class ProductRequest extends FormRequest
 
         $rules['name']          = 'required|max:255';
         // $rules['specifications']          = 'required';
-        $rules['category_ids']  = 'required';
-        $rules['category_id']   = ['required', Rule::in($this->category_ids)];
-        $rules['unit']         = 'sometimes|required';
+        // $rules['category_ids']  = 'required';
+        // $rules['category_id']   = ['required', Rule::in($this->category_ids)];
+        // $rules['unit']         = 'sometimes|required';
         $rules['min_qty']      = 'sometimes|required|numeric';
         $rules['unit_price']    = 'sometimes|required|numeric|gt:0';
 
@@ -48,7 +48,7 @@ class ProductRequest extends FormRequest
         $rules['auction_date_range']  = 'sometimes|required';
 
         // --- NEW: PRODUCT TYPE & BUNDLES ---
-        $rules['type']                 = ['required', Rule::in(['simple', 'bundle', 'subscription', 'service'])];
+        $rules['type']                 = ['required', Rule::in(['simple', 'bundle', 'subscription', 'service', 'package'])];
 
         // Only when type=bundle
         $rules['bundle_items']              = 'nullable|array';
@@ -66,10 +66,10 @@ class ProductRequest extends FormRequest
     {
         return [
             'name.required'             => translate('Product name is required'),
-            'category_ids.required'     => translate('Product category is required'),
-            'category_id.required'      => translate('Main Category is required'),
-            'category_id.in'            => translate('Main Category must be within selected categories'),
-            'unit.required'             => translate('Product unit is required'),
+            // 'category_ids.required'     => translate('Product category is required'),
+            // 'category_id.required'      => translate('Main Category is required'),
+            // 'category_id.in'            => translate('Main Category must be within selected categories'),
+            // 'unit.required'             => translate('Product unit is required'),
             'min_qty.required'          => translate('Minimum purchase quantity is required'),
             'min_qty.numeric'           => translate('Minimum purchase must be numeric'),
             'unit_price.required'       => translate('Unit price is required'),
