@@ -12,6 +12,9 @@ class ProductMiniCollection extends ResourceCollection
             'data' => $this->collection->map(function ($data) {
                 $wholesale_product =
                     ($data->wholesale_product == 1) ? true : false;
+
+                $avgRating = $data->reviews_rating_avg ?? (float) $data->rating;
+
                 return [
                     'id' => $data->id,
                     'slug' => $data->slug,
@@ -26,7 +29,11 @@ class ProductMiniCollection extends ResourceCollection
                     'rating' => (float) $data->rating,
                     'sales' => (int) $data->num_of_sale,
                     'current_stock' =>  $data->current_stock,
+                    'is_top_selling' =>  $data->is_top_selling,
+                    'type' =>  $data->type,
                     'category'  => get_single_category($data->category_id),
+                    'avg_rating'            => round((float) $avgRating, 1),
+
 
 
                 ];
