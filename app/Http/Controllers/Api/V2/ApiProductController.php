@@ -244,7 +244,20 @@ class ApiProductController extends Controller
         $packageDetails = $payload['package_details'] ?? null;
         unset($payload['package_details']);
 
+
+        $bundleItems = $payload['bundle_items'] ?? [];
+        unset($payload['bundle_items']);
+
         $this->productService->update($payload, $product);
+
+        if (!empty($bundleItems) && $product->type === 'bundle') {
+            $sync = [];
+            foreach ($bundleItems as $item) {
+                $sync[$item['product_id']] = ['quantity' => $item['quantity']];
+            }
+            $product->bundleItems()->sync($sync);
+        }
+
         if ($product->type === 'package' && $packageDetails) {
             $product->packageDetails()->updateOrCreate(
                 ['product_id' => $product->id],

@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V2\ApiFormFieldController;
 use App\Http\Controllers\Api\V2\ApiFormSubmissionController;
 use App\Http\Controllers\Api\V2\ApiOrderController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
+use App\Http\Controllers\Api\V2\DashboardController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -124,6 +125,9 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+
+        Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
+
         Route::get('brands', [BrandController::class, 'index']);
         Route::post('brands', [BrandController::class, 'store']);
         Route::get('brands/{id}', [BrandController::class, 'show']);
