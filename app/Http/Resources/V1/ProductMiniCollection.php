@@ -13,7 +13,7 @@ class ProductMiniCollection extends ResourceCollection
                 $wholesale_product =
                     ($data->wholesale_product == 1) ? true : false;
 
-                $avgRating = $data->reviews_rating_avg ?? (float) $data->rating;
+                $avgRating = $data->avg_rating ?? (float) $data->rating;
 
                 return [
                     'id' => $data->id,

@@ -30,6 +30,7 @@ class ProductController extends Controller
         $query = Product::latest()
             // 3. Filter by “type” if provided (e.g. physical, digital, bundle…).
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
+            ->withAvg('reviews as avg_rating', 'rating')
             ->when(
                 $request->filled('type'),
                 fn ($q) =>
