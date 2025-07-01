@@ -33,7 +33,6 @@ class ProductMiniCollection extends ResourceCollection
                     'type' =>  $data->type,
                     'category'  => get_single_category($data->category_id),
                     'avg_rating' => round((float) $avgRating, 1),
-                    'packageDetails' => $data
 
 
 
