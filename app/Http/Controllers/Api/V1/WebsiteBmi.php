@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\BmiRecord;
 
-class BmiController extends Controller
+class WebsiteBmi extends Controller
 {
     public function index()
     {

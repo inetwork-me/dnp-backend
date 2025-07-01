@@ -55,7 +55,7 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
-    Route::apiResource('bmi', BmiController::class);
+    Route::apiResource('bmi', WebsiteBmi::class);
 
     Route::get('settings', 'App\Http\Controllers\Api\V1\websiteSettingController@index');
     Route::get('posts/{slug}', 'App\Http\Controllers\Api\V1\WebsitePostsController@show');
