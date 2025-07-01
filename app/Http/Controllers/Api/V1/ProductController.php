@@ -85,7 +85,7 @@ class ProductController extends Controller
             'stars_counts' => $counts,
             'avg_rating'    => $avg,
         ];
-        return response()->json(compact('product', 'reviews_info'));
+        return response()->json(compact('product', 'reviews_info', 'bundleItems'));
     }
 
     public function getPrice(Request $request)
