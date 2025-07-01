@@ -13,9 +13,10 @@ class WebsiteBmi extends Controller
         return BmiRecord::latest()->paginate(15);
     }
 
-    public function show(BmiRecord $bmiRecord)
+    public function show(BmiRecord $bmi)
     {
-        return $bmiRecord;
+        // now $bmi is the model instance matching the {bmi} segment
+        return response()->json($bmi);
     }
 
     public function store(Request $request)
