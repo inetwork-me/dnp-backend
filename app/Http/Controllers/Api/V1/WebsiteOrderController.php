@@ -29,7 +29,6 @@ class WebsiteOrderController extends Controller
         return $order->load('items.product');
     }
 
-    /** POST /api/checkout **/
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -37,45 +36,58 @@ class WebsiteOrderController extends Controller
             'shipping_address'  => 'required|array',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
-            // require a guest email if there’s no authenticated user
             'guest_email'       => 'required_without:auth|email',
-            'guest_name'       => 'required_without:auth|string',
+            'guest_name'        => 'required_without:auth|string',
         ]);
 
-        $cart = Cart::with('items')->findOrFail($data['cart_id']);
+        // 1) load cart + applied coupon
+        $cart = Cart::with(['items.product', 'coupon'])
+            ->findOrFail($data['cart_id']);
         abort_if($cart->items->isEmpty(), 400, 'Cart is empty.');
 
-        // 1) Determine or create the user
+        // 2) find or create user
         $user = $request->user();
         if (!$user) {
-            // if email already exists, use that account; else make a new one
-            $user = User::firstOrCreate(
+            $user = \App\Models\User::firstOrCreate(
                 ['email' => $data['guest_email']],
                 [
                     'password' => Hash::make(Str::random(12)),
                     'name'     => $data['guest_name'],
                 ]
             );
-
-            // attach the cart to this new user
             $cart->user()->associate($user);
             $cart->save();
         }
 
-        // 2) Snapshot cart → order
-        return DB::transaction(function () use ($cart, $data, $user) {
+        // 3) snapshot cart → order
+        $order = DB::transaction(function () use ($cart, $data, $user) {
+            // a) compute amounts
+            $subtotal = $cart->items->sum(fn ($i) => $i->quantity * $i->unit_price);
+            $discount = $cart->coupon
+                ? $cart->coupon->calculateDiscount($subtotal)
+                : 0;
+            $total    = max(0, $subtotal - $discount);
+
+            // b) create the order — **note** the use of 'total_amount' here
             $order = Order::create([
                 'user_id'          => $user->id,
                 'cart_id'          => $cart->id,
                 'order_number'     => now()->format('Ymd') . '-' . Str::upper(Str::random(6)),
                 'status'           => 'pending',
-                'total_amount'     => $cart->items->sum(fn ($i) => $i->quantity * $i->unit_price),
+
+                // pricing fields — adjust names to match your table:
+                'subtotal'         => round($subtotal, 2),
+                'discount'         => round($discount, 2),
+                'total_amount'     => round($total, 2),    // ← was missing
+                'coupon_id'        => $cart->coupon_id,
+
                 'shipping_address' => $data['shipping_address'],
                 'billing_address'  => $data['billing_address'] ?? $data['shipping_address'],
                 'payment_method'   => $data['payment_method'] ?? null,
                 'payment_status'   => 'unpaid',
             ]);
 
+            // c) copy each cart item
             foreach ($cart->items as $ci) {
                 $order->items()->create([
                     'product_id' => $ci->product_id,
@@ -86,9 +98,29 @@ class WebsiteOrderController extends Controller
                 ]);
             }
 
+            // d) record coupon redemption + bump global counter
+            if ($cart->coupon) {
+                DB::transaction(function () use ($cart, $order, $discount) {
+                    $cart->coupon->redemptions()->create([
+                        'user_id'  => optional(request()->user())->id,
+                        'cart_id'  => $cart->id,
+                        'order_id' => $order->id,
+                        'discount' => $discount,
+                    ]);
+                    $cart->coupon->increment('times_used');
+                });
+            }
+
+            // e) close out the cart
             $cart->update(['status' => 'converted']);
 
-            return $order->load('items.product');
+            return $order;
         });
+
+        // 4) return with items & coupon
+        return response()->json(
+            $order->load('items.product', 'coupon'),
+            201
+        );
     }
 }

@@ -15,6 +15,7 @@ class Order extends Model
         'order_number',
         'status',
         'total_amount',
+        'coupon_id',
         'shipping_address',
         'billing_address',
         'payment_method',
@@ -49,5 +50,9 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class)
             ->with('user')        // eager‐load the actor
             ->orderByDesc('created_at');
+    }
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
     }
 }
