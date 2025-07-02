@@ -43,6 +43,7 @@ class ApiUserController extends Controller
             'postal_code'   => 'nullable|string|max:20',
             'phone'         => 'nullable|string|max:20',
             'country'       => 'nullable|string|max:100',
+            'user_type'       => 'nullable|string|max:100',
             'about_content' => 'nullable|string',
             'roles'         => 'required|array',
             'roles.*'       => 'string|exists:roles,name',
@@ -50,7 +51,7 @@ class ApiUserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        $user = User::create(array_except($validated, ['roles']));
+        $user = User::create($validated);
         $user->syncRoles($validated['roles']);
 
         return response()->json($user->load('roles'), 201);
