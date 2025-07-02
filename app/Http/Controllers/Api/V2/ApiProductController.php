@@ -154,6 +154,14 @@ class ApiProductController extends Controller
                 'points' => $packageDetails['points'] ?? 0,
             ]);
         }
+        // Handle package-specific details
+        if ($product->type === 'package' && $packageDetails) {
+            $product->packageDetails()->create([
+                'min_months' => $packageDetails['min_months'] ?? 0,
+                'min_products' => $packageDetails['min_products'] ?? 0,
+                'points' => $packageDetails['points'] ?? 0,
+            ]);
+        }
 
         // Attach categories
         if ($request->filled('category_ids')) {
@@ -259,6 +267,28 @@ class ApiProductController extends Controller
         }
 
         if ($product->type === 'package' && $packageDetails) {
+            $product->packageDetails()->updateOrCreate(
+                ['product_id' => $product->id],
+                [
+                    'min_months' => $packageDetails['min_months'] ?? 0,
+                    'min_products' => $packageDetails['min_products'] ?? 0,
+                    'points' => $packageDetails['points'] ?? 0,
+                ]
+            );
+        }
+        if ($product->type === 'session' && $packageDetails) {
+            $product->packageDetails()->updateOrCreate(
+                ['product_id' => $product->id],
+                [
+                    'min_months' => $packageDetails['min_months'] ?? 0,
+                    'min_products' => $packageDetails['min_products'] ?? 0,
+                    'points' => $packageDetails['points'] ?? 0,
+                ]
+            );
+        }
+
+
+        if ($product->type === 'session' && $packageDetails) {
             $product->packageDetails()->updateOrCreate(
                 ['product_id' => $product->id],
                 [

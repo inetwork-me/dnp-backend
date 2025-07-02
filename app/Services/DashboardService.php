@@ -25,7 +25,7 @@ class DashboardService
             ->pluck('count', 'type')
             ->toArray();
 
-        $productTypes = ['simple', 'service', 'bundle', 'package'];
+        $productTypes = ['simple', 'service', 'bundle', 'package', 'session'];
 
         $productTypeCounts = collect($productTypes)->mapWithKeys(function ($type) use ($rawCounts) {
             return [$type => $rawCounts[$type] ?? 0];

@@ -25,11 +25,13 @@ class ProductController extends Controller
         // 1. Determine how many items per page (default to 10)
         $perPage = $request->query('count_per_page', 10);
         $isPackage = $request->query('type') === 'package';
+        $isSession = $request->query('type') === 'session';
 
         // 2. Build base query, ordered by most recent
         $query = Product::latest()
             // 3. Filter by “type” if provided (e.g. physical, digital, bundle…).
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
+            ->when($isSession, fn ($q) => $q->with('packageDetails'))
             ->withAvg('reviews as avg_rating', 'rating')
             ->when(
                 $request->filled('type'),
