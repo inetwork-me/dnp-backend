@@ -86,6 +86,7 @@ class ProductRequest extends FormRequest
             'is_top_selling' => ['sometimes', 'boolean'],
             'has_discount' => ['sometimes', 'boolean'],
             'discount' => ['sometimes', 'int'],
+            'is_subscription' => ['sometimes', 'boolean']
         ];
     }
 

@@ -24,7 +24,8 @@ class Product extends Model
         'shipping' => 'array',
         'returns' => 'array',
         'is_top_selling' => 'boolean',
-        'multimedia' => 'array'
+        'multimedia' => 'array',
+        'is_subscription' => 'boolean',
 
     ];
 
