@@ -72,6 +72,7 @@ class ApiPostsController extends Controller
             'category_id'    => ['nullable', 'exists:post_type_categories,id'],
             'content'        => ['nullable', 'array'],
             'blocks'         => ['nullable', 'array'],
+            'title'          => ['required', 'array'],
             'fields'         => ['nullable', 'array'],
             'featured_image' => ['nullable', 'array'],
             'description'    => ['nullable', 'array'],
