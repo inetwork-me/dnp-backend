@@ -84,6 +84,8 @@ class WebsitePostResource extends JsonResource
             'blocks'         => $blocks,
             'category' => $category,
             'fields' => $this->fields,
+            'description' => $this->description,
+            'postType' => $type,
 
         ];
     }
