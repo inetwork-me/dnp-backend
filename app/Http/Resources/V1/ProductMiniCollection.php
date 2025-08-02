@@ -25,7 +25,7 @@ class ProductMiniCollection extends ResourceCollection
                     'has_discount' => home_base_price($data, false) != home_discounted_base_price($data, false),
                     'discount' => discount_in_percentage($data),
                     'stroked_price' => home_base_price($data),
-                    'main_price' => home_discounted_base_price($data),
+                    'main_price' => $data->unit_price,
                     'rating' => (float) $data->rating,
                     'sales' => (int) $data->num_of_sale,
                     'current_stock' =>  $data->current_stock,
