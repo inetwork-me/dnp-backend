@@ -30,6 +30,7 @@ class ProductMiniCollection extends ResourceCollection
                     'sales' => (int) $data->num_of_sale,
                     'current_stock' =>  $data->current_stock,
                     'is_top_selling' =>  $data->is_top_selling,
+                    'desc' =>  $data->desc,
                     'type' =>  $data->type,
                     'category'  => get_single_category($data->category_id),
                     'avg_rating' => round((float) $avgRating, 1),
