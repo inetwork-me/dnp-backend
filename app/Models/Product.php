@@ -26,6 +26,11 @@ class Product extends Model
         'is_top_selling' => 'boolean',
         'multimedia' => 'array',
         'is_subscription' => 'boolean',
+        'adminstration' => 'array',
+        'durationofuse' => 'array',
+        'function' => 'array',
+        'purposeofuse' => 'array',
+        'contraindication' => 'array',
 
     ];
 
