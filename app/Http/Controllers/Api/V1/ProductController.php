@@ -24,31 +24,124 @@ class ProductController extends Controller
     {
         // 1. Determine how many items per page (default to 10)
         $perPage = $request->query('count_per_page', 10);
+        $page = $request->query('page', 1);
+        
+        // 2. Handle type-specific conditions
         $isPackage = $request->query('type') === 'package';
         $isSession = $request->query('type') === 'session';
 
-        // 2. Build base query, ordered by most recent
-        $query = Product::latest()
-            // 3. Filter by “type” if provided (e.g. physical, digital, bundle…).
+        // 3. Build base query with published products only
+        $query = Product::query()
+            ->where('published', 1)
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
             ->when($isSession, fn ($q) => $q->with('packageDetails'))
             ->withAvg('reviews as avg_rating', 'rating')
-            ->when(
-                $request->filled('type'),
-                fn ($q) =>
-                $q->where('type', $request->query('type'))
-            )
-            // 4. Filter by top-selling flag if ?is_top_selling=true
-            ->when(
-                $request->boolean('is_top_selling'),
-                fn ($q) =>
-                $q->where('is_top_selling', true)
-            );
+            ->with(['brand', 'category']);
 
-        // 5. Paginate
-        $products = $query->paginate($perPage);
+        // 4. Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->query('search');
+            $query->where(function ($q) use ($searchTerm) {
+                foreach (explode(' ', trim($searchTerm)) as $word) {
+                    $q->where('name', 'like', '%' . $word . '%')
+                      ->orWhere('tags', 'like', '%' . $word . '%')
+                      ->orWhereHas('product_translations', function ($subQuery) use ($word) {
+                          $subQuery->where('name', 'like', '%' . $word . '%');
+                      });
+                }
+            });
+        }
 
-        // 6. Wrap in your mini-collection and return
+        // 5. Filter by type (simple, physical, digital, bundle, package, session)
+        if ($request->filled('type')) {
+            $type = $request->query('type');
+            // Handle 'simple' type mapping to 'physical'
+            if ($type === 'simple') {
+                $type = 'physical';
+            }
+            $query->where('type', $type);
+        }
+
+        // 6. Filter by categories (comma-separated category slugs)
+        if ($request->filled('categories')) {
+            $categoryIdentifiers = explode(',', $request->query('categories'));
+            $categoryIds = [];
+            
+            foreach ($categoryIdentifiers as $identifier) {
+                // Try to find category by slug first, then by ID
+                $category = Category::where('slug', $identifier)
+                                  ->orWhere('id', $identifier)
+                                  ->first();
+                if ($category) {
+                    $categoryIds[] = $category->id;
+                    // Include child category IDs
+                    $categoryIds = array_merge($categoryIds, CategoryUtility::children_ids($category->id));
+                }
+            }
+            
+            if (!empty($categoryIds)) {
+                $query->whereIn('category_id', array_unique($categoryIds));
+            }
+        }
+
+        // 7. Filter by price range
+        if ($request->filled('price_min')) {
+            $priceMin = floatval($request->query('price_min'));
+            $query->where(function ($q) use ($priceMin) {
+                $q->where('unit_price', '>=', $priceMin)
+                  ->orWhere('sale_price', '>=', $priceMin);
+            });
+        }
+        
+        if ($request->filled('price_max')) {
+            $priceMax = floatval($request->query('price_max'));
+            $query->where(function ($q) use ($priceMax) {
+                $q->where('unit_price', '<=', $priceMax)
+                  ->orWhere('sale_price', '<=', $priceMax);
+            });
+        }
+
+        // 8. Filter by sale status (on_sale=true)
+        if ($request->boolean('on_sale')) {
+            $query->where(function ($q) {
+                $q->where('sale_price', '>', 0)
+                  ->whereColumn('sale_price', '<', 'unit_price');
+            });
+        }
+
+        // 9. Filter by top-selling flag
+        if ($request->boolean('is_top_selling')) {
+            $query->where('is_top_selling', true);
+        }
+
+        // 10. Handle sorting
+        $sortBy = $request->query('sort_by', 'created_at');
+        $sortOrder = $request->query('sort_order', 'desc');
+
+        switch ($sortBy) {
+            case 'price':
+                $query->orderBy('unit_price', $sortOrder);
+                break;
+            case 'name':
+                $query->orderBy('name', $sortOrder);
+                break;
+            case 'rating':
+                $query->orderBy('rating', $sortOrder);
+                break;
+            case 'popularity':
+            case 'num_of_sale':
+                $query->orderBy('num_of_sale', $sortOrder);
+                break;
+            case 'created_at':
+            default:
+                $query->orderBy('created_at', $sortOrder);
+                break;
+        }
+
+        // 11. Paginate results
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // 12. Return wrapped collection
         return new ProductMiniCollection($products);
     }
 

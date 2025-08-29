@@ -248,12 +248,22 @@ Authorization: Bearer {your-token-here}
 **🔒 Authentication**: ❌ No  
 
 **🔍 Query Parameters**:
+- `page` (optional, default: 1): Page number for pagination
 - `count_per_page` (optional, default: 10): Items per page
-- `type` (optional): Product type filter
-- `is_top_selling` (optional): Filter top-selling products
-- `category_id` (optional): Filter by category
-- `brand_slug` (optional): Filter by brand
-- `search` (optional): Search term
+- `search` (optional): Search term to find products by name or tags
+- `sort_by` (optional, default: "created_at"): Sort field - "created_at", "price", "name", "rating", "popularity"
+- `sort_order` (optional, default: "desc"): Sort order - "asc" or "desc"
+- `type` (optional): Product type - "simple", "physical", "digital", "bundle", "package", "session"
+- `categories` (optional): Comma-separated category slugs or IDs
+- `price_min` (optional): Minimum price filter (float)
+- `price_max` (optional): Maximum price filter (float)  
+- `on_sale` (optional): Filter products on sale - true/false
+- `is_top_selling` (optional): Filter top-selling products - true/false
+
+**🌐 Example Request**:
+```
+GET /api/v1/products?page=1&count_per_page=9&search=protein&sort_by=price&sort_order=asc&type=physical&categories=proteins,supplements&price_min=10&price_max=100&on_sale=true
+```
 
 **📥 Success Response (200)**:
 ```json
