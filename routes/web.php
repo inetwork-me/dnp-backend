@@ -8,7 +8,13 @@ Route::group(['middleware' => ['prevent-back-history','handle-demo-login']], fun
     Auth::routes(['verify' => true]);
 });
 
-Route::get('/', [AdminController::class, 'admin_dashboard'])->name('admin.dashboard')->middleware(['auth','admin', 'prevent-back-history']);
+// Admin dashboard moved to API - redirect to API documentation or login
+Route::get('/', function () {
+    if (auth()->check()) {
+        return response()->json(['message' => 'Admin functionality available via API V2 - see API_DOCUMENTATION.md']);
+    }
+    return redirect()->route('login');
+})->name('admin.dashboard');
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
