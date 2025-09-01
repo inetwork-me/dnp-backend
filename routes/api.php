@@ -25,7 +25,10 @@ use App\Http\Controllers\Api\V2\ApiFormSubmissionController;
 use App\Http\Controllers\Api\V2\ApiOrderController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
 use App\Http\Controllers\Api\V2\ApiRolesController;
+use App\Http\Controllers\Api\V2\ApiLoyaltyController;
+use App\Http\Controllers\Api\V2\ApiVoucherController;
 use App\Http\Controllers\Api\V2\DashboardController;
+use App\Http\Controllers\Api\V1\BrandController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -90,10 +93,25 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
         Route::post('reviews', [WebsiteReviewController::class, 'store']);
+
+        // Loyalty endpoints for website
+        Route::prefix('loyalty')->group(function () {
+            Route::get('summary', [ApiLoyaltyController::class, 'summary']);
+            Route::get('transactions', [ApiLoyaltyController::class, 'transactions']);
+            Route::post('convert-to-voucher', [ApiLoyaltyController::class, 'convertToVoucher']);
+        });
+
+        // Voucher endpoints for website
+        Route::prefix('vouchers')->group(function () {
+            Route::get('/', [ApiVoucherController::class, 'index']);
+            Route::get('active', [ApiVoucherController::class, 'active']);
+            Route::post('validate', [ApiVoucherController::class, 'validate']);
+        });
     });
 
     Route::get('get-search-suggestions', 'App\Http\Controllers\Api\V1\SearchSuggestionController@getList');
     Route::get('languages', 'App\Http\Controllers\Api\V1\LanguageController@getList');
+    Route::get('loyalty/settings', [ApiLoyaltyController::class, 'settings']);
     Route::apiResource('banners', 'App\Http\Controllers\Api\V1\BannerController')->only('index');
     Route::get('brands/top', 'App\Http\Controllers\Api\V1\BrandController@top');
     Route::get('all-brands', [ProductController::class, 'getBrands'])->name('allBrands');
@@ -205,6 +223,32 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::get('orders', [ApiOrderController::class, 'index']);
         Route::get('orders/{order}', [ApiOrderController::class, 'show']);
         Route::put('orders/{order}/status', [ApiOrderController::class, 'updateStatus']);
+
+        // Loyalty System Routes
+        Route::prefix('loyalty')->group(function () {
+            Route::get('summary', [ApiLoyaltyController::class, 'summary']);
+            Route::get('transactions', [ApiLoyaltyController::class, 'transactions']);
+            Route::post('convert-to-voucher', [ApiLoyaltyController::class, 'convertToVoucher']);
+            Route::get('settings', [ApiLoyaltyController::class, 'settings']);
+            Route::post('settings', [ApiLoyaltyController::class, 'updateSettings']);
+            
+            // Admin routes
+            Route::get('dashboard-stats', [ApiLoyaltyController::class, 'dashboardStats']);
+            Route::post('manual-adjustment', [ApiLoyaltyController::class, 'manualAdjustment']);
+            Route::get('customers', [ApiLoyaltyController::class, 'customers']);
+        });
+
+        // Voucher Routes
+        Route::prefix('vouchers')->group(function () {
+            Route::get('/', [ApiVoucherController::class, 'adminIndex']);
+            Route::get('active', [ApiVoucherController::class, 'active']);
+            Route::post('validate', [ApiVoucherController::class, 'validateVoucher']);
+            Route::get('stats', [ApiVoucherController::class, 'stats']);
+            
+            // Admin routes
+            Route::post('/', [ApiVoucherController::class, 'adminStore']);
+            Route::put('{voucher}/status', [ApiVoucherController::class, 'updateStatus']);
+        });
     });
 
     // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:

@@ -26,7 +26,7 @@ class WebsitePostsController extends Controller
     public function indexByType(Request $request, PostType $postType): PostCollection
     {
         // 1) Items per page (default 10, max 50)
-        $perPage = min($request->input('per_page', 10), 50);
+        $perPage = min($request->input('per_page', 10), 200);
 
         // 2) Build the query: only eager-load needed columns, order by recency
         $query = $postType
