@@ -381,7 +381,7 @@ class ProductController extends Controller
 
         $products = Product::query();
 
-        $products->where('published', 1)->physical();
+        $products->physical();
 
         if (!empty($brand_ids)) {
             $products->whereIn('brand_id', $brand_ids);
