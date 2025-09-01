@@ -28,9 +28,6 @@ use App\Http\Controllers\Api\V2\ApiRolesController;
 use App\Http\Controllers\Api\V2\ApiLoyaltyController;
 use App\Http\Controllers\Api\V2\ApiVoucherController;
 use App\Http\Controllers\Api\V2\DashboardController;
-use App\Http\Controllers\Api\V2\ShippingController;
-use App\Http\Controllers\Api\V2\ShipmentController;
-use App\Http\Controllers\Api\V2\Admin\ShippingCarrierController;
 use App\Http\Controllers\Api\V1\BrandController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
@@ -252,33 +249,32 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::post('/', [ApiVoucherController::class, 'adminStore']);
             Route::put('{voucher}/status', [ApiVoucherController::class, 'updateStatus']);
         });
-
-        // Shipping Routes
+n        // Shipping Routes
         Route::prefix('shipping')->group(function () {
-            Route::post('calculate-rates', [ShippingController::class, 'calculateRates']);
-            Route::get('quotes/{cartId}', [ShippingController::class, 'getQuote']);
-            Route::post('quotes/{quoteId}/select-method', [ShippingController::class, 'selectMethod']);
-            Route::post('validate-address', [ShippingController::class, 'validateAddress']);
-            Route::post('delivery-estimate', [ShippingController::class, 'getDeliveryEstimate']);
-            Route::get('carriers', [ShippingController::class, 'getAvailableCarriers']);
+            Route::post('calculate-rates', [AppHttpControllersApiV2ShippingController::class, 'calculateRates']);
+            Route::get('quotes/{cartId}', [AppHttpControllersApiV2ShippingController::class, 'getQuote']);
+            Route::post('quotes/{quoteId}/select-method', [AppHttpControllersApiV2ShippingController::class, 'selectMethod']);
+            Route::post('validate-address', [AppHttpControllersApiV2ShippingController::class, 'validateAddress']);
+            Route::post('delivery-estimate', [AppHttpControllersApiV2ShippingController::class, 'getDeliveryEstimate']);
+            Route::get('carriers', [AppHttpControllersApiV2ShippingController::class, 'getAvailableCarriers']);
         });
 
         // Shipment Routes
         Route::prefix('shipments')->group(function () {
-            Route::get('/', [ShipmentController::class, 'list']);
-            Route::post('/', [ShipmentController::class, 'create']);
-            Route::get('{shipment}/track', [ShipmentController::class, 'track']);
-            Route::get('track/{trackingNumber}', [ShipmentController::class, 'trackByNumber']);
-            Route::get('{shipment}/label', [ShipmentController::class, 'getLabel']);
-            Route::patch('{shipment}/status', [ShipmentController::class, 'updateStatus']);
+            Route::get('/', [AppHttpControllersApiV2ShipmentController::class, 'list']);
+            Route::post('/', [AppHttpControllersApiV2ShipmentController::class, 'create']);
+            Route::get('{shipment}/track', [AppHttpControllersApiV2ShipmentController::class, 'track']);
+            Route::get('track/{trackingNumber}', [AppHttpControllersApiV2ShipmentController::class, 'trackByNumber']);
+            Route::get('{shipment}/label', [AppHttpControllersApiV2ShipmentController::class, 'getLabel']);
+            Route::patch('{shipment}/status', [AppHttpControllersApiV2ShipmentController::class, 'updateStatus']);
         });
 
         // Admin Shipping Management Routes
         Route::prefix('admin/shipping')->group(function () {
-            Route::apiResource('carriers', ShippingCarrierController::class);
-            Route::post('carriers/{carrier}/test-connection', [ShippingCarrierController::class, 'testConnection']);
-            Route::patch('carriers/{carrier}/toggle-status', [ShippingCarrierController::class, 'toggleStatus']);
-            Route::get('supported-carriers', [ShippingCarrierController::class, 'getSupportedCarriers']);
+            Route::apiResource('carriers', AppHttpControllersApiV2AdminShippingCarrierController::class);
+            Route::post('carriers/{carrier}/test-connection', [AppHttpControllersApiV2AdminShippingCarrierController::class, 'testConnection']);
+            Route::patch('carriers/{carrier}/toggle-status', [AppHttpControllersApiV2AdminShippingCarrierController::class, 'toggleStatus']);
+            Route::get('supported-carriers', [AppHttpControllersApiV2AdminShippingCarrierController::class, 'getSupportedCarriers']);
         });
     });
 

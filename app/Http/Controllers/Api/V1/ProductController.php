@@ -25,14 +25,14 @@ class ProductController extends Controller
         // 1. Determine how many items per page (default to 10)
         $perPage = $request->query('count_per_page', 10);
         $page = $request->query('page', 1);
-        
+
         // 2. Handle type-specific conditions
         $isPackage = $request->query('type') === 'package';
         $isSession = $request->query('type') === 'session';
 
         // 3. Build base query with published products only
         $query = Product::query()
-            ->where('published', 1)
+            // ->where('published', 1)
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
             ->when($isSession, fn ($q) => $q->with('packageDetails'))
             ->withAvg('reviews as avg_rating', 'rating')
@@ -44,10 +44,10 @@ class ProductController extends Controller
             $query->where(function ($q) use ($searchTerm) {
                 foreach (explode(' ', trim($searchTerm)) as $word) {
                     $q->where('name', 'like', '%' . $word . '%')
-                      ->orWhere('tags', 'like', '%' . $word . '%')
-                      ->orWhereHas('product_translations', function ($subQuery) use ($word) {
-                          $subQuery->where('name', 'like', '%' . $word . '%');
-                      });
+                        ->orWhere('tags', 'like', '%' . $word . '%')
+                        ->orWhereHas('product_translations', function ($subQuery) use ($word) {
+                            $subQuery->where('name', 'like', '%' . $word . '%');
+                        });
                 }
             });
         }
@@ -63,19 +63,19 @@ class ProductController extends Controller
         if ($request->filled('categories')) {
             $categoryIdentifiers = explode(',', $request->query('categories'));
             $categoryIds = [];
-            
+
             foreach ($categoryIdentifiers as $identifier) {
                 // Try to find category by slug first, then by ID
                 $category = Category::where('slug', $identifier)
-                                  ->orWhere('id', $identifier)
-                                  ->first();
+                    ->orWhere('id', $identifier)
+                    ->first();
                 if ($category) {
                     $categoryIds[] = $category->id;
                     // Include child category IDs
                     $categoryIds = array_merge($categoryIds, CategoryUtility::children_ids($category->id));
                 }
             }
-            
+
             if (!empty($categoryIds)) {
                 $query->whereIn('category_id', array_unique($categoryIds));
             }
@@ -86,15 +86,15 @@ class ProductController extends Controller
             $priceMin = floatval($request->query('price_min'));
             $query->where(function ($q) use ($priceMin) {
                 $q->where('unit_price', '>=', $priceMin)
-                  ->orWhere('sale_price', '>=', $priceMin);
+                    ->orWhere('sale_price', '>=', $priceMin);
             });
         }
-        
+
         if ($request->filled('price_max')) {
             $priceMax = floatval($request->query('price_max'));
             $query->where(function ($q) use ($priceMax) {
                 $q->where('unit_price', '<=', $priceMax)
-                  ->orWhere('sale_price', '<=', $priceMax);
+                    ->orWhere('sale_price', '<=', $priceMax);
             });
         }
 
@@ -102,7 +102,7 @@ class ProductController extends Controller
         if ($request->boolean('on_sale')) {
             $query->where(function ($q) {
                 $q->where('sale_price', '>', 0)
-                  ->whereColumn('sale_price', '<', 'unit_price');
+                    ->whereColumn('sale_price', '<', 'unit_price');
             });
         }
 
@@ -381,7 +381,7 @@ class ProductController extends Controller
 
         $products = Product::query();
 
-        $products->where('published', 1)->physical();
+        $products->physical();
 
         if (!empty($brand_ids)) {
             $products->whereIn('brand_id', $brand_ids);
