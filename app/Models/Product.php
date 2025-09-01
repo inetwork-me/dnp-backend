@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App;
+use App\Models\LoyaltySetting;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -11,6 +12,8 @@ class Product extends Model
     protected $guarded = ['choice_attributes'];
 
     protected $with = ['product_translations', 'taxes'];
+    
+    protected $appends = ['effective_loyalty_points'];
 
     protected $casts = [
         'product_service_custom_data' => 'array', // Cast to array for easy manipulation
@@ -24,6 +27,7 @@ class Product extends Model
         'shipping' => 'array',
         'returns' => 'array',
         'is_top_selling' => 'boolean',
+        'published' => 'boolean',
         'multimedia' => 'array',
         'is_subscription' => 'boolean',
         'adminstration' => 'array',
@@ -170,4 +174,32 @@ class Product extends Model
     // {
     //     return $this->hasMany(LastViewedProduct::class);
     // }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyPointsTransaction::class);
+    }
+
+    // Helper method to get effective loyalty points
+    public function getEffectiveLoyaltyPoints()
+    {
+        if ($this->loyalty_points > 0) {
+            return $this->loyalty_points;
+        }
+
+        // Check if there are global settings for default points
+        return LoyaltySetting::get('default_product_points', 0);
+    }
+
+    // Check if product awards loyalty points
+    public function hasLoyaltyPoints()
+    {
+        return $this->getEffectiveLoyaltyPoints() > 0;
+    }
+
+    // Accessor for appended effective_loyalty_points attribute
+    public function getEffectiveLoyaltyPointsAttribute()
+    {
+        return $this->getEffectiveLoyaltyPoints();
+    }
 }

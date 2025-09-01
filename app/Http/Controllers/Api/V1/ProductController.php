@@ -36,7 +36,7 @@ class ProductController extends Controller
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
             ->when($isSession, fn ($q) => $q->with('packageDetails'))
             ->withAvg('reviews as avg_rating', 'rating')
-            ->with(['brand', 'category']);
+            ->with(['brand', 'main_category']);
 
         // 4. Search functionality
         if ($request->filled('search')) {
@@ -55,10 +55,7 @@ class ProductController extends Controller
         // 5. Filter by type (simple, physical, digital, bundle, package, session)
         if ($request->filled('type')) {
             $type = $request->query('type');
-            // Handle 'simple' type mapping to 'physical'
-            if ($type === 'simple') {
-                $type = 'physical';
-            }
+            // No need to map simple to physical - use the actual database value
             $query->where('type', $type);
         }
 

@@ -105,13 +105,12 @@ class ProductService
             $attributes = json_encode(array());
         }
 
-        // Check publication status
-        // $published = !in_array($collection['button'], ['unpublish', 'draft']);
-        // unset($collection['button']);
-        $published = false;
-
+        // Check publication status - prefer explicit published field over button
+        $published = $collection['published'] ?? false;
+        
+        // Legacy button handling (for backward compatibility)
         if (isset($collection['button'])) {
-            $published = in_array($collection['button'], ['unpublish', 'draft'], true);
+            $published = !in_array($collection['button'], ['unpublish', 'draft'], true);
             unset($collection['button']);
         }
 

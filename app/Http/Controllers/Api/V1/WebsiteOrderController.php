@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use DB;
@@ -14,6 +15,12 @@ use Illuminate\Support\Facades\Hash;
 
 class WebsiteOrderController extends Controller
 {
+    protected $loyaltyService;
+
+    public function __construct(LoyaltyService $loyaltyService)
+    {
+        $this->loyaltyService = $loyaltyService;
+    }
     // GET /api/orders
     public function index(Request $request)
     {
@@ -117,7 +124,15 @@ class WebsiteOrderController extends Controller
             return $order;
         });
 
-        // 4) return with items & coupon
+        // 4) Process loyalty points after successful order creation
+        try {
+            $this->loyaltyService->processOrderLoyaltyPoints($order);
+        } catch (\Exception $e) {
+            // Log error but don't fail the order
+            \Log::error('Loyalty points processing failed for order ' . $order->id . ': ' . $e->getMessage());
+        }
+
+        // 5) return with items & coupon
         return response()->json(
             $order->load('items.product', 'coupon'),
             201
