@@ -145,6 +145,8 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::apiResource('currencies', 'App\Http\Controllers\Api\V1\CurrencyController')->only('index');
 
     Route::get('products', 'App\Http\Controllers\Api\V1\ProductController@index');
+    Route::get('products/random', 'App\Http\Controllers\Api\V1\ProductController@getRandomProducts');
+    Route::get('products/{productId}/related', 'App\Http\Controllers\Api\V1\ProductController@getRelatedProducts');
     // Route::get('products/category/{id}', 'App\Http\Controllers\Api\V2\ProductController@category')->name('api.products.category');
     Route::get('products/brand/{slug}', 'App\Http\Controllers\Api\V1\ProductController@brand')->name('api.products.brand');
 

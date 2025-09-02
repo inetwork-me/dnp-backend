@@ -471,4 +471,81 @@ class ProductController extends Controller
         }
         return   $this->calc($product, $str, $request, $tax);
     }
+
+    /**
+     * Get random products for suggestions
+     */
+    public function getRandomProducts(Request $request)
+    {
+        $limit = $request->get('limit', 4);
+        $excludeId = $request->get('exclude_id');
+        
+        $query = Product::where('published', true)
+            ->with(['categories'])
+            ->whereNotNull('current_stock')
+            ->where('current_stock', '>', 0);
+            
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        
+        $products = $query->inRandomOrder()
+            ->limit($limit)
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
+    }
+    
+    /**
+     * Get related products based on categories
+     */
+    public function getRelatedProducts(Request $request, $productId)
+    {
+        $limit = $request->get('limit', 4);
+        
+        // Get the current product's categories
+        $product = Product::with('categories')->find($productId);
+        
+        if (!$product) {
+            return $this->getRandomProducts($request);
+        }
+        
+        $categoryIds = $product->categories->pluck('id');
+        
+        // Get products in same categories
+        $relatedProducts = Product::where('published', true)
+            ->where('id', '!=', $productId)
+            ->with(['categories'])
+            ->whereNotNull('current_stock')
+            ->where('current_stock', '>', 0)
+            ->whereHas('categories', function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds);
+            })
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+            
+        // If we don't have enough related products, fill with random ones
+        if ($relatedProducts->count() < $limit) {
+            $additionalProducts = Product::where('published', true)
+                ->where('id', '!=', $productId)
+                ->with(['categories', 'thumbnail'])
+                ->whereNotNull('current_stock')
+                ->where('current_stock', '>', 0)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->inRandomOrder()
+                ->limit($limit - $relatedProducts->count())
+                ->get();
+                
+            $relatedProducts = $relatedProducts->merge($additionalProducts);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $relatedProducts
+        ]);
+    }
 }
