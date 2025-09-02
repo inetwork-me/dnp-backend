@@ -40,7 +40,7 @@ class WebsiteOrderController extends Controller
     {
         $data = $request->validate([
             'cart_id'           => 'required|exists:carts,id',
-            'shipping_address'  => 'required|array',
+            'shipping_address'  => 'nullable|array',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
@@ -111,10 +111,10 @@ class WebsiteOrderController extends Controller
                 // shipping fields
                 'shipping_method_id'    => $shippingMethodId,
                 'shipping_cost'         => round($shippingCost, 2),
-                'shipping_quote_data'   => $data['shipping_quote_data'],
+                'shipping_quote_data'   => $data['shipping_quote_data'] ?? null,
 
-                'shipping_address' => $data['shipping_address'],
-                'billing_address'  => $data['billing_address'] ?? $data['shipping_address'],
+                'shipping_address' => $data['shipping_address'] ?? null,
+                'billing_address'  => $data['billing_address'] ?? $data['shipping_address'] ?? null,
                 'payment_method'   => $data['payment_method'] ?? null,
                 'payment_status'   => 'unpaid',
             ]);
