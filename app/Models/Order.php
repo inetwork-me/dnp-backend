@@ -15,6 +15,9 @@ class Order extends Model
         'order_number',
         'status',
         'total_amount',
+        'subtotal',
+        'discount',
+        'tax',
         'coupon_id',
         'shipping_method_id',
         'shipping_cost',
@@ -30,6 +33,9 @@ class Order extends Model
         'billing_address'  => 'array',
         'shipping_quote_data' => 'array',
         'shipping_cost' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'tax' => 'decimal:2',
     ];
 
     protected $withCount = ['items'];
@@ -74,6 +80,16 @@ class Order extends Model
     public function latestShipment()
     {
         return $this->hasOne(Shipment::class)->latest();
+    }
+
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyPointsTransaction::class);
+    }
+
+    public function totalLoyaltyPointsEarned()
+    {
+        return $this->loyaltyTransactions()->earned()->sum('points');
     }
 
     public function getShippingStatusAttribute(): string

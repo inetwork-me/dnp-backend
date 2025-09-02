@@ -31,8 +31,16 @@ class ShippingZone extends Model
     public function includesAddress($address): bool
     {
         // Check if the address matches this zone's criteria
-        if (!empty($this->countries) && !in_array($address['country'], $this->countries)) {
-            return false;
+        if (!empty($this->countries)) {
+            // Check for wildcard (worldwide coverage)
+            if (in_array('*', $this->countries)) {
+                return true;
+            }
+            
+            // Check for specific country match
+            if (!in_array($address['country'], $this->countries)) {
+                return false;
+            }
         }
         
         return true;

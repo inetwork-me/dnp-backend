@@ -98,6 +98,36 @@ class ShipmentController extends Controller
         ], 201);
     }
 
+    public function show($shipmentId): JsonResponse
+    {
+        $shipment = Shipment::with(['order.user', 'carrier'])
+            ->findOrFail($shipmentId);
+
+        // Get tracking info with events
+        $trackingInfo = $this->getTrackingInfo($shipment);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'shipment' => $shipment,
+                'tracking_events' => $trackingInfo['events'] ?? [],
+                'estimated_delivery_date' => $this->calculateEstimatedDelivery($shipment),
+                'origin_address' => [
+                    'name' => 'DNP Store Warehouse',
+                    'line1' => 'Cairo Distribution Center',
+                    'city' => 'Cairo',
+                    'country' => 'EG'
+                ],
+                'destination_address' => [
+                    'name' => $shipment->order->user->name ?? null,
+                    'line1' => $shipment->order->shipping_address['line1'] ?? null,
+                    'city' => $shipment->order->shipping_address['city'] ?? null,
+                    'country' => $shipment->order->shipping_address['country'] ?? null
+                ]
+            ]
+        ]);
+    }
+
     public function track($shipmentId): JsonResponse
     {
         $shipment = Shipment::with(['order', 'carrier'])
@@ -260,5 +290,17 @@ class ShipmentController extends Controller
         // TODO: Generate actual shipping label via carrier API
         // For now, return a placeholder URL
         return url('/storage/labels/' . $shipment->tracking_number . '.pdf');
+    }
+
+    private function calculateEstimatedDelivery($shipment): ?string
+    {
+        if ($shipment->status === Shipment::STATUS_DELIVERED) {
+            return null; // Already delivered
+        }
+
+        // Calculate estimated delivery based on creation date and typical delivery time
+        $estimatedDays = 3; // Default 3 days for domestic shipping
+        
+        return $shipment->created_at->addDays($estimatedDays)->format('Y-m-d');
     }
 }
