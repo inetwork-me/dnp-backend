@@ -493,10 +493,7 @@ class ProductController extends Controller
             ->limit($limit)
             ->get();
             
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        return new ProductMiniCollection($products);
     }
     
     /**
@@ -532,7 +529,7 @@ class ProductController extends Controller
         if ($relatedProducts->count() < $limit) {
             $additionalProducts = Product::where('published', true)
                 ->where('id', '!=', $productId)
-                ->with(['categories', 'thumbnail'])
+                ->with(['categories'])
                 ->whereNotNull('current_stock')
                 ->where('current_stock', '>', 0)
                 ->whereNotIn('id', $relatedProducts->pluck('id'))
@@ -543,9 +540,6 @@ class ProductController extends Controller
             $relatedProducts = $relatedProducts->merge($additionalProducts);
         }
         
-        return response()->json([
-            'success' => true,
-            'data' => $relatedProducts
-        ]);
+        return new ProductMiniCollection($relatedProducts);
     }
 }
