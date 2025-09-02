@@ -25,7 +25,7 @@ class WebsiteOrderController extends Controller
     public function index(Request $request)
     {
         return Order::where('user_id', $request->user()->id)
-            ->with('items.product')
+            ->with(['items.product', 'latestShipment'])
             ->get();
     }
 
@@ -45,6 +45,10 @@ class WebsiteOrderController extends Controller
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
             'guest_name'        => 'required_without:auth|string',
+            // Shipping fields
+            'shipping_method_id'    => 'nullable',
+            'shipping_cost'         => 'nullable|numeric|min:0',
+            'shipping_quote_data'   => 'nullable|array',
         ]);
 
         // 1) load cart + applied coupon
@@ -73,7 +77,23 @@ class WebsiteOrderController extends Controller
             $discount = $cart->coupon
                 ? $cart->coupon->calculateDiscount($subtotal)
                 : 0;
-            $total    = max(0, $subtotal - $discount);
+            $shippingCost = $data['shipping_cost'] ?? 0;
+            $total = max(0, $subtotal - $discount + $shippingCost);
+
+            // Handle shipping method ID for live rates
+            $shippingMethodId = null;
+            if (isset($data['shipping_method_id'])) {
+                $methodId = $data['shipping_method_id'];
+                // Check if it's a live rate (starts with 'live_')
+                if (is_string($methodId) && str_starts_with($methodId, 'live_')) {
+                    // For live rates, set shipping_method_id to null
+                    // The full shipping info is stored in shipping_quote_data
+                    $shippingMethodId = null;
+                } else {
+                    // For fixed shipping methods, use the method ID
+                    $shippingMethodId = is_numeric($methodId) ? (int)$methodId : null;
+                }
+            }
 
             // b) create the order — **note** the use of 'total_amount' here
             $order = Order::create([
@@ -85,8 +105,13 @@ class WebsiteOrderController extends Controller
                 // pricing fields — adjust names to match your table:
                 'subtotal'         => round($subtotal, 2),
                 'discount'         => round($discount, 2),
-                'total_amount'     => round($total, 2),    // ← was missing
+                'total_amount'     => round($total, 2),
                 'coupon_id'        => $cart->coupon_id,
+
+                // shipping fields
+                'shipping_method_id'    => $shippingMethodId,
+                'shipping_cost'         => round($shippingCost, 2),
+                'shipping_quote_data'   => $data['shipping_quote_data'],
 
                 'shipping_address' => $data['shipping_address'],
                 'billing_address'  => $data['billing_address'] ?? $data['shipping_address'],

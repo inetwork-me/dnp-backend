@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\V2\DashboardController;
 use App\Http\Controllers\Api\V2\ShippingController;
 use App\Http\Controllers\Api\V2\ShipmentController;
 use App\Http\Controllers\Api\V2\Admin\ShippingCarrierController;
+use App\Http\Controllers\Api\V2\Admin\AdminReviewController;
 use App\Http\Controllers\Api\V1\BrandController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
@@ -90,6 +91,16 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     // ORDERS / CHECKOUT
     Route::post('checkout', [WebsiteOrderController::class, 'store']);
 
+    // SHIPPING - V1 Routes for frontend compatibility
+    Route::prefix('shipping')->group(function () {
+        Route::post('calculate-rates', [ShippingController::class, 'calculateRates']);
+        Route::get('quotes/{cartId}', [ShippingController::class, 'getQuote']);
+        Route::post('quotes/{quoteId}/select-method', [ShippingController::class, 'selectMethod']);
+        Route::post('validate-address', [ShippingController::class, 'validateAddress']);
+        Route::post('delivery-estimate', [ShippingController::class, 'getDeliveryEstimate']);
+        Route::get('carriers', [ShippingController::class, 'getAvailableCarriers']);
+    });
+
 
     Route::middleware('auth:sanctum')->group(function () {
 
@@ -141,6 +152,9 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     Route::get('brands', [BrandController::class, 'index']);
     Route::post('brands', [BrandController::class, 'store']);
+    
+    // Public shipment tracking (no authentication required)
+    Route::get('shipments/track/{trackingNumber}', [ShipmentController::class, 'trackByNumber']);
 });
 
 Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(function () {
@@ -267,6 +281,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::prefix('shipments')->group(function () {
             Route::get('/', [ShipmentController::class, 'list']);
             Route::post('/', [ShipmentController::class, 'create']);
+            Route::get('{shipment}', [ShipmentController::class, 'show']);
             Route::get('{shipment}/track', [ShipmentController::class, 'track']);
             Route::get('track/{trackingNumber}', [ShipmentController::class, 'trackByNumber']);
             Route::get('{shipment}/label', [ShipmentController::class, 'getLabel']);
@@ -280,9 +295,23 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::patch('carriers/{carrier}/toggle-status', [ShippingCarrierController::class, 'toggleStatus']);
             Route::get('supported-carriers', [ShippingCarrierController::class, 'getSupportedCarriers']);
         });
+
+        // Admin Review Management Routes
+        Route::prefix('admin/reviews')->group(function () {
+            Route::get('/', [AdminReviewController::class, 'index']);
+            Route::post('/', [AdminReviewController::class, 'store']);
+            Route::get('{review}', [AdminReviewController::class, 'show']);
+            Route::put('{review}', [AdminReviewController::class, 'update']);
+            Route::delete('{review}', [AdminReviewController::class, 'destroy']);
+            Route::post('bulk-delete', [AdminReviewController::class, 'bulkDelete']);
+            Route::patch('{review}/toggle-status', [AdminReviewController::class, 'toggleStatus']);
+        });
+
+        // Get reviews for specific product
+        Route::get('products/{product}/reviews', [AdminReviewController::class, 'getProductReviews']);
     });
 
-    // If you also want “info” to be under v2/auth/info, move it inside the auth‐prefix too:
+    // If you also want "info" to be under v2/auth/info, move it inside the auth‐prefix too:
     Route::group(['prefix' => 'auth'], function () {
         Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
     });

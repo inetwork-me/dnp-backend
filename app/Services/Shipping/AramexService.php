@@ -93,41 +93,124 @@ class AramexService
     }
 
     /**
-     * Calculate shipping rates (if Aramex provides rate calculation)
+     * Calculate shipping rates using Aramex Rate Calculator API
      */
     public function calculateRates($origin, $destination, $packages): array
     {
         try {
-            // Note: Aramex may not have a direct rate calculation API
-            // You might need to create a test shipment or use their documentation
-            // For now, return estimated rates based on weight/distance
-
             $totalWeight = collect($packages)->sum('weight');
-            $rates = [];
+            
+            // Use Aramex Rate Calculator API
+            $rateCalculatorUrl = str_replace(
+                '/ShippingAPI.V2/Shipping/Service_1_0.svc/json',
+                '/ShippingAPI.V2/RateCalculator/Service_1_0.svc/json/CalculateRate',
+                $this->baseUrl
+            );
+            
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'DestinationAddress' => [
+                    'Line1' => $destination['line1'] ?? '',
+                    'Line2' => $destination['line2'] ?? '',
+                    'Line3' => '',
+                    'City' => $destination['city'] ?? '',
+                    'StateOrProvinceCode' => '',
+                    'PostCode' => $destination['postal_code'] ?? '',
+                    'CountryCode' => $destination['country'] ?? '',
+                    'Longitude' => 0,
+                    'Latitude' => 0,
+                    'BuildingNumber' => null,
+                    'BuildingName' => null,
+                    'Floor' => null,
+                    'Apartment' => null,
+                    'POBox' => null,
+                    'Description' => null
+                ],
+                'OriginAddress' => [
+                    'Line1' => $origin['line1'] ?? '',
+                    'Line2' => $origin['line2'] ?? '',
+                    'Line3' => '',
+                    'City' => $origin['city'] ?? '',
+                    'StateOrProvinceCode' => '',
+                    'PostCode' => $origin['postal_code'] ?? '',
+                    'CountryCode' => $origin['country'] ?? '',
+                    'Longitude' => 0,
+                    'Latitude' => 0,
+                    'BuildingNumber' => null,
+                    'BuildingName' => null,
+                    'Floor' => null,
+                    'Apartment' => null,
+                    'POBox' => null,
+                    'Description' => null
+                ],
+                'PreferredCurrencyCode' => 'EGP',
+                'ShipmentDetails' => [
+                    'Dimensions' => null,
+                    'ActualWeight' => [
+                        'Unit' => 'KG',
+                        'Value' => $totalWeight
+                    ],
+                    'ChargeableWeight' => null,
+                    'DescriptionOfGoods' => 'General Goods',
+                    'GoodsOriginCountry' => $origin['country'] ?? '',
+                    'NumberOfPieces' => count($packages),
+                    'ProductGroup' => $origin['country'] === $destination['country'] ? 'DOM' : 'EXP',
+                    'ProductType' => $origin['country'] === $destination['country'] ? 'CDS' : 'PDX',
+                    'PaymentType' => 'P',
+                    'PaymentOptions' => '',
+                    'CustomsValueAmount' => null,
+                    'CashOnDeliveryAmount' => null,
+                    'InsuranceAmount' => null,
+                    'CashAdditionalAmount' => null,
+                    'CashAdditionalAmountDescription' => null,
+                    'CollectAmount' => null,
+                    'Services' => '',
+                    'Items' => null,
+                    'DeliveryInstructions' => null
+                ],
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
 
-            // Domestic rates (same country)
-            if ($origin['country'] === $destination['country']) {
-                $rates[] = [
-                    'service_name' => 'Aramex Domestic',
-                    'service_code' => 'DOM',
-                    'price' => $this->calculateDomesticRate($totalWeight),
-                    'currency' => 'USD',
-                    'estimated_days' => 2,
-                    'carrier_name' => 'Aramex'
-                ];
-            } else {
-                // International rates
-                $rates[] = [
-                    'service_name' => 'Aramex International Express',
-                    'service_code' => 'INT',
-                    'price' => $this->calculateInternationalRate($totalWeight, $origin, $destination),
-                    'currency' => 'USD',
-                    'estimated_days' => 5,
-                    'carrier_name' => 'Aramex'
-                ];
+            $response = Http::timeout(30)->post($rateCalculatorUrl, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Rate calculation failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                // Parse the rate response
+                $rates = [];
+                if (isset($data['TotalAmount']['Value']) && $data['TotalAmount']['Value'] > 0) {
+                    $productGroup = $payload['ShipmentDetails']['ProductGroup'];
+                    $serviceName = $productGroup === 'DOM' ? 'Aramex Domestic' : 'Aramex International Express';
+                    
+                    $rates[] = [
+                        'service_name' => $serviceName,
+                        'service_code' => $productGroup,
+                        'price' => $data['TotalAmount']['Value'],
+                        'currency' => $data['TotalAmount']['CurrencyCode'] ?? 'USD',
+                        'estimated_days' => $productGroup === 'DOM' ? 2 : 5,
+                        'carrier_name' => 'Aramex'
+                    ];
+                }
+
+                return $rates;
             }
 
-            return $rates;
+            throw new Exception('Failed to calculate rates. HTTP Status: ' . $response->status());
 
         } catch (Exception $e) {
             Log::error('Aramex rate calculation failed', [
@@ -136,8 +219,42 @@ class AramexService
                 'destination' => $destination
             ]);
 
-            throw $e;
+            // Fallback to estimated rates
+            return $this->getFallbackRates($origin, $destination, $packages);
         }
+    }
+
+    /**
+     * Fallback rates when API fails
+     */
+    private function getFallbackRates($origin, $destination, $packages): array
+    {
+        $totalWeight = collect($packages)->sum('weight');
+        $rates = [];
+
+        // Domestic rates (same country) - Egyptian market rates
+        if ($origin['country'] === $destination['country']) {
+            $rates[] = [
+                'service_name' => 'Aramex Domestic (Estimated)',
+                'service_code' => 'DOM',
+                'price' => $this->calculateEgyptianDomesticRate($totalWeight, $origin, $destination),
+                'currency' => 'EGP',
+                'estimated_days' => 2,
+                'carrier_name' => 'Aramex'
+            ];
+        } else {
+            // International rates - still higher for international
+            $rates[] = [
+                'service_name' => 'Aramex International Express (Estimated)',
+                'service_code' => 'INT',
+                'price' => $this->calculateEgyptianInternationalRate($totalWeight),
+                'currency' => 'EGP',
+                'estimated_days' => 5,
+                'carrier_name' => 'Aramex'
+            ];
+        }
+
+        return $rates;
     }
 
     /**
@@ -378,5 +495,52 @@ class AramexService
         }
         
         return $masked;
+    }
+
+    private function calculateEgyptianDomesticRate($weight, $origin = null, $destination = null)
+    {
+        // Egyptian market rates in EGP with city-based variations
+        $baseRate = 40.00;
+        $perKgRate = 10.00;
+        
+        // City distance multipliers for realistic Egyptian shipping
+        $distanceMultiplier = $this->getEgyptianCityDistanceMultiplier($origin, $destination);
+        
+        $totalRate = ($baseRate + ($weight * $perKgRate)) * $distanceMultiplier;
+        
+        return round($totalRate, 2);
+    }
+
+    private function getEgyptianCityDistanceMultiplier($origin, $destination)
+    {
+        if (!$origin || !$destination) {
+            return 1.0; // Default multiplier
+        }
+
+        $originCity = $origin['city'] ?? '';
+        $destinationCity = $destination['city'] ?? '';
+
+        // Define city zones based on distance from major hubs
+        $nearCities = ['Cairo', 'Giza', 'Alexandria', 'Qalyubia', 'Banha'];
+        $mediumCities = ['Mansoura', 'Tanta', 'Zagazig', 'Damietta', 'Ismailia', 'Suez', 'Port Said'];
+        $farCities = ['Aswan', 'Luxor', 'Sohag', 'Qena', 'Asyut', 'Minya', 'Hurghada', 'Arish'];
+
+        // Rate multipliers based on destination distance
+        if (in_array($destinationCity, $nearCities)) {
+            return 1.0; // Base rate
+        } elseif (in_array($destinationCity, $mediumCities)) {
+            return 1.3; // 30% higher
+        } elseif (in_array($destinationCity, $farCities)) {
+            return 1.6; // 60% higher for far cities
+        }
+
+        return 1.2; // Default 20% higher for unlisted cities
+    }
+
+    private function calculateEgyptianInternationalRate($weight)
+    {
+        // International from Egypt in EGP 
+        // Base rate: 200 EGP + 50 EGP per kg
+        return 200.00 + ($weight * 50.00);
     }
 }

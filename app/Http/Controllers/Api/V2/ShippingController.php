@@ -78,7 +78,7 @@ class ShippingController extends Controller
         }
 
         // Save quote if cart_id provided
-        if ($validated['cart_id']) {
+        if (isset($validated['cart_id']) && $validated['cart_id']) {
             $this->saveShippingQuote($validated['cart_id'], $validated['destination'], $rates);
         }
 
@@ -220,29 +220,39 @@ class ShippingController extends Controller
 
         $price = 0;
 
-        switch ($method->calculation_type) {
-            case ShippingMethod::TYPE_FREE:
-                $price = 0;
-                break;
-                
-            case ShippingMethod::TYPE_WEIGHT_BASED:
-                $rate = $method->rates()
-                    ->active()
-                    ->forWeight($totalWeight)
-                    ->first();
-                
-                if (!$rate) {
-                    return null;
-                }
-                
-                $price = $rate->price;
-                break;
-                
-            case ShippingMethod::TYPE_FLAT_RATE:
-                // TODO: Get flat rate price from method configuration
-                $price = 10.00; // Placeholder
-                break;
+        // Check rate_source to determine how to calculate price
+        if ($method->rate_source === 'fixed') {
+            // Get price from rates table
+            $rate = $method->rates()->first();
+            if ($rate && $rate->base_price) {
+                $price = $rate->base_price;
+            }
+        } else {
+            // Legacy calculation_type logic
+            switch ($method->calculation_type) {
+                case ShippingMethod::TYPE_FREE:
+                    $price = 0;
+                    break;
+                    
+                case ShippingMethod::TYPE_WEIGHT_BASED:
+                    $rate = $method->rates()->first();
+                    
+                    if (!$rate || !$rate->base_price) {
+                        return null;
+                    }
+                    
+                    $price = $rate->base_price;
+                    break;
+                    
+                case ShippingMethod::TYPE_FLAT_RATE:
+                    $price = 10.00; // Placeholder
+                    break;
+            }
         }
+
+        // Fixed rates are now stored directly in EGP
+        $currencyCode = 'EGP';
+        $currencySymbol = 'EGP';
 
         return [
             'method_id' => $method->id,
@@ -250,8 +260,9 @@ class ShippingController extends Controller
             'carrier_name' => $method->carrier->name,
             'service_name' => $method->name,
             'service_code' => $method->carrier->slug . '_' . $method->id,
-            'price' => $price,
-            'currency' => 'USD', // TODO: Make configurable
+            'price' => round($price, 2),
+            'currency' => $currencyCode,
+            'currency_symbol' => $currencySymbol,
             'estimated_days' => $method->estimated_days_max,
             'is_free' => $method->is_free || $price == 0
         ];
@@ -272,7 +283,7 @@ class ShippingController extends Controller
                     $data['packages']
                 );
                 
-                // Format rates for our system
+                // Live rates from AramexService are already in EGP
                 return collect($carrierRates)->map(function ($rate) use ($carrier) {
                     return [
                         'method_id' => 'live_' . $carrier->id . '_' . $rate['service_code'],
@@ -280,8 +291,9 @@ class ShippingController extends Controller
                         'carrier_name' => $rate['carrier_name'],
                         'service_name' => $rate['service_name'],
                         'service_code' => $rate['service_code'],
-                        'price' => $rate['price'],
+                        'price' => round($rate['price'], 2),
                         'currency' => $rate['currency'],
+                        'currency_symbol' => $rate['currency'],
                         'estimated_days' => $rate['estimated_days'],
                         'is_free' => false
                     ];

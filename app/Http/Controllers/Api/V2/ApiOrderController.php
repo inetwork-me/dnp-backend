@@ -28,7 +28,20 @@ class ApiOrderController extends Controller
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        return $order->load('items.product', 'statusHistories.user');
+        $orderData = $order->load([
+            'items.product', 
+            'statusHistories.user',
+            'coupon',
+            'shippingMethod.carrier',
+            'shipments',
+            'latestShipment',
+            'loyaltyTransactions.product'
+        ]);
+
+        // Add calculated loyalty points earned
+        $orderData->loyalty_points_earned = $order->totalLoyaltyPointsEarned();
+
+        return $orderData;
     }
 
 

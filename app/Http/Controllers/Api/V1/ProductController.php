@@ -84,25 +84,18 @@ class ProductController extends Controller
         // 7. Filter by price range
         if ($request->filled('price_min')) {
             $priceMin = floatval($request->query('price_min'));
-            $query->where(function ($q) use ($priceMin) {
-                $q->where('unit_price', '>=', $priceMin)
-                    ->orWhere('sale_price', '>=', $priceMin);
-            });
+            $query->where('unit_price', '>=', $priceMin);
         }
 
         if ($request->filled('price_max')) {
             $priceMax = floatval($request->query('price_max'));
-            $query->where(function ($q) use ($priceMax) {
-                $q->where('unit_price', '<=', $priceMax)
-                    ->orWhere('sale_price', '<=', $priceMax);
-            });
+            $query->where('unit_price', '<=', $priceMax);
         }
 
         // 8. Filter by sale status (on_sale=true)
         if ($request->boolean('on_sale')) {
             $query->where(function ($q) {
-                $q->where('sale_price', '>', 0)
-                    ->whereColumn('sale_price', '<', 'unit_price');
+                $q->where('discount', '>', 0);
             });
         }
 
@@ -116,6 +109,7 @@ class ProductController extends Controller
         $sortOrder = $request->query('sort_order', 'desc');
 
         switch ($sortBy) {
+            case 'main_price':
             case 'price':
                 $query->orderBy('unit_price', $sortOrder);
                 break;
@@ -123,7 +117,7 @@ class ProductController extends Controller
                 $query->orderBy('name', $sortOrder);
                 break;
             case 'rating':
-                $query->orderBy('rating', $sortOrder);
+                $query->orderBy('avg_rating', $sortOrder);
                 break;
             case 'popularity':
             case 'num_of_sale':
