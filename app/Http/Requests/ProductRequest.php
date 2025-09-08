@@ -71,7 +71,7 @@ class ProductRequest extends FormRequest
         $rules['auction_date_range']  = 'sometimes|required';
 
         // --- NEW: PRODUCT TYPE & BUNDLES ---
-        $rules['type']                 = ['required', Rule::in(['simple', 'bundle', 'subscription', 'service', 'package', 'session'])];
+        $rules['type']                 = ['required', Rule::in(['simple', 'bundle', 'subscription', 'service', 'package', 'session', 'onlinepackage'])];
 
         // Only when type=bundle
         $rules['bundle_items']              = 'nullable|array';
