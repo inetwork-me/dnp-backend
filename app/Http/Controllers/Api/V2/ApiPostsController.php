@@ -68,6 +68,7 @@ class ApiPostsController extends Controller
     public function update(Request $request, Post $post)
     {
         $data = $request->validate([
+            'title'          => ['nullable', 'array'],
             'slug'  => ['required', 'alpha_dash'],
             'category_id'    => ['nullable', 'exists:post_type_categories,id'],
             'content'        => ['nullable', 'array'],
