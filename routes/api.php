@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V2\ApiBmiSettingController;
 use App\Http\Controllers\Api\V2\ApiCouponController;
 use App\Http\Controllers\Api\V2\ApiLanguagesController;
 use App\Http\Controllers\Api\V2\ApiProductCategoryController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V2\ApiBlockController;
 use App\Http\Controllers\Api\V2\ApiUserController;
 use App\Http\Controllers\Api\V1\WebsiteCartController;
 use App\Http\Controllers\Api\V1\WebsiteOrderController;
+use App\Http\Controllers\Api\V1\WebsiteBmi;
 use App\Http\Controllers\Api\V2\ApiFormController;
 use App\Http\Controllers\Api\V2\ApiFormFieldController;
 use App\Http\Controllers\Api\V2\ApiFormSubmissionController;
@@ -64,6 +66,8 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     Route::apiResource('bmi', WebsiteBmi::class);
+    Route::get('bmi/{bmi}/with-settings', [WebsiteBmi::class, 'showWithSettings']);
+    Route::get('bmi-settings', [WebsiteBmi::class, 'settings']);
 
     Route::get('settings', 'App\Http\Controllers\Api\V1\websiteSettingController@index');
     Route::get('posts/{slug}', 'App\Http\Controllers\Api\V1\WebsitePostsController@show');
@@ -179,6 +183,9 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::put('brands/{id}', [BrandController::class, 'update']);
         Route::delete('brands/{id}', [BrandController::class, 'destroy']);
         Route::apiResource('coupons', ApiCouponController::class);
+        Route::apiResource('bmi-settings', ApiBmiSettingController::class);
+        Route::post('bmi-settings/{bmiSetting}/toggle-status', [ApiBmiSettingController::class, 'toggleStatus']);
+        Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);
 
         // Route::get('/products',          [ApiProductController::class, 'index']);
         Route::apiResource('products', ApiProductController::class)->only(['index', 'store', 'update', 'destroy']);
