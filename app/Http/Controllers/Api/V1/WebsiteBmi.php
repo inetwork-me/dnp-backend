@@ -17,7 +17,6 @@ class WebsiteBmi extends Controller
     public function show(BmiRecord $bmi)
     {
         \Log::info('WebsiteBmi::show called for BMI ID: ' . $bmi->id);
-        $locale = app()->getLocale();
         
         // Get current BMI category for this specific record
         $currentBmiSetting = BmiSetting::findByBmi($bmi->bmi);
@@ -33,24 +32,27 @@ class WebsiteBmi extends Controller
         
         // Add current BMI details
         if ($currentBmiSetting) {
-            $response['bmi_details'] = [
-                'classification' => $currentBmiSetting->getClassification($locale),
-                'tips' => $currentBmiSetting->getTips($locale),
-                'recommended_water_intake' => $currentBmiSetting->getWaterIntakeRecommendation($locale),
-                'range_from' => $currentBmiSetting->bmi_range_from,
-                'range_to' => $currentBmiSetting->bmi_range_to
-            ];
+            // Find the same setting from the allBmiSettings collection which is working correctly
+            $matchingSetting = $allBmiSettings->where('id', $currentBmiSetting->id)->first();
+            
+              $response['bmi_details'] = [
+                    'classification' => $matchingSetting->classification,
+                    'tips' => $matchingSetting->tips,
+                    'recommended_water_intake' => $matchingSetting->recommended_water_intake,
+                    'range_from' => $matchingSetting->bmi_range_from,
+                    'range_to' => $matchingSetting->bmi_range_to
+              ];
         }
         
         // Add all BMI settings for dynamic classification on frontend
-        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) use ($locale) {
+        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) {
             return [
                 'id' => $setting->id,
                 'bmi_range_from' => $setting->bmi_range_from,
                 'bmi_range_to' => $setting->bmi_range_to,
-                'classification' => $setting->classification, // Use direct access first to test
-                'tips' => $setting->tips, // Use direct access first to test
-                'recommended_water_intake' => $setting->recommended_water_intake, // Use direct access first to test
+                'classification' => $setting->classification,
+                'tips' => $setting->tips,
+                'recommended_water_intake' => $setting->recommended_water_intake,
                 'order' => $setting->order,
                 'is_active' => $setting->is_active
             ];
@@ -73,7 +75,6 @@ class WebsiteBmi extends Controller
         $record = BmiRecord::create(array_merge($data, $metrics));
         
         // Add BMI details using settings
-        $locale = app()->getLocale();
         $bmiSetting = BmiSetting::findByBmi($record->bmi);
         
         // Get all BMI settings for the frontend
@@ -83,16 +84,16 @@ class WebsiteBmi extends Controller
         
         if ($bmiSetting) {
             $response['bmi_details'] = [
-                'classification' => $bmiSetting->getClassification($locale),
-                'tips' => $bmiSetting->getTips($locale),
-                'recommended_water_intake' => $bmiSetting->getWaterIntakeRecommendation($locale),
+                'classification' => $bmiSetting->classification,
+                'tips' => $bmiSetting->tips,
+                'recommended_water_intake' => $bmiSetting->recommended_water_intake,
                 'range_from' => $bmiSetting->bmi_range_from,
                 'range_to' => $bmiSetting->bmi_range_to
             ];
         }
         
         // Add all BMI settings for dynamic classification on frontend
-        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) use ($locale) {
+        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) {
             return [
                 'id' => $setting->id,
                 'bmi_range_from' => $setting->bmi_range_from,
@@ -143,7 +144,7 @@ class WebsiteBmi extends Controller
 
         // Get BMI category from settings instead of hardcoded values
         $bmiSetting = BmiSetting::findByBmi($bmi);
-        $bmiCategory = $bmiSetting ? $bmiSetting->getClassification('en') : 'unknown';
+        $bmiCategory = $bmiSetting ? ($bmiSetting->classification['en'] ?? 'unknown') : 'unknown';
 
         // Convert to lowercase and replace spaces with underscores for backward compatibility
         $bmiCategoryKey = strtolower(str_replace([' ', '-'], '_', $bmiCategory));
@@ -174,18 +175,17 @@ class WebsiteBmi extends Controller
      */
     public function settings()
     {
-        $locale = app()->getLocale();
         $settings = BmiSetting::active()->ordered()->get();
 
         return response()->json([
-            'data' => $settings->map(function ($setting) use ($locale) {
+            'data' => $settings->map(function ($setting) {
                 return [
                     'id' => $setting->id,
                     'bmi_range_from' => $setting->bmi_range_from,
                     'bmi_range_to' => $setting->bmi_range_to,
-                    'classification' => $setting->getClassification($locale),
-                    'tips' => $setting->getTips($locale),
-                    'recommended_water_intake' => $setting->getWaterIntakeRecommendation($locale),
+                    'classification' => $setting->classification,
+                    'tips' => $setting->tips,
+                    'recommended_water_intake' => $setting->recommended_water_intake,
                     'order' => $setting->order,
                     'is_active' => $setting->is_active
                 ];
@@ -195,8 +195,6 @@ class WebsiteBmi extends Controller
 
     public function showWithSettings(BmiRecord $bmi)
     {
-        $locale = app()->getLocale();
-        
         // Get current BMI category for this specific record
         $currentBmiSetting = BmiSetting::findByBmi($bmi->bmi);
         
@@ -207,17 +205,31 @@ class WebsiteBmi extends Controller
         
         // Add current BMI details
         if ($currentBmiSetting) {
-            $response['bmi_details'] = [
-                'classification' => $currentBmiSetting->getClassification($locale),
-                'tips' => $currentBmiSetting->getTips($locale),
-                'recommended_water_intake' => $currentBmiSetting->getWaterIntakeRecommendation($locale),
-                'range_from' => $currentBmiSetting->bmi_range_from,
-                'range_to' => $currentBmiSetting->bmi_range_to
-            ];
+            // Find the same setting from the allBmiSettings collection which is working correctly
+            $matchingSetting = $allBmiSettings->where('id', $currentBmiSetting->id)->first();
+            
+            if ($matchingSetting) {
+                $response['bmi_details'] = [
+                    'classification' => $matchingSetting->classification,
+                    'tips' => $matchingSetting->tips,
+                    'recommended_water_intake' => $matchingSetting->recommended_water_intake,
+                    'range_from' => $matchingSetting->bmi_range_from,
+                    'range_to' => $matchingSetting->bmi_range_to
+                ];
+            } else {
+                // Fallback to the original method with explicit JSON decoding
+                $response['bmi_details'] = [
+                    'classification' => json_decode($currentBmiSetting->classification, true) ?: $currentBmiSetting->classification,
+                    'tips' => json_decode($currentBmiSetting->tips, true) ?: $currentBmiSetting->tips,
+                    'recommended_water_intake' => json_decode($currentBmiSetting->recommended_water_intake, true) ?: $currentBmiSetting->recommended_water_intake,
+                    'range_from' => $currentBmiSetting->bmi_range_from,
+                    'range_to' => $currentBmiSetting->bmi_range_to
+                ];
+            }
         }
         
         // Add all BMI settings for dynamic classification on frontend
-        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) use ($locale) {
+        $response['bmi_settings'] = $allBmiSettings->map(function ($setting) {
             return [
                 'id' => $setting->id,
                 'bmi_range_from' => $setting->bmi_range_from,
