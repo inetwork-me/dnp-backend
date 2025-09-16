@@ -543,6 +543,22 @@ class BusinessSettingsController extends Controller
         return back();
     }
 
+    public function shipping_enabled_update(Request $request)
+    {
+        $business_settings = BusinessSetting::where('type', 'shipping_enabled')->first();
+        if (!$business_settings) {
+            $business_settings = new BusinessSetting;
+            $business_settings->type = 'shipping_enabled';
+        }
+
+        $business_settings->value = $request->has('shipping_enabled') ? '1' : '0';
+        $business_settings->save();
+
+        Artisan::call('cache:clear');
+        flash(translate('Shipping settings updated successfully'))->success();
+        return back();
+    }
+
     public function order_configuration()
     {
         return view('backend.setup_configurations.order_configuration.index');

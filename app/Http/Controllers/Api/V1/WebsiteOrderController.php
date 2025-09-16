@@ -38,18 +38,25 @@ class WebsiteOrderController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $shippingEnabled = is_shipping_enabled();
+
+        $validationRules = [
             'cart_id'           => 'required|exists:carts,id',
-            'shipping_address'  => 'nullable|array',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
             'guest_name'        => 'required_without:auth|string',
-            // Shipping fields
-            'shipping_method_id'    => 'nullable',
-            'shipping_cost'         => 'nullable|numeric|min:0',
-            'shipping_quote_data'   => 'nullable|array',
-        ]);
+        ];
+
+        // Add shipping validation only if shipping is enabled
+        if ($shippingEnabled) {
+            $validationRules['shipping_address'] = 'nullable|array';
+            $validationRules['shipping_method_id'] = 'nullable';
+            $validationRules['shipping_cost'] = 'nullable|numeric|min:0';
+            $validationRules['shipping_quote_data'] = 'nullable|array';
+        }
+
+        $data = $request->validate($validationRules);
 
         // 1) load cart + applied coupon
         $cart = Cart::with(['items.product', 'coupon'])
@@ -71,18 +78,24 @@ class WebsiteOrderController extends Controller
         }
 
         // 3) snapshot cart → order
-        $order = DB::transaction(function () use ($cart, $data, $user) {
+        $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled) {
             // a) compute amounts
             $subtotal = $cart->items->sum(fn ($i) => $i->quantity * $i->unit_price);
             $discount = $cart->coupon
                 ? $cart->coupon->calculateDiscount($subtotal)
                 : 0;
-            $shippingCost = $data['shipping_cost'] ?? 0;
+
+            // Only add shipping cost if shipping is enabled
+            $shippingCost = 0;
+            if ($shippingEnabled && isset($data['shipping_cost'])) {
+                $shippingCost = $data['shipping_cost'];
+            }
+
             $total = max(0, $subtotal - $discount + $shippingCost);
 
-            // Handle shipping method ID for live rates
+            // Handle shipping method ID for live rates only if shipping is enabled
             $shippingMethodId = null;
-            if (isset($data['shipping_method_id'])) {
+            if ($shippingEnabled && isset($data['shipping_method_id'])) {
                 $methodId = $data['shipping_method_id'];
                 // Check if it's a live rate (starts with 'live_')
                 if (is_string($methodId) && str_starts_with($methodId, 'live_')) {
@@ -108,13 +121,13 @@ class WebsiteOrderController extends Controller
                 'total_amount'     => round($total, 2),
                 'coupon_id'        => $cart->coupon_id,
 
-                // shipping fields
+                // shipping fields (only if shipping enabled)
                 'shipping_method_id'    => $shippingMethodId,
                 'shipping_cost'         => round($shippingCost, 2),
-                'shipping_quote_data'   => $data['shipping_quote_data'] ?? null,
+                'shipping_quote_data'   => $shippingEnabled ? ($data['shipping_quote_data'] ?? null) : null,
 
-                'shipping_address' => $data['shipping_address'] ?? null,
-                'billing_address'  => $data['billing_address'] ?? $data['shipping_address'] ?? null,
+                'shipping_address' => $shippingEnabled ? ($data['shipping_address'] ?? null) : null,
+                'billing_address'  => $data['billing_address'] ?? ($shippingEnabled ? ($data['shipping_address'] ?? null) : null),
                 'payment_method'   => $data['payment_method'] ?? null,
                 'payment_status'   => 'unpaid',
             ]);

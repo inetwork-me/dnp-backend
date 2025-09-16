@@ -15,6 +15,18 @@ class ShippingController extends Controller
 {
     public function calculateRates(Request $request): JsonResponse
     {
+        // Check if shipping is enabled
+        if (!is_shipping_enabled()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'rates' => [],
+                    'shipping_disabled' => true,
+                    'message' => 'Shipping is currently disabled'
+                ]
+            ]);
+        }
+
         $validated = $request->validate([
             'origin' => 'required|array',
             'origin.line1' => 'required|string',

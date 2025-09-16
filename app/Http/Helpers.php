@@ -1352,6 +1352,13 @@ if (!function_exists('get_setting')) {
     }
 }
 
+if (!function_exists('is_shipping_enabled')) {
+    function is_shipping_enabled()
+    {
+        return get_setting('shipping_enabled', '1') === '1';
+    }
+}
+
 function hex2rgba($color, $opacity = false)
 {
     return (new ColorCodeConverter())->convertHexToRgba($color, $opacity);

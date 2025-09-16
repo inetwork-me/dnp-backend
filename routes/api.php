@@ -319,6 +319,10 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         // Get reviews for specific product
         Route::get('products/{product}/reviews', [AdminReviewController::class, 'getProductReviews']);
+
+        // Business Settings Management
+        Route::get('business-settings', 'App\Http\Controllers\Api\V1\BusinessSettingController@index');
+        Route::post('business-settings/update', 'App\Http\Controllers\BusinessSettingsController@update');
     });
 
     // If you also want "info" to be under v2/auth/info, move it inside the auth‐prefix too:
