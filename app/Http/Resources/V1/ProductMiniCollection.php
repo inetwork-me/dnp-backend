@@ -36,7 +36,8 @@ class ProductMiniCollection extends ResourceCollection
                     'avg_rating' => round((float) $avgRating, 1),
                     'package_details' => $data->packageDetails,
                     'is_subscription' => $data->is_subscription,
-                    'loyalty_points' => $data->getEffectiveLoyaltyPoints()
+                    'loyalty_points' => $data->getEffectiveLoyaltyPoints(),
+                    'returns' => $data->returns
 
 
                 ];
