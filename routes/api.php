@@ -59,6 +59,13 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
         Route::post('confirm_code', 'App\Http\Controllers\Api\V1\AuthController@confirmCode');
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+
+        // Wishlist routes
+        Route::get('wishlist', 'App\Http\Controllers\Api\V1\WishlistController@index');
+        Route::post('wishlist', 'App\Http\Controllers\Api\V1\WishlistController@store');
+        Route::delete('wishlist/{productId}', 'App\Http\Controllers\Api\V1\WishlistController@destroy');
+        Route::post('wishlist/sync', 'App\Http\Controllers\Api\V1\WishlistController@sync');
+        Route::delete('wishlist', 'App\Http\Controllers\Api\V1\WishlistController@clear');
     });
 
     Route::post('info', 'App\Http\Controllers\Api\V1\AuthController@getUserInfoByAccessToken');
