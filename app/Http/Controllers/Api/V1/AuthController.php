@@ -135,6 +135,9 @@ class AuthController extends Controller
         $user->email_verified_at = Carbon::now();
         $user->save();
 
+        // Assign default customer role
+        $user->assignRole('client');
+
 
         // if ($user->email != null) {
         //     if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
@@ -391,7 +394,13 @@ class AuthController extends Controller
                 $existing_or_new_user->email_verified_at = date('Y-m-d H:m:s');
             }
 
+            $isNewUser = !$existing_or_new_user->exists;
             $existing_or_new_user->save();
+
+            // Assign default customer role if it's a new user
+            if ($isNewUser || !$existing_or_new_user->hasAnyRole()) {
+                $existing_or_new_user->assignRole('client');
+            }
 
             return $this->loginSuccess($existing_or_new_user);
         }

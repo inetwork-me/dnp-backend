@@ -38,12 +38,8 @@ class ApiUserController extends Controller
             'name'          => 'required|string|max:255',
             'email'         => 'required|string|email|max:255|unique:users,email',
             'password'      => 'required|string|min:8|confirmed',
-            'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
-            'postal_code'   => 'nullable|string|max:20',
             'phone'         => 'nullable|string|max:20',
-            'country'       => 'nullable|string|max:100',
-            'user_type'       => 'nullable|string|max:100',
+            'user_type'     => 'nullable|string|max:100',
             'about_content' => 'nullable|string',
             'roles'         => 'required|array',
             'roles.*'       => 'string|exists:roles,name',
@@ -74,11 +70,8 @@ class ApiUserController extends Controller
             'name'          => 'sometimes|required|string|max:255',
             'email'         => ['sometimes', 'required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password'      => 'sometimes|nullable|string|min:8|confirmed',
-            'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
-            'postal_code'   => 'nullable|string|max:20',
             'phone'         => 'nullable|string|max:20',
-            'country'       => 'nullable|string|max:100',
+            'user_type'     => 'nullable|string|max:100',
             'about_content' => 'nullable|string',
             'roles'         => 'sometimes|required|array',
             'roles.*'       => 'string|exists:roles,name',
@@ -88,7 +81,7 @@ class ApiUserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user->update(array_except($validated, ['roles']));
+        $user->update(collect($validated)->except(['roles'])->toArray());
 
         if (isset($validated['roles'])) {
             $user->syncRoles($validated['roles']);
