@@ -100,6 +100,9 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::post('/cart/{cart}/apply-coupon', [WebsiteCartController::class, 'applyCoupon']);
     Route::delete('/cart/{cart}/remove-coupon', [WebsiteCartController::class, 'removeCoupon']);
 
+    // General coupon apply route (for checkout)
+    Route::post('coupons/apply', [ApiCouponController::class, 'apply']);
+
     // ORDERS / CHECKOUT
     Route::post('checkout', [WebsiteOrderController::class, 'store']);
 
@@ -192,6 +195,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::put('brands/{id}', [BrandController::class, 'update']);
         Route::delete('brands/{id}', [BrandController::class, 'destroy']);
         Route::apiResource('coupons', ApiCouponController::class);
+        Route::post('coupons/apply', [ApiCouponController::class, 'apply']);
         Route::apiResource('bmi-settings', ApiBmiSettingController::class);
         Route::post('bmi-settings/{bmiSetting}/toggle-status', [ApiBmiSettingController::class, 'toggleStatus']);
         Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);

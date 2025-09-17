@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\LoyaltyService;
@@ -46,6 +47,8 @@ class WebsiteOrderController extends Controller
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
             'guest_name'        => 'required_without:auth|string',
+            'coupon_code'       => 'string|nullable',
+            'voucher_code'      => 'string|nullable',
         ];
 
         // Add shipping validation only if shipping is enabled
@@ -62,6 +65,30 @@ class WebsiteOrderController extends Controller
         $cart = Cart::with(['items.product', 'coupon'])
             ->findOrFail($data['cart_id']);
         abort_if($cart->items->isEmpty(), 400, 'Cart is empty.');
+
+        // 1.5) Apply coupon if provided and not already applied
+        if (!empty($data['coupon_code']) && (!$cart->coupon || $cart->coupon->code !== $data['coupon_code'])) {
+            $coupon = Coupon::where('code', $data['coupon_code'])
+                ->where('active', true)
+                ->first();
+
+            if (!$coupon) {
+                abort(400, 'Invalid coupon code');
+            }
+
+            // Check if coupon is valid (not expired, usage limits, etc.)
+            if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
+                abort(400, 'Coupon has expired');
+            }
+
+            if ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
+                abort(400, 'Coupon is not yet active');
+            }
+
+            // Apply coupon to cart
+            $cart->update(['coupon_id' => $coupon->id]);
+            $cart->load('coupon'); // Reload with coupon relationship
+        }
 
         // 2) find or create user
         $user = $request->user();

@@ -61,4 +61,54 @@ class ApiCouponController extends Controller
         $coupon->delete();
         return response()->json(['message' => 'Deleted'], 200);
     }
+
+    public function apply(Request $request)
+    {
+        $data = $request->validate([
+            'code' => 'required|string',
+            'cart_total' => 'required|numeric|min:0'
+        ]);
+
+        $coupon = Coupon::where('code', $data['code'])
+            ->where('active', true)
+            ->first();
+
+        if (!$coupon) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid coupon code'
+            ], 400);
+        }
+
+        // Check if coupon is expired
+        if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon has expired'
+            ], 400);
+        }
+
+        // Check if coupon has started
+        if ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Coupon is not yet active'
+            ], 400);
+        }
+
+        // Calculate discount amount using model method
+        $discountAmount = $coupon->calculateDiscount($data['cart_total']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Coupon applied successfully',
+            'coupon' => [
+                'id' => $coupon->id,
+                'code' => $coupon->code,
+                'discount_type' => $coupon->type,
+                'discount_value' => $coupon->value,
+                'calculated_discount' => $discountAmount
+            ]
+        ]);
+    }
 }
