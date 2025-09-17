@@ -17,7 +17,7 @@ class WishlistController extends Controller
     public function index(Request $request)
     {
         $wishlist = Wishlist::where('user_id', $request->user()->id)
-            ->with(['product:id,name,slug,thumbnail_img,price,discount_price,label'])
+            ->with(['product:id,name,slug,thumbnail_img,unit_price,discount,discount_type,label,current_stock,category_id,thumbnail', 'product.main_category:id,name'])
             ->get();
 
         return response()->json([
@@ -28,9 +28,17 @@ class WishlistController extends Controller
                     'name' => $item->product->name,
                     'slug' => $item->product->slug,
                     'thumbnail_img' => $item->product->thumbnail_img,
-                    'price' => $item->product->price,
-                    'discount_price' => $item->product->discount_price,
+                    'unit_price' => $item->product->unit_price,
+                    'discount' => $item->product->discount,
+                    'discount_type' => $item->product->discount_type,
                     'label' => $item->product->label,
+                    'current_stock' => $item->product->current_stock,
+                    'thumbnail' => $item->product->thumbnail,
+                    'category' => $item->product->main_category ? [
+                        'id' => $item->product->main_category->id,
+                        'name' => $item->product->main_category->name,
+                        'label' => $item->product->main_category->name, // Using name as label fallback
+                    ] : null,
                 ];
             })
         ]);
