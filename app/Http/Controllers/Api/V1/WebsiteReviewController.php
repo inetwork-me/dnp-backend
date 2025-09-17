@@ -11,7 +11,20 @@ class WebsiteReviewController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');  // only signed-in users
+        $this->middleware('auth:sanctum');  // only signed-in users
+    }
+
+    public function index(Request $request)
+    {
+        $reviews = Review::where('user_id', $request->user()->id)
+            ->with(['product:id,name,slug,thumbnail_img'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'reviews' => $reviews,
+        ]);
     }
 
     public function store(Request $req)

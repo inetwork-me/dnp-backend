@@ -110,6 +110,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+        Route::get('reviews', [WebsiteReviewController::class, 'index']);
         Route::post('reviews', [WebsiteReviewController::class, 'store']);
 
         // Loyalty endpoints for website
