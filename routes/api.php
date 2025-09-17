@@ -54,6 +54,7 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
         Route::get('logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
         Route::get('account-deletion', 'App\Http\Controllers\Api\V1\AuthController@account_deletion');
         Route::get('user', 'App\Http\Controllers\Api\V1\AuthController@user');
+        Route::put('user/profile', 'App\Http\Controllers\Api\V1\AuthController@updateProfile');
         Route::get('resend_code', 'App\Http\Controllers\Api\V1\AuthController@resendCode');
         Route::post('confirm_code', 'App\Http\Controllers\Api\V1\AuthController@confirmCode');
         Route::get('orders', [WebsiteOrderController::class, 'index']);
