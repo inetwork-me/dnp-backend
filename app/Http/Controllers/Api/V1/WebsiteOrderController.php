@@ -47,6 +47,7 @@ class WebsiteOrderController extends Controller
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
             'guest_name'        => 'required_without:auth|string',
+            'guest_phone'       => 'string|nullable',
             'coupon_code'       => 'string|nullable',
             'voucher_code'      => 'string|nullable',
         ];
@@ -92,16 +93,22 @@ class WebsiteOrderController extends Controller
 
         // 2) find or create user
         $user = $request->user();
+        $isGuestUser = false;
+        $guestPassword = null;
+
         if (!$user) {
+            $guestPassword = Str::random(12);
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $data['guest_email']],
                 [
-                    'password' => Hash::make(Str::random(12)),
+                    'password' => Hash::make($guestPassword),
                     'name'     => $data['guest_name'],
+                    'phone'    => $data['guest_phone'] ?? null,
                 ]
             );
             $cart->user()->associate($user);
             $cart->save();
+            $isGuestUser = true;
         }
 
         // 3) snapshot cart → order
@@ -189,7 +196,50 @@ class WebsiteOrderController extends Controller
             return $order;
         });
 
-        // 4) Process loyalty points after successful order creation
+        // 4) Handle guest user account setup
+        if ($isGuestUser && $guestPassword) {
+            try {
+                // Create customer profile for guest user
+                $customer = $user->getOrCreateCustomer();
+
+                // Update customer with billing address information
+                $customerUpdateData = [];
+
+                if (isset($data['billing_address'])) {
+                    $customerUpdateData = [
+                        'billing_address' => $data['billing_address']['line1'] ?? null,
+                        'billing_city' => $data['billing_address']['city'] ?? null,
+                        'billing_state' => $data['billing_address']['state'] ?? null,
+                        'billing_country' => $data['billing_address']['country'] ?? null,
+                        'billing_postal_code' => $data['billing_address']['postal_code'] ?? null,
+                    ];
+                }
+
+                // Update customer with shipping information if available
+                if (isset($data['shipping_address'])) {
+                    $customerUpdateData = array_merge($customerUpdateData, [
+                        'shipping_address' => $data['shipping_address']['line1'] ?? null,
+                        'shipping_city' => $data['shipping_address']['city'] ?? null,
+                        'shipping_state' => $data['shipping_address']['state'] ?? null,
+                        'shipping_country' => $data['shipping_address']['country'] ?? null,
+                        'shipping_postal_code' => $data['shipping_address']['postal_code'] ?? null,
+                    ]);
+                }
+
+                if (!empty($customerUpdateData)) {
+                    $customer->update($customerUpdateData);
+                }
+
+                // Send welcome email with login credentials
+                $user->notify(new \App\Notifications\GuestUserWelcomeNotification($user, $guestPassword, $order));
+
+            } catch (\Exception $e) {
+                // Log error but don't fail the order
+                \Log::error('Guest user setup failed for order ' . $order->id . ': ' . $e->getMessage());
+            }
+        }
+
+        // 5) Process loyalty points after successful order creation
         try {
             $this->loyaltyService->processOrderLoyaltyPoints($order);
         } catch (\Exception $e) {
@@ -197,7 +247,7 @@ class WebsiteOrderController extends Controller
             \Log::error('Loyalty points processing failed for order ' . $order->id . ': ' . $e->getMessage());
         }
 
-        // 5) return with items & coupon
+        // 6) return with items & coupon
         return response()->json(
             $order->load('items.product', 'coupon'),
             201

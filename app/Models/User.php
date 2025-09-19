@@ -65,13 +65,9 @@ class User extends Authenticatable implements MustVerifyEmail
         if (!$this->customer) {
             return $this->customer()->create([
                 'first_name' => $this->name ? explode(' ', $this->name)[0] : null,
-                'last_name' => $this->name && str_contains($this->name, ' ') ? 
+                'last_name' => $this->name && str_contains($this->name, ' ') ?
                               substr($this->name, strpos($this->name, ' ') + 1) : null,
                 'phone' => $this->phone,
-                'billing_city' => $this->city,
-                'billing_country' => $this->country,
-                'billing_postal_code' => $this->postal_code,
-                'billing_address' => $this->address,
             ]);
         }
         return $this->customer;

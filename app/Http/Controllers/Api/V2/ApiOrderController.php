@@ -16,11 +16,10 @@ class ApiOrderController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 20);
-        $orders = Order::orderBy('created_at', 'desc')->paginate($perPage);
-        // ->with('items.product')
-        // ->get();
+        $orders = Order::with(['user.customer', 'items.product'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
-        // $coupons = Coupon::orderBy('created_at', 'desc')->paginate($perPage);
         return new OrderCollection($orders);
     }
 
