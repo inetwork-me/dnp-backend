@@ -97,6 +97,7 @@ class WebsiteOrderController extends Controller
         $guestPassword = null;
 
         if (!$user) {
+            // Only create new user for guests
             $guestPassword = Str::random(12);
             $user = \App\Models\User::firstOrCreate(
                 ['email' => $data['guest_email']],
@@ -109,6 +110,10 @@ class WebsiteOrderController extends Controller
             $cart->user()->associate($user);
             $cart->save();
             $isGuestUser = true;
+        } else {
+            // For logged-in users, ensure cart is associated with the authenticated user
+            $cart->user()->associate($user);
+            $cart->save();
         }
 
         // 3) snapshot cart → order
@@ -236,8 +241,14 @@ class WebsiteOrderController extends Controller
                     $customer->update($customerUpdateData);
                 }
 
-                // Send welcome email with login credentials
-                $user->notify(new \App\Notifications\GuestUserWelcomeNotification($user, $guestPassword, $order));
+                // Send welcome email with login credentials if enabled
+                $welcomeEmailEnabled = \App\Models\BusinessSetting::where('type', 'customer_welcome_email_enabled')->first();
+                if ($welcomeEmailEnabled && $welcomeEmailEnabled->value === '1') {
+                    $user->notify(new \App\Notifications\GuestUserWelcomeNotification($user, $guestPassword, $order));
+                    \Log::info('Welcome email sent to guest user: ' . $user->email);
+                } else {
+                    \Log::info('Customer welcome emails are disabled, skipping for user: ' . $user->email);
+                }
 
             } catch (\Exception $e) {
                 // Log error but don't fail the order
@@ -245,7 +256,38 @@ class WebsiteOrderController extends Controller
             }
         }
 
-        // 5) Process loyalty points after successful order creation
+        // 5) Send admin notification for new order
+        try {
+            // Check if new order emails are enabled
+            $newOrderEmailEnabled = \App\Models\BusinessSetting::where('type', 'new_order_email_enabled')->first();
+            if (!$newOrderEmailEnabled || $newOrderEmailEnabled->value !== '1') {
+                \Log::info('New order email notifications are disabled, skipping for order ' . $order->order_number);
+            } else {
+                // Get admin emails from settings
+                $adminEmailsSetting = \App\Models\BusinessSetting::where('type', 'admin_notification_emails')->first();
+                $adminEmails = $adminEmailsSetting ? json_decode($adminEmailsSetting->value, true) : [];
+
+                // Fallback to env if no admin emails configured
+                if (empty($adminEmails)) {
+                    $adminEmails = [env('ADMIN_NOTIFICATION_EMAIL', config('mail.from.address'))];
+                }
+
+                // Send notification to all admin emails
+                foreach ($adminEmails as $adminEmail) {
+                    if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                        \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
+                            ->notify(new \App\Notifications\NewOrderAdminNotification($order));
+                    }
+                }
+
+                \Log::info('Admin notifications sent for order ' . $order->order_number . ' to ' . count($adminEmails) . ' admin(s)');
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the order
+            \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
+        }
+
+        // 6) Process loyalty points after successful order creation
         try {
             $this->loyaltyService->processOrderLoyaltyPoints($order);
         } catch (\Exception $e) {

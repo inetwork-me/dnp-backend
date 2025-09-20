@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V2\ApiOrderController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
 use App\Http\Controllers\Api\V2\ApiRolesController;
 use App\Http\Controllers\Api\V2\ApiLoyaltyController;
+use App\Http\Controllers\Api\V2\EmailSettingsController;
 use App\Http\Controllers\Api\V2\ApiVoucherController;
 use App\Http\Controllers\Api\V2\DashboardController;
 use App\Http\Controllers\Api\V2\ShippingController;
@@ -211,7 +212,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         // Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
 
 
-        // CMS API 
+        // CMS API
         Route::apiResource('languages', ApiLanguagesController::class);
         Route::get('/settings', [ApiSettingController::class, 'index']);
 
@@ -220,6 +221,13 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
         // Batch update multiple settings
         Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
+
+        // Email notification settings
+        Route::prefix('email-settings')->group(function () {
+            Route::get('/', [EmailSettingsController::class, 'index']);
+            Route::put('/', [EmailSettingsController::class, 'update']);
+            Route::post('/test', [EmailSettingsController::class, 'testEmail']);
+        });
 
 
         Route::apiResource('menus', ApiMenuController::class);
