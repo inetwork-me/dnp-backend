@@ -412,6 +412,10 @@ class AuthController extends Controller
         if (!$token) {
             $token = $user->createToken('API Token')->plainTextToken;
         }
+
+        // Get or create customer profile to include address data
+        $customer = $user->getOrCreateCustomer();
+
         return response()->json([
             'result' => true,
             'message' => translate('Successfully logged in'),
@@ -426,7 +430,20 @@ class AuthController extends Controller
                 'avatar' => $user->avatar,
                 'avatar_original' => uploaded_asset($user->avatar_original),
                 'phone' => $user->phone,
-                'email_verified' => $user->email_verified_at != null
+                'email_verified' => $user->email_verified_at != null,
+                // Include customer address data for checkout auto-fill
+                'first_name' => $customer->first_name ?? explode(' ', $user->name)[0] ?? null,
+                'last_name' => $customer->last_name ?? (str_contains($user->name, ' ') ? substr($user->name, strpos($user->name, ' ') + 1) : null),
+                'billing_address' => $customer->billing_address,
+                'billing_city' => $customer->billing_city,
+                'billing_state' => $customer->billing_state,
+                'billing_country' => $customer->billing_country,
+                'billing_postal_code' => $customer->billing_postal_code,
+                'shipping_address' => $customer->shipping_address,
+                'shipping_city' => $customer->shipping_city,
+                'shipping_state' => $customer->shipping_state,
+                'shipping_country' => $customer->shipping_country,
+                'shipping_postal_code' => $customer->shipping_postal_code,
             ]
         ]);
     }

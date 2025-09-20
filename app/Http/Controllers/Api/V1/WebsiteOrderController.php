@@ -166,7 +166,7 @@ class WebsiteOrderController extends Controller
                 'payment_status'   => 'unpaid',
             ]);
 
-            // c) copy each cart item
+            // c) copy each cart item and update product stock
             foreach ($cart->items as $ci) {
                 $order->items()->create([
                     'product_id' => $ci->product_id,
@@ -175,6 +175,12 @@ class WebsiteOrderController extends Controller
                     'line_total' => $ci->quantity * $ci->unit_price,
                     'options'    => $ci->options,
                 ]);
+
+                // Deduct stock from product
+                $product = \App\Models\Product::find($ci->product_id);
+                if ($product) {
+                    $product->decrement('current_stock', $ci->quantity);
+                }
             }
 
             // d) record coupon redemption + bump global counter
