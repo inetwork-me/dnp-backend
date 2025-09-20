@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->string('email')->nullable()->change();
+            // Check if email column exists before trying to modify it
+            if (Schema::hasColumn('customers', 'email')) {
+                $table->string('email')->nullable()->change();
+            }
         });
     }
 
@@ -22,7 +25,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('customers', function (Blueprint $table) {
-            $table->string('email')->nullable(false)->change();
+            // Check if email column exists before trying to modify it
+            if (Schema::hasColumn('customers', 'email')) {
+                $table->string('email')->nullable(false)->change();
+            }
         });
     }
 };
