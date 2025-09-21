@@ -19,14 +19,13 @@ class ApiUserController extends Controller
         $perPage = $request->get('per_page', 15);
         $roleFilter = $request->get('role');
 
-        $query = User::query();
+        $query = User::with('roles');
         if ($roleFilter) {
             $query->role($roleFilter);
         }
 
         $users = $query->paginate($perPage);
         return new UserCollection($users);
-        // return response()->json($users);
     }
 
     /**
