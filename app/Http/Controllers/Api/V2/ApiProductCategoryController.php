@@ -52,6 +52,39 @@ class ApiProductCategoryController extends Controller
         ]);
     }
 
+    /**
+     * Display the specified category.
+     */
+    public function show($id)
+    {
+        $category = Category::findOrFail($id);
+
+        return response()->json([
+            'data' => $category,
+        ]);
+    }
+
+    /**
+     * Update the specified category in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+
+        $data = $request->validate([
+            'name'  => 'nullable|string|max:255',
+            'slug'  => 'nullable|string|unique:categories,slug,' . $id,
+            'label' => 'nullable|array',
+        ]);
+
+        $category->update($data);
+
+        return response()->json([
+            'message' => 'Category updated successfully.',
+            'data'    => $category,
+        ]);
+    }
+
     public function info($slug)
     {
         return new CategoryCollection(Category::where('slug', $slug)->get());
