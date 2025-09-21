@@ -136,7 +136,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
         Route::prefix('vouchers')->group(function () {
             Route::get('/', [ApiVoucherController::class, 'index']);
             Route::get('active', [ApiVoucherController::class, 'active']);
-            Route::post('validate', [ApiVoucherController::class, 'validate']);
+            Route::post('validate', [ApiVoucherController::class, 'validateVoucher']);
         });
     });
 

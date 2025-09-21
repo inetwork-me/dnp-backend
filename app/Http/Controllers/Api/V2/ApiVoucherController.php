@@ -50,15 +50,19 @@ class ApiVoucherController extends Controller
         ]);
 
         $customer = $request->user()->getOrCreateCustomer();
-        
+
+        // Look for voucher - either belongs to current customer OR is a general voucher (no customer_id)
         $voucher = Voucher::where('code', $data['code'])
-            ->where('customer_id', $customer->id)
+            ->where(function ($query) use ($customer) {
+                $query->where('customer_id', $customer->id) // Personal voucher
+                      ->orWhereNull('customer_id'); // General/promotional voucher
+            })
             ->first();
 
         if (!$voucher) {
             return response()->json([
                 'valid' => false,
-                'message' => 'Voucher not found'
+                'message' => 'Voucher not found or not valid for this account'
             ], 404);
         }
 

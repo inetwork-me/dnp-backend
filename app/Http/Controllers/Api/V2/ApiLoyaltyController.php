@@ -27,11 +27,11 @@ class ApiLoyaltyController extends Controller
     public function summary(Request $request)
     {
         $customer = $request->user()->getOrCreateCustomer();
-        
+
         return response()->json([
             'customer_id' => $customer->id,
             'total_loyalty_points' => $customer->total_loyalty_points,
-            'available_loyalty_points' => $customer->available_loyalty_points,
+            'available_loyalty_points' => $customer->available_loyalty_points, // This calls the computed attribute
             'used_loyalty_points' => $customer->used_loyalty_points,
             'membership_tier' => $customer->membership_tier,
             'referral_code' => $customer->referral_code,
@@ -205,7 +205,7 @@ class ApiLoyaltyController extends Controller
 
     private function getPointsToNextTier(Customer $customer)
     {
-        $currentPoints = $customer->total_loyalty_points;
+        $currentPoints = $customer->total_loyalty_points; // Use total earned points for tier progression
         $tier = $customer->membership_tier;
 
         $tiers = [

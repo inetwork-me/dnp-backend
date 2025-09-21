@@ -178,4 +178,5 @@ class WebsiteCartController extends Controller
         $cart->update(['coupon_id' => null]);
         return response()->noContent();
     }
+
 }

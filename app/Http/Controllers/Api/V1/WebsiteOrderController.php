@@ -25,9 +25,24 @@ class WebsiteOrderController extends Controller
     // GET /api/orders
     public function index(Request $request)
     {
-        return Order::where('user_id', $request->user()->id)
+        $orders = Order::where('user_id', $request->user()->id)
             ->with(['items.product', 'latestShipment'])
             ->get();
+
+        // Ensure total_amount is calculated for orders that might be missing it
+        foreach ($orders as $order) {
+            if (!$order->total_amount || $order->total_amount == 0) {
+                $subtotal = $order->subtotal ?: $order->items->sum(fn($item) => $item->quantity * $item->unit_price);
+                $discount = $order->discount ?: 0;
+                $shipping = $order->shipping_cost ?: 0;
+                $tax = $order->tax ?: 0;
+
+                $order->total_amount = max(0, $subtotal - $discount + $shipping + $tax);
+                $order->save();
+            }
+        }
+
+        return $orders;
     }
 
     // GET /api/orders/{order}
@@ -122,13 +137,38 @@ class WebsiteOrderController extends Controller
             $cart->load('coupon'); // Reload with coupon relationship
         }
 
+        // 2.6) Validate voucher if provided
+        $appliedVoucher = null;
+        if (!empty($data['voucher_code'])) {
+            $customer = $user->getOrCreateCustomer();
+            $voucher = \App\Models\Voucher::where('code', $data['voucher_code'])
+                ->where(function ($query) use ($customer) {
+                    $query->where('customer_id', $customer->id) // Personal voucher
+                          ->orWhereNull('customer_id'); // General/promotional voucher
+                })
+                ->first();
+
+            if (!$voucher) {
+                abort(400, 'Invalid voucher code');
+            }
+
+            if (!$voucher->isUsable()) {
+                abort(400, $voucher->isExpired() ? 'Voucher has expired' : 'Voucher is not active');
+            }
+
+            $appliedVoucher = $voucher;
+        }
+
         // 3) snapshot cart → order
-        $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled) {
+        $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled, $appliedVoucher) {
             // a) compute amounts
             $subtotal = $cart->items->sum(fn ($i) => $i->quantity * $i->unit_price);
             $discount = $cart->coupon
                 ? $cart->coupon->calculateDiscount($subtotal)
                 : 0;
+
+            // Apply voucher discount
+            $voucherDiscount = $appliedVoucher ? $appliedVoucher->value : 0;
 
             // Only add shipping cost if shipping is enabled
             $shippingCost = 0;
@@ -136,7 +176,7 @@ class WebsiteOrderController extends Controller
                 $shippingCost = $data['shipping_cost'];
             }
 
-            $total = max(0, $subtotal - $discount + $shippingCost);
+            $total = max(0, $subtotal - $discount - $voucherDiscount + $shippingCost);
 
             // Handle shipping method ID for live rates only if shipping is enabled
             $shippingMethodId = null;
@@ -162,7 +202,7 @@ class WebsiteOrderController extends Controller
 
                 // pricing fields — adjust names to match your table:
                 'subtotal'         => round($subtotal, 2),
-                'discount'         => round($discount, 2),
+                'discount'         => round($discount + $voucherDiscount, 2), // Combined coupon + voucher discount
                 'total_amount'     => round($total, 2),
                 'coupon_id'        => $cart->coupon_id,
 
@@ -212,7 +252,12 @@ class WebsiteOrderController extends Controller
                 });
             }
 
-            // e) close out the cart
+            // e) mark voucher as used if applied
+            if ($appliedVoucher) {
+                $appliedVoucher->markAsUsed($order);
+            }
+
+            // f) close out the cart
             $cart->update(['status' => 'converted']);
 
             return $order;
@@ -298,13 +343,8 @@ class WebsiteOrderController extends Controller
             \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
         }
 
-        // 6) Process loyalty points after successful order creation
-        try {
-            $this->loyaltyService->processOrderLoyaltyPoints($order);
-        } catch (\Exception $e) {
-            // Log error but don't fail the order
-            \Log::error('Loyalty points processing failed for order ' . $order->id . ': ' . $e->getMessage());
-        }
+        // 6) Loyalty points will be processed when order status changes to 'completed'
+        // No longer processing loyalty points immediately on order creation
 
         // 6) return with items & coupon
         return response()->json(

@@ -77,11 +77,7 @@ class LoyaltyService
         }
 
         $user = $order->user;
-        $customer = $user->customer;
-
-        if (!$customer) {
-            return;
-        }
+        $customer = $user->getOrCreateCustomer();
 
         // Find all earned points for this order and deduct them
         $earnedTransactions = $customer->loyaltyTransactions()

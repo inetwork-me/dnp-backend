@@ -41,6 +41,37 @@ class Order extends Model
     protected $withCount = ['items'];
     protected $with      = ['user'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($order) {
+            if ($order->isDirty('status')) {
+                $oldStatus = $order->getOriginal('status');
+                $newStatus = $order->status;
+
+                // Award loyalty points when order is completed
+                if ($newStatus === 'completed' && $oldStatus !== 'completed') {
+                    try {
+                        $loyaltyService = app(\App\Services\LoyaltyService::class);
+                        $loyaltyService->processOrderLoyaltyPoints($order);
+                    } catch (\Exception $e) {
+                        \Log::error('Loyalty points processing failed for order ' . $order->id . ': ' . $e->getMessage());
+                    }
+                }
+
+                // Deduct loyalty points when order is cancelled/refunded
+                if (in_array($newStatus, ['cancelled', 'refunded']) && $oldStatus === 'completed') {
+                    try {
+                        $loyaltyService = app(\App\Services\LoyaltyService::class);
+                        $loyaltyService->refundOrderLoyaltyPoints($order);
+                    } catch (\Exception $e) {
+                        \Log::error('Loyalty points refund failed for order ' . $order->id . ': ' . $e->getMessage());
+                    }
+                }
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
