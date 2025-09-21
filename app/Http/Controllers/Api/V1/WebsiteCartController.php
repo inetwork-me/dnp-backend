@@ -29,9 +29,9 @@ class WebsiteCartController extends Controller
         );
         $cart->load('items.product', 'coupon');
 
-        // Calculate counts & raw subtotal
+        // Calculate counts & raw subtotal using discounted prices
         $totalCount = $cart->items->sum('quantity');
-        $subtotal   = $cart->items->sum(fn ($i) => $i->quantity * $i->product->unit_price);
+        $subtotal   = $cart->items->sum(fn ($i) => $i->quantity * home_discounted_base_price($i->product, false));
 
         $discount = 0;
         $coupon   = $cart->coupon;     // null if none applied
