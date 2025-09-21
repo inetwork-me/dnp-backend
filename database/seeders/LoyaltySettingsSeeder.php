@@ -47,7 +47,7 @@ class LoyaltySettingsSeeder extends Seeder
             ],
             [
                 'key' => 'default_currency',
-                'value' => 'USD',
+                'value' => 'EGP',
                 'type' => 'string',
                 'description' => 'Default currency for vouchers',
                 'group' => 'conversion'

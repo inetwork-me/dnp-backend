@@ -195,8 +195,11 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::get('brands/{id}', [BrandController::class, 'show']);
         Route::put('brands/{id}', [BrandController::class, 'update']);
         Route::delete('brands/{id}', [BrandController::class, 'destroy']);
+        Route::get('coupons/default-currency', [ApiCouponController::class, 'getDefaultCurrency']);
         Route::apiResource('coupons', ApiCouponController::class);
         Route::post('coupons/apply', [ApiCouponController::class, 'apply']);
+        Route::get('coupons/{coupon}/usage', [ApiCouponController::class, 'usage']);
+        Route::get('coupons/{coupon}/redemptions', [ApiCouponController::class, 'redemptions']);
         Route::apiResource('bmi-settings', ApiBmiSettingController::class);
         Route::post('bmi-settings/{bmiSetting}/toggle-status', [ApiBmiSettingController::class, 'toggleStatus']);
         Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);

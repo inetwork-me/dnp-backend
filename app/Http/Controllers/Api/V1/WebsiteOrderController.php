@@ -67,31 +67,7 @@ class WebsiteOrderController extends Controller
             ->findOrFail($data['cart_id']);
         abort_if($cart->items->isEmpty(), 400, 'Cart is empty.');
 
-        // 1.5) Apply coupon if provided and not already applied
-        if (!empty($data['coupon_code']) && (!$cart->coupon || $cart->coupon->code !== $data['coupon_code'])) {
-            $coupon = Coupon::where('code', $data['coupon_code'])
-                ->where('active', true)
-                ->first();
-
-            if (!$coupon) {
-                abort(400, 'Invalid coupon code');
-            }
-
-            // Check if coupon is valid (not expired, usage limits, etc.)
-            if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
-                abort(400, 'Coupon has expired');
-            }
-
-            if ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
-                abort(400, 'Coupon is not yet active');
-            }
-
-            // Apply coupon to cart
-            $cart->update(['coupon_id' => $coupon->id]);
-            $cart->load('coupon'); // Reload with coupon relationship
-        }
-
-        // 2) find or create user
+        // 2) find or create user FIRST (before coupon validation)
         $user = $request->user();
         $isGuestUser = false;
         $guestPassword = null;
@@ -114,6 +90,36 @@ class WebsiteOrderController extends Controller
             // For logged-in users, ensure cart is associated with the authenticated user
             $cart->user()->associate($user);
             $cart->save();
+        }
+
+        // 2.5) Apply coupon if provided and not already applied (AFTER user creation)
+        if (!empty($data['coupon_code']) && (!$cart->coupon || $cart->coupon->code !== $data['coupon_code'])) {
+            $coupon = Coupon::where('code', $data['coupon_code'])
+                ->where('active', true)
+                ->first();
+
+            if (!$coupon) {
+                abort(400, 'Invalid coupon code');
+            }
+
+            // Check if coupon is valid using comprehensive validation with the actual user
+            if (!$coupon->isValidForUser($user)) {
+                if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
+                    abort(400, 'Coupon has expired');
+                } elseif ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
+                    abort(400, 'Coupon is not yet active');
+                } elseif ($coupon->usage_limit_global && $coupon->redemptions()->count() >= $coupon->usage_limit_global) {
+                    abort(400, 'Coupon usage limit reached');
+                } elseif ($coupon->usage_limit_per_customer && $coupon->redemptions()->where('user_id', $user->id)->count() >= $coupon->usage_limit_per_customer) {
+                    abort(400, 'You have already used this coupon the maximum number of times');
+                } else {
+                    abort(400, 'Coupon is not valid');
+                }
+            }
+
+            // Apply coupon to cart
+            $cart->update(['coupon_id' => $coupon->id]);
+            $cart->load('coupon'); // Reload with coupon relationship
         }
 
         // 3) snapshot cart → order
@@ -190,9 +196,14 @@ class WebsiteOrderController extends Controller
 
             // d) record coupon redemption + bump global counter
             if ($cart->coupon) {
-                DB::transaction(function () use ($cart, $order, $discount) {
+                DB::transaction(function () use ($cart, $order, $discount, $user) {
+                    // Final validation check to prevent race conditions
+                    if (!$cart->coupon->isValidForUser($user)) {
+                        throw new \Exception('Coupon is no longer valid');
+                    }
+
                     $cart->coupon->redemptions()->create([
-                        'user_id'  => optional(request()->user())->id,
+                        'user_id'  => $user->id,
                         'cart_id'  => $cart->id,
                         'order_id' => $order->id,
                         'discount' => $discount,

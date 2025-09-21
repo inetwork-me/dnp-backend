@@ -132,14 +132,22 @@ class WebsiteCartController extends Controller
 
         $coupon = Coupon::where('code', $request->code)->firstOrFail();
 
-        // 1. Expiry check
-        if ($coupon->ends_at && Carbon::now()->gt($coupon->ends_at)) {
-            return response()->json(['message' => 'Coupon has expired'], 422);
-        }
-
-        // 2. Usage limit check
-        if ($coupon->usage_limit_global !== null && $coupon->times_used >= $coupon->usage_limit_global) {
-            return response()->json(['message' => 'Coupon usage limit reached'], 422);
+        // Use the model's comprehensive validation method
+        $user = $request->user(); // Get current authenticated user (if any)
+        if (!$coupon->isValidForUser($user)) {
+            // Determine specific error message
+            if ($coupon->ends_at && Carbon::now()->gt($coupon->ends_at)) {
+                $message = 'Coupon has expired';
+            } elseif ($coupon->starts_at && Carbon::now()->lt($coupon->starts_at)) {
+                $message = 'Coupon is not yet active';
+            } elseif ($coupon->usage_limit_global && $coupon->redemptions()->count() >= $coupon->usage_limit_global) {
+                $message = 'Coupon usage limit reached';
+            } elseif ($coupon->usage_limit_per_customer && $user && $coupon->redemptions()->where('user_id', $user->id)->count() >= $coupon->usage_limit_per_customer) {
+                $message = 'You have already used this coupon the maximum number of times';
+            } else {
+                $message = 'Coupon is not valid';
+            }
+            return response()->json(['message' => $message], 422);
         }
 
         // 3. Calculate discount
@@ -148,13 +156,10 @@ class WebsiteCartController extends Controller
             ? $subtotal * ($coupon->value / 100)
             : min($coupon->value, $subtotal);
 
-        // 4. Attach
+        // 4. Attach coupon to cart (don't increment usage until order is placed)
         $cart->update([
             'coupon_id' => $coupon->id
         ]);
-
-        // 5. Increment usage
-        $coupon->increment('times_used');
 
         return response()->json([
             'coupon'   => $coupon->only(['code', 'type', 'value', 'ends_at']),

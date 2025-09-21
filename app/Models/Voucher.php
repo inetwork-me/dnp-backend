@@ -117,12 +117,15 @@ class Voucher extends Model
         // Deduct points from customer
         $customer->deductLoyaltyPoints($points, 'redeemed', null, 'Converted to voucher');
 
+        // Get default currency from loyalty settings
+        $defaultCurrency = \App\Models\LoyaltySetting::get('default_currency', 'EGP');
+
         // Create voucher
         return static::create([
             'customer_id' => $customer->id,
             'code' => static::generateUniqueCode(),
             'value' => $value,
-            'currency' => $customer->preferred_currency,
+            'currency' => $defaultCurrency,
             'points_used' => $points,
             'expires_at' => $expiryDays ? now()->addDays($expiryDays) : null,
             'notes' => "Created from {$points} loyalty points"

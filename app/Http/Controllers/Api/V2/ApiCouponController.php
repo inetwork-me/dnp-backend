@@ -13,7 +13,17 @@ class ApiCouponController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page', 20);
-        $coupons = Coupon::orderBy('created_at', 'desc')->paginate($perPage);
+        $coupons = Coupon::withCount('redemptions')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        // Add usage statistics to each coupon
+        $coupons->getCollection()->transform(function ($coupon) {
+            $coupon->usage_count = $coupon->redemptions_count;
+            $coupon->remaining_global = $coupon->usage_limit_global ? max(0, $coupon->usage_limit_global - $coupon->usage_count) : null;
+            return $coupon;
+        });
+
         return new CouponCollection($coupons);
     }
 
@@ -36,6 +46,11 @@ class ApiCouponController extends Controller
 
     public function show(Coupon $coupon)
     {
+        // Load the coupon with usage statistics
+        $coupon->load('redemptions');
+        $coupon->usage_count = $coupon->redemptions()->count();
+        $coupon->remaining_global = $coupon->usage_limit_global ? max(0, $coupon->usage_limit_global - $coupon->usage_count) : null;
+
         return response()->json($coupon);
     }
 
@@ -80,19 +95,25 @@ class ApiCouponController extends Controller
             ], 400);
         }
 
-        // Check if coupon is expired
-        if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Coupon has expired'
-            ], 400);
-        }
+        // Use the model's comprehensive validation method
+        $user = $request->user(); // Get current authenticated user (if any)
+        if (!$coupon->isValidForUser($user)) {
+            // Determine specific error message
+            if ($coupon->ends_at && now()->isAfter($coupon->ends_at)) {
+                $message = 'Coupon has expired';
+            } elseif ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
+                $message = 'Coupon is not yet active';
+            } elseif ($coupon->usage_limit_global && $coupon->redemptions()->count() >= $coupon->usage_limit_global) {
+                $message = 'Coupon usage limit reached';
+            } elseif ($coupon->usage_limit_per_customer && $user && $coupon->redemptions()->where('user_id', $user->id)->count() >= $coupon->usage_limit_per_customer) {
+                $message = 'You have already used this coupon the maximum number of times';
+            } else {
+                $message = 'Coupon is not valid';
+            }
 
-        // Check if coupon has started
-        if ($coupon->starts_at && now()->isBefore($coupon->starts_at)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Coupon is not yet active'
+                'message' => $message
             ], 400);
         }
 
@@ -109,6 +130,61 @@ class ApiCouponController extends Controller
                 'discount_value' => $coupon->value,
                 'calculated_discount' => $discountAmount
             ]
+        ]);
+    }
+
+    /**
+     * Get coupon usage statistics
+     */
+    public function usage(Coupon $coupon)
+    {
+        $coupon->load(['redemptions' => function ($query) {
+            $query->with(['user:id,name,email', 'order:id,order_number,total_amount,created_at'])
+                  ->orderBy('created_at', 'desc');
+        }]);
+
+        $usageStats = [
+            'coupon_id' => $coupon->id,
+            'coupon_code' => $coupon->code,
+            'total_usage' => $coupon->redemptions()->count(),
+            'usage_limit_global' => $coupon->usage_limit_global,
+            'usage_limit_per_customer' => $coupon->usage_limit_per_customer,
+            'remaining_global' => $coupon->usage_limit_global ? max(0, $coupon->usage_limit_global - $coupon->redemptions()->count()) : null,
+            'unique_customers' => $coupon->redemptions()->distinct('user_id')->count('user_id'),
+            'total_discount_given' => $coupon->redemptions()->sum('discount'),
+            'recent_redemptions' => $coupon->redemptions->take(10),
+        ];
+
+        return response()->json($usageStats);
+    }
+
+    /**
+     * Get detailed redemption logs for a coupon
+     */
+    public function redemptions(Request $request, Coupon $coupon)
+    {
+        $perPage = $request->query('per_page', 20);
+
+        $redemptions = $coupon->redemptions()
+            ->with(['user:id,name,email', 'order:id,order_number,total_amount,created_at'])
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
+
+        return response()->json($redemptions);
+    }
+
+    /**
+     * Get default currency settings
+     */
+    public function getDefaultCurrency()
+    {
+        // Get system default currency
+        $defaultCurrency = get_system_default_currency();
+
+        return response()->json([
+            'code' => $defaultCurrency->code,
+            'symbol' => $defaultCurrency->symbol,
+            'name' => $defaultCurrency->name,
         ]);
     }
 }
