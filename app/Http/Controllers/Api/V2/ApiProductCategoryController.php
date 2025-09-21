@@ -75,4 +75,32 @@ class ApiProductCategoryController extends Controller
             return new CategoryCollection(Category::where('id', 0)->get());
         }
     }
+
+    /**
+     * Remove the specified category from storage.
+     */
+    public function destroy($id)
+    {
+        $category = Category::findOrFail($id);
+
+        // Check if category has products associated with it
+        if ($category->products()->count() > 0) {
+            return response()->json([
+                'message' => 'Cannot delete category. It has products associated with it.',
+            ], 422);
+        }
+
+        // Check if category has child categories
+        if ($category->childrenCategories()->count() > 0) {
+            return response()->json([
+                'message' => 'Cannot delete category. It has subcategories.',
+            ], 422);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'message' => 'Category deleted successfully.',
+        ], 200);
+    }
 }
