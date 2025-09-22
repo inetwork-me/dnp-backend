@@ -98,6 +98,13 @@ class WebsiteOrderController extends Controller
                     'phone'    => $data['guest_phone'] ?? null,
                 ]
             );
+
+            // Assign client role to guest user
+            $clientRole = \Spatie\Permission\Models\Role::where('name', 'client')->first();
+            if ($clientRole && !$user->hasRole('client')) {
+                $user->assignRole('client');
+            }
+
             $cart->user()->associate($user);
             $cart->save();
             $isGuestUser = true;
