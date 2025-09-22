@@ -50,7 +50,7 @@ class NewOrderAdminNotification extends Notification
             ->line('Total Amount: ' . number_format($order->total_amount, 2) . ' EGP')
             ->line('Items: ' . $order->items->count() . ' item(s)')
             ->line('Status: ' . ucfirst($order->status))
-            ->action('View Order in Admin', url('/admin/orders/' . $order->id))
+            ->action('View Order in Admin', config('app.admin_url', config('app.url')) . '/dashboard/orders/' . $order->id)
             ->line('Please process this order as soon as possible.');
     }
 
