@@ -183,11 +183,12 @@ class Product extends Model
     // Helper method to get effective loyalty points
     public function getEffectiveLoyaltyPoints()
     {
-        if ($this->loyalty_points > 0) {
+        // If loyalty_points is explicitly set (even to 0), use that value
+        if ($this->loyalty_points !== null) {
             return $this->loyalty_points;
         }
 
-        // Check if there are global settings for default points
+        // Only use default setting if loyalty_points is not set at all
         return LoyaltySetting::get('default_product_points', 0);
     }
 
