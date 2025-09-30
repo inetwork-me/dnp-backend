@@ -21,7 +21,8 @@ class WebsiteCartController extends Controller
      */
     public function current(Request $request)
     {
-        $userId = optional($request->user())->id;
+        // Use user_id from query param if provided, otherwise check auth
+        $userId = $request->input('user_id') ?? optional($request->user())->id;
         $guestToken = $request->header('X-Guest-Token');
 
         // Create or fetch the open cart, and eager-load items + coupon in one go
@@ -103,9 +104,11 @@ class WebsiteCartController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity'   => 'required|integer|min:1',
             'options'    => 'array|nullable',
+            'user_id'    => 'nullable|exists:users,id',
         ]);
 
-        $userId = optional($request->user())->id;
+        // Use user_id from request body if provided, otherwise check auth
+        $userId = $data['user_id'] ?? optional($request->user())->id;
         $guestToken = $request->header('X-Guest-Token');
 
         // Find or create cart based on auth status

@@ -83,7 +83,8 @@ class WebsiteOrderController extends Controller
         $data = $request->validate($validationRules);
 
         // 1) load or create cart + applied coupon with ownership verification
-        $userId = optional($request->user())->id;
+        // Use user_id from request if provided, otherwise check auth
+        $userId = $request->input('user_id') ?? optional($request->user())->id;
         $guestToken = $request->header('X-Guest-Token');
 
         // If cart_id provided, load existing cart
