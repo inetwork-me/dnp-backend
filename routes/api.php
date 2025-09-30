@@ -106,6 +106,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     // ORDERS / CHECKOUT
     Route::post('checkout', [WebsiteOrderController::class, 'store']);
+    Route::put('orders/{order}/payment-status', [WebsiteOrderController::class, 'updatePaymentStatus']);
 
     // SHIPPING - V1 Routes for frontend compatibility
     Route::prefix('shipping')->group(function () {

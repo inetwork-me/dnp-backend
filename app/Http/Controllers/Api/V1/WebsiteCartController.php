@@ -22,11 +22,42 @@ class WebsiteCartController extends Controller
     public function current(Request $request)
     {
         $userId = optional($request->user())->id;
+        $guestToken = $request->header('X-Guest-Token');
 
         // Create or fetch the open cart, and eager-load items + coupon in one go
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $userId, 'status' => 'open']
-        );
+        if ($userId) {
+            // Authenticated user - use user_id
+            $cart = Cart::firstOrCreate(
+                ['user_id' => $userId, 'status' => 'open']
+            );
+        } else if ($guestToken) {
+            // Guest user - use guest_token
+            // First try to find existing cart
+            $cart = Cart::where('guest_token', $guestToken)
+                ->where('status', 'open')
+                ->whereNull('user_id')
+                ->first();
+
+            // If no cart found, create one
+            if (!$cart) {
+                $cart = Cart::create([
+                    'guest_token' => $guestToken,
+                    'user_id' => null,
+                    'status' => 'open',
+                ]);
+            }
+        } else {
+            // No token provided - return empty cart
+            return response()->json([
+                'cart' => null,
+                'items_count' => 0,
+                'subtotal' => 0,
+                'coupon' => null,
+                'discount' => 0,
+                'total_price' => 0,
+            ]);
+        }
+
         $cart->load('items.product', 'coupon');
 
         // Calculate counts & raw subtotal using discounted prices
@@ -75,10 +106,32 @@ class WebsiteCartController extends Controller
         ]);
 
         $userId = optional($request->user())->id;
-        $cart = Cart::firstOrCreate([
-            'user_id' => $userId,
-            'status'  => 'open',
-        ]);
+        $guestToken = $request->header('X-Guest-Token');
+
+        // Find or create cart based on auth status
+        if ($userId) {
+            $cart = Cart::firstOrCreate([
+                'user_id' => $userId,
+                'status'  => 'open',
+            ]);
+        } else if ($guestToken) {
+            // First try to find existing cart
+            $cart = Cart::where('guest_token', $guestToken)
+                ->where('status', 'open')
+                ->whereNull('user_id')
+                ->first();
+
+            // If no cart found, create one
+            if (!$cart) {
+                $cart = Cart::create([
+                    'guest_token' => $guestToken,
+                    'user_id' => null,
+                    'status' => 'open',
+                ]);
+            }
+        } else {
+            abort(400, 'Guest token is required for unauthenticated requests');
+        }
 
         $product = Product::findOrFail($data['product_id']);
 

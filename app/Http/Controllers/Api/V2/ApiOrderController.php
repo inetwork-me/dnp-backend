@@ -48,7 +48,7 @@ class ApiOrderController extends Controller
     {
         $data = $request->validate([
             'status' => [
-                'required',
+                'nullable',
                 Rule::in([
                     'pending',
                     'processing',
@@ -59,16 +59,35 @@ class ApiOrderController extends Controller
                     'cancelled',
                 ]),
             ],
+            'payment_status' => [
+                'nullable',
+                Rule::in([
+                    'unpaid',
+                    'pending',
+                    'paid',
+                    'failed',
+                    'refunded',
+                ]),
+            ],
         ]);
 
+        // Update order status and/or payment status
+        $updateData = array_filter($data, fn($value) => $value !== null);
+
+        if (empty($updateData)) {
+            return response()->json([
+                'message' => 'No valid fields to update',
+            ], 400);
+        }
+
         // This triggers your OrderObserver->updating() and writes the history record
-        $order->update(['status' => $data['status']]);
+        $order->update($updateData);
 
         // Reload to include the fresh history
         $order->load('statusHistories.user');
 
         return response()->json([
-            'message' => 'Order status updated',
+            'message' => 'Order updated successfully',
             'data'    => $order,
         ]);
     }

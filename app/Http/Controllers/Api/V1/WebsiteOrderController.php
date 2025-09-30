@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\LoyaltyService;
 use Illuminate\Http\Request;
@@ -57,7 +58,11 @@ class WebsiteOrderController extends Controller
         $shippingEnabled = is_shipping_enabled();
 
         $validationRules = [
-            'cart_id'           => 'required|exists:carts,id',
+            'cart_id'           => 'nullable|exists:carts,id',
+            'cart_items'        => 'required_without:cart_id|array',
+            'cart_items.*.product_id' => 'required_with:cart_items|exists:products,id',
+            'cart_items.*.quantity' => 'required_with:cart_items|integer|min:1',
+            'cart_items.*.options' => 'nullable|array',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
@@ -77,9 +82,62 @@ class WebsiteOrderController extends Controller
 
         $data = $request->validate($validationRules);
 
-        // 1) load cart + applied coupon
-        $cart = Cart::with(['items.product', 'coupon'])
-            ->findOrFail($data['cart_id']);
+        // 1) load or create cart + applied coupon with ownership verification
+        $userId = optional($request->user())->id;
+        $guestToken = $request->header('X-Guest-Token');
+
+        // If cart_id provided, load existing cart
+        if (!empty($data['cart_id'])) {
+            $cart = Cart::with(['items.product', 'coupon'])
+                ->findOrFail($data['cart_id']);
+
+            // Verify cart ownership
+            if ($userId) {
+                // Authenticated user - verify user_id matches
+                if ($cart->user_id !== $userId) {
+                    abort(403, 'Unauthorized to access this cart');
+                }
+            } else if ($guestToken) {
+                // Guest user - verify guest_token matches or cart has no token (legacy cart)
+                if ($cart->guest_token && $cart->guest_token !== $guestToken) {
+                    // Cart belongs to a different guest
+                    abort(403, 'Unauthorized to access this cart');
+                }
+                // If cart has no guest_token (legacy), allow access and update it
+                if (!$cart->guest_token) {
+                    $cart->update(['guest_token' => $guestToken]);
+                }
+            } else {
+                abort(400, 'Authentication or guest token required');
+            }
+        } else {
+            // Create cart from cart_items
+            if (empty($data['cart_items'])) {
+                abort(400, 'Either cart_id or cart_items must be provided');
+            }
+
+            // Create new cart
+            $cart = Cart::create([
+                'user_id' => $userId,
+                'guest_token' => !$userId ? $guestToken : null,
+                'status' => 'open',
+            ]);
+
+            // Add items to cart
+            foreach ($data['cart_items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $cart->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $product->unit_price,
+                    'options' => $item['options'] ?? [],
+                ]);
+            }
+
+            // Load relationships
+            $cart->load(['items.product', 'coupon']);
+        }
+
         abort_if($cart->items->isEmpty(), 400, 'Cart is empty.');
 
         // 2) find or create user FIRST (before coupon validation)
@@ -358,5 +416,29 @@ class WebsiteOrderController extends Controller
             $order->load('items.product', 'coupon'),
             201
         );
+    }
+
+    // PUT /api/v1/orders/{order}/payment-status
+    public function updatePaymentStatus(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'payment_status' => 'required|in:paid,unpaid,failed,refunded',
+            'payment_details' => 'nullable|array',
+        ]);
+
+        // Update payment status
+        $order->update([
+            'payment_status' => $data['payment_status'],
+        ]);
+
+        // If payment is confirmed, update order status to processing
+        if ($data['payment_status'] === 'paid' && $order->status === 'pending') {
+            $order->update(['status' => 'processing']);
+        }
+
+        return response()->json([
+            'message' => 'Payment status updated successfully',
+            'order' => $order->load('items.product', 'coupon'),
+        ]);
     }
 }
