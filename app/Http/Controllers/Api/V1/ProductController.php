@@ -479,20 +479,17 @@ class ProductController extends Controller
     {
         $limit = $request->get('limit', 4);
         $excludeId = $request->get('exclude_id');
-        
-        $query = Product::where('published', true)
-            ->with(['categories'])
-            ->whereNotNull('current_stock')
-            ->where('current_stock', '>', 0);
-            
+
+        $query = Product::with(['categories']);
+
         if ($excludeId) {
             $query->where('id', '!=', $excludeId);
         }
-        
+
         $products = $query->inRandomOrder()
             ->limit($limit)
             ->get();
-            
+
         return new ProductMiniCollection($products);
     }
     
@@ -513,30 +510,24 @@ class ProductController extends Controller
         $categoryIds = $product->categories->pluck('id');
         
         // Get products in same categories
-        $relatedProducts = Product::where('published', true)
-            ->where('id', '!=', $productId)
+        $relatedProducts = Product::where('id', '!=', $productId)
             ->with(['categories'])
-            ->whereNotNull('current_stock')
-            ->where('current_stock', '>', 0)
             ->whereHas('categories', function ($query) use ($categoryIds) {
                 $query->whereIn('category_id', $categoryIds);
             })
             ->inRandomOrder()
             ->limit($limit)
             ->get();
-            
+
         // If we don't have enough related products, fill with random ones
         if ($relatedProducts->count() < $limit) {
-            $additionalProducts = Product::where('published', true)
-                ->where('id', '!=', $productId)
+            $additionalProducts = Product::where('id', '!=', $productId)
                 ->with(['categories'])
-                ->whereNotNull('current_stock')
-                ->where('current_stock', '>', 0)
                 ->whereNotIn('id', $relatedProducts->pluck('id'))
                 ->inRandomOrder()
                 ->limit($limit - $relatedProducts->count())
                 ->get();
-                
+
             $relatedProducts = $relatedProducts->merge($additionalProducts);
         }
         
