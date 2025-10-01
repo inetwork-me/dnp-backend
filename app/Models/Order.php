@@ -15,6 +15,8 @@ class Order extends Model
         'order_number',
         'status',
         'total_amount',
+        'currency',
+        'currency_rate',
         'subtotal',
         'discount',
         'tax',
@@ -36,10 +38,18 @@ class Order extends Model
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
         'tax' => 'decimal:2',
+        'currency_rate' => 'decimal:6',
     ];
 
     protected $withCount = ['items'];
     protected $with      = ['user'];
+
+    protected $appends = [
+        'formatted_total',
+        'formatted_subtotal',
+        'formatted_shipping_cost',
+        'formatted_discount'
+    ];
 
     protected static function boot()
     {
@@ -141,7 +151,43 @@ class Order extends Model
 
     public function shouldCreateShipment(): bool
     {
-        return in_array($this->status, ['confirmed', 'processing']) && 
+        return in_array($this->status, ['confirmed', 'processing']) &&
                !$this->shipments()->exists();
+    }
+
+    /**
+     * Get the formatted total in the original currency
+     */
+    public function getFormattedTotalAttribute(): string
+    {
+        $amount = $this->total_amount * $this->currency_rate;
+        return number_format($amount, 2) . ' ' . $this->currency;
+    }
+
+    /**
+     * Get the formatted subtotal in the original currency
+     */
+    public function getFormattedSubtotalAttribute(): string
+    {
+        $amount = $this->subtotal * $this->currency_rate;
+        return number_format($amount, 2) . ' ' . $this->currency;
+    }
+
+    /**
+     * Get the formatted shipping cost in the original currency
+     */
+    public function getFormattedShippingCostAttribute(): string
+    {
+        $amount = $this->shipping_cost * $this->currency_rate;
+        return number_format($amount, 2) . ' ' . $this->currency;
+    }
+
+    /**
+     * Get the formatted discount in the original currency
+     */
+    public function getFormattedDiscountAttribute(): string
+    {
+        $amount = $this->discount * $this->currency_rate;
+        return number_format($amount, 2) . ' ' . $this->currency;
     }
 }

@@ -47,7 +47,7 @@ class NewOrderAdminNotification extends Notification
             ->line('Order Number: ' . $order->order_number)
             ->line('Customer: ' . $order->user->name)
             ->line('Email: ' . $order->user->email)
-            ->line('Total Amount: ' . number_format($order->total_amount, 2) . ' EGP')
+            ->line('Total Amount: ' . $order->formatted_total . ' (stored in EGP: ' . number_format($order->total_amount, 2) . ')')
             ->line('Items: ' . $order->items->count() . ' item(s)')
             ->line('Status: ' . ucfirst($order->status))
             ->action('View Order in Admin', config('app.admin_url', config('app.url')) . '/dashboard/orders/' . $order->id)

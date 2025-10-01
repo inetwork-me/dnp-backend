@@ -70,6 +70,8 @@ class WebsiteOrderController extends Controller
             'guest_phone'       => 'string|nullable',
             'coupon_code'       => 'string|nullable',
             'voucher_code'      => 'string|nullable',
+            'currency'          => 'string|nullable|in:EGP,USD,SAR,AED',
+            'currency_rate'     => 'numeric|nullable|min:0',
         ];
 
         // Add shipping validation only if shipping is enabled
@@ -271,6 +273,10 @@ class WebsiteOrderController extends Controller
                 'discount'         => round($discount + $voucherDiscount, 2), // Combined coupon + voucher discount
                 'total_amount'     => round($total, 2),
                 'coupon_id'        => $cart->coupon_id,
+
+                // currency fields (for display purposes)
+                'currency'         => $data['currency'] ?? 'EGP',
+                'currency_rate'    => $data['currency_rate'] ?? 1,
 
                 // shipping fields (only if shipping enabled)
                 'shipping_method_id'    => $shippingMethodId,
