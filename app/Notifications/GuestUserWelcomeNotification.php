@@ -39,7 +39,7 @@ class GuestUserWelcomeNotification extends Notification implements ShouldQueue
             ->line('Email: ' . $this->user->email)
             ->line('Password: ' . $this->password)
             ->line('Order Number: ' . $this->order->order_number)
-            ->line('Order Total: ' . number_format($this->order->total_amount, 2) . ' EGP')
+            ->line('Order Total: ' . $this->order->formatted_total . ' (stored in EGP: ' . number_format($this->order->total_amount, 2) . ')')
             ->action('View Your Order', config('app.frontend_url') . '/my-account/my-orders')
             ->line('You can now log in to your account anytime to:')
             ->line('• Track your orders')
