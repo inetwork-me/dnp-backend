@@ -107,6 +107,8 @@ class PasswordResetController extends Controller
         $user->verification_code = rand(100000, 999999);
         $user->save();
 
+        // Send the verification code via email notification
+        $user->notify(new AppEmailVerificationNotification($user->verification_code));
 
         return response()->json([
             'result' => true,
