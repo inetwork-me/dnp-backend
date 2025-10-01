@@ -49,6 +49,7 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
     Route::post('signup', 'App\Http\Controllers\Api\V1\AuthController@signup');
     Route::post('social-login', 'App\Http\Controllers\Api\V1\AuthController@socialLogin');
     Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
+    Route::post('password/verify_code', 'App\Http\Controllers\Api\V1\PasswordResetController@verifyCode');
     Route::post('password/confirm_reset', 'App\Http\Controllers\Api\V1\PasswordResetController@confirmReset');
     Route::post('password/resend_code', 'App\Http\Controllers\Api\V1\PasswordResetController@resendCode');
     Route::middleware('auth:sanctum')->group(function () {

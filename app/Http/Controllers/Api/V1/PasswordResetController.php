@@ -67,6 +67,24 @@ class PasswordResetController extends Controller
         ], 200);
     }
 
+    public function verifyCode(Request $request)
+    {
+        $user = User::where('verification_code', $request->verification_code)->first();
+
+        if ($user != null) {
+            return response()->json([
+                'result' => true,
+                'verification_code' => $request->verification_code,
+                'message' => translate('Verification code is valid'),
+            ], 200);
+        } else {
+            return response()->json([
+                'result' => false,
+                'message' => translate('Invalid verification code'),
+            ], 400);
+        }
+    }
+
     public function confirmReset(Request $request)
     {
         $user = User::where('verification_code', $request->verification_code)->first();
