@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\V2\ApiFormSubmissionController;
 use App\Http\Controllers\Api\V2\ApiOrderController;
 use App\Http\Controllers\Api\V2\ApiPostTypeCategoriesController;
 use App\Http\Controllers\Api\V2\ApiRolesController;
+use App\Http\Controllers\Api\V2\ApiPermissionController;
+use App\Http\Controllers\Api\V2\ApiRolePermissionController;
 use App\Http\Controllers\Api\V2\ApiLoyaltyController;
 use App\Http\Controllers\Api\V2\EmailSettingsController;
 use App\Http\Controllers\Api\V2\ApiVoucherController;
@@ -190,121 +192,305 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
-        Route::apiResource('roles', ApiRolesController::class);
 
-        Route::get('brands', [BrandController::class, 'index']);
-        Route::post('brands', [BrandController::class, 'store']);
-        Route::get('brands/{id}', [BrandController::class, 'show']);
-        Route::put('brands/{id}', [BrandController::class, 'update']);
-        Route::delete('brands/{id}', [BrandController::class, 'destroy']);
+        // Roles & Permissions Management (Admin Only)
+        Route::middleware('permission:roles.view|roles.manage')->group(function () {
+            Route::get('roles', [ApiRolesController::class, 'index']);
+            Route::get('roles/{role}', [ApiRolesController::class, 'show']);
+        });
+        Route::middleware('permission:roles.manage')->group(function () {
+            Route::post('roles', [ApiRolesController::class, 'store']);
+            Route::put('roles/{role}', [ApiRolesController::class, 'update']);
+            Route::patch('roles/{role}', [ApiRolesController::class, 'update']);
+            Route::delete('roles/{role}', [ApiRolesController::class, 'destroy']);
+        });
+
+        Route::middleware('permission:permissions.view|permissions.manage')->group(function () {
+            Route::get('permissions', [ApiPermissionController::class, 'index']);
+            Route::get('permissions/{permission}', [ApiPermissionController::class, 'show']);
+        });
+        Route::middleware('permission:permissions.manage')->group(function () {
+            Route::post('permissions', [ApiPermissionController::class, 'store']);
+            Route::post('permissions/bulk', [ApiPermissionController::class, 'bulkStore']);
+            Route::put('permissions/{permission}', [ApiPermissionController::class, 'update']);
+            Route::patch('permissions/{permission}', [ApiPermissionController::class, 'update']);
+            Route::delete('permissions/{permission}', [ApiPermissionController::class, 'destroy']);
+        });
+
+        // Role-Permission Assignment
+        Route::middleware('permission:roles.manage')->group(function () {
+            Route::post('roles/{role}/permissions', [ApiRolePermissionController::class, 'assignPermissionsToRole']);
+            Route::get('roles/{role}/permissions', [ApiRolePermissionController::class, 'getRolePermissions']);
+            Route::delete('roles/{role}/permissions/{permission}', [ApiRolePermissionController::class, 'removePermissionFromRole']);
+        });
+
+        // User-Role Assignment
+        Route::middleware('permission:users.manage')->group(function () {
+            Route::post('users/{user}/roles', [ApiRolePermissionController::class, 'assignRolesToUser']);
+            Route::get('users/{user}/roles', [ApiRolePermissionController::class, 'getUserRoles']);
+            Route::delete('users/{user}/roles/{role}', [ApiRolePermissionController::class, 'removeRoleFromUser']);
+            Route::post('users/{user}/permissions', [ApiRolePermissionController::class, 'assignPermissionsToUser']);
+            Route::get('users/{user}/permissions', [ApiRolePermissionController::class, 'getUserPermissions']);
+        });
+
+        // Brands Management
+        Route::middleware('permission:brands.view|brands.manage')->group(function () {
+            Route::get('brands', [BrandController::class, 'index']);
+            Route::get('brands/{id}', [BrandController::class, 'show']);
+        });
+        Route::middleware('permission:brands.manage')->group(function () {
+            Route::post('brands', [BrandController::class, 'store']);
+            Route::put('brands/{id}', [BrandController::class, 'update']);
+            Route::delete('brands/{id}', [BrandController::class, 'destroy']);
+        });
+
+        // Coupons Management
         Route::get('coupons/default-currency', [ApiCouponController::class, 'getDefaultCurrency']);
-        Route::apiResource('coupons', ApiCouponController::class);
-        Route::post('coupons/apply', [ApiCouponController::class, 'apply']);
-        Route::get('coupons/{coupon}/usage', [ApiCouponController::class, 'usage']);
-        Route::get('coupons/{coupon}/redemptions', [ApiCouponController::class, 'redemptions']);
-        Route::apiResource('bmi-settings', ApiBmiSettingController::class);
-        Route::post('bmi-settings/{bmiSetting}/toggle-status', [ApiBmiSettingController::class, 'toggleStatus']);
-        Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);
+        Route::middleware('permission:coupons.view|coupons.manage')->group(function () {
+            Route::get('coupons', [ApiCouponController::class, 'index']);
+            Route::get('coupons/{coupon}', [ApiCouponController::class, 'show']);
+            Route::get('coupons/{coupon}/usage', [ApiCouponController::class, 'usage']);
+            Route::get('coupons/{coupon}/redemptions', [ApiCouponController::class, 'redemptions']);
+        });
+        Route::middleware('permission:coupons.manage')->group(function () {
+            Route::post('coupons', [ApiCouponController::class, 'store']);
+            Route::put('coupons/{coupon}', [ApiCouponController::class, 'update']);
+            Route::patch('coupons/{coupon}', [ApiCouponController::class, 'update']);
+            Route::delete('coupons/{coupon}', [ApiCouponController::class, 'destroy']);
+        });
+        Route::post('coupons/apply', [ApiCouponController::class, 'apply']); // No permission needed for applying
 
-        // Route::get('/products',          [ApiProductController::class, 'index']);
-        Route::get('/products/export', [ApiProductController::class, 'export']);
-        Route::apiResource('products', ApiProductController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::apiResource('products/categories', ApiProductCategoryController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+        // BMI Settings Management
+        Route::middleware('permission:settings.view|settings.manage')->group(function () {
+            Route::get('bmi-settings', [ApiBmiSettingController::class, 'index']);
+            Route::get('bmi-settings/{bmiSetting}', [ApiBmiSettingController::class, 'show']);
+        });
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::post('bmi-settings', [ApiBmiSettingController::class, 'store']);
+            Route::put('bmi-settings/{bmiSetting}', [ApiBmiSettingController::class, 'update']);
+            Route::patch('bmi-settings/{bmiSetting}', [ApiBmiSettingController::class, 'update']);
+            Route::delete('bmi-settings/{bmiSetting}', [ApiBmiSettingController::class, 'destroy']);
+            Route::post('bmi-settings/{bmiSetting}/toggle-status', [ApiBmiSettingController::class, 'toggleStatus']);
+            Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);
+        });
 
-        Route::get('/products/{product}', [ApiProductController::class, 'show']);
-        // Route::post('/products',          [ApiProductController::class, 'store']);
-        Route::put('/products/{product}', [ApiProductController::class, 'update']);
-        // Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
+        // Products Management
+        Route::middleware('permission:products.view|products.manage')->group(function () {
+            Route::get('/products', [ApiProductController::class, 'index']);
+            Route::get('/products/export', [ApiProductController::class, 'export']);
+            Route::get('/products/{product}', [ApiProductController::class, 'show']);
+        });
+        Route::middleware('permission:products.manage')->group(function () {
+            Route::post('/products', [ApiProductController::class, 'store']);
+            Route::put('/products/{product}', [ApiProductController::class, 'update']);
+            Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
+        });
 
+        // Product Categories Management
+        Route::middleware('permission:categories.view|categories.manage')->group(function () {
+            Route::get('products/categories', [ApiProductCategoryController::class, 'index']);
+            Route::get('products/categories/{category}', [ApiProductCategoryController::class, 'show']);
+        });
+        Route::middleware('permission:categories.manage')->group(function () {
+            Route::post('products/categories', [ApiProductCategoryController::class, 'store']);
+            Route::put('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
+            Route::patch('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
+            Route::delete('products/categories/{category}', [ApiProductCategoryController::class, 'destroy']);
+        });
 
-        // CMS API
-        Route::apiResource('languages', ApiLanguagesController::class);
-        Route::get('/settings', [ApiSettingController::class, 'index']);
+        // CMS - Languages
+        Route::middleware('permission:languages.view|languages.manage')->group(function () {
+            Route::get('languages', [ApiLanguagesController::class, 'index']);
+            Route::get('languages/{language}', [ApiLanguagesController::class, 'show']);
+        });
+        Route::middleware('permission:languages.manage')->group(function () {
+            Route::post('languages', [ApiLanguagesController::class, 'store']);
+            Route::put('languages/{language}', [ApiLanguagesController::class, 'update']);
+            Route::patch('languages/{language}', [ApiLanguagesController::class, 'update']);
+            Route::delete('languages/{language}', [ApiLanguagesController::class, 'destroy']);
+        });
 
-        // Update a single setting
-        Route::patch('/settings', [ApiSettingController::class, 'update']);
+        // Settings Management
+        Route::middleware('permission:settings.view|settings.manage')->group(function () {
+            Route::get('/settings', [ApiSettingController::class, 'index']);
+        });
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::patch('/settings', [ApiSettingController::class, 'update']);
+            Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
+        });
 
-        // Batch update multiple settings
-        Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
-
-        // Email notification settings
-        Route::prefix('email-settings')->group(function () {
+        // Email Settings
+        Route::middleware('permission:settings.view|settings.manage')->prefix('email-settings')->group(function () {
             Route::get('/', [EmailSettingsController::class, 'index']);
+        });
+        Route::middleware('permission:settings.manage')->prefix('email-settings')->group(function () {
             Route::put('/', [EmailSettingsController::class, 'update']);
             Route::post('/test', [EmailSettingsController::class, 'testEmail']);
         });
 
+        // CMS - Menus
+        Route::middleware('permission:menus.view|menus.manage')->group(function () {
+            Route::get('menus', [ApiMenuController::class, 'index']);
+            Route::get('menus/{menu}', [ApiMenuController::class, 'show']);
+        });
+        Route::middleware('permission:menus.manage')->group(function () {
+            Route::post('menus', [ApiMenuController::class, 'store']);
+            Route::put('menus/{menu}', [ApiMenuController::class, 'update']);
+            Route::patch('menus/{menu}', [ApiMenuController::class, 'update']);
+            Route::delete('menus/{menu}', [ApiMenuController::class, 'destroy']);
+            Route::patch('menus/{menu}/default', [ApiMenuController::class, 'setDefault']);
+        });
 
-        Route::apiResource('menus', ApiMenuController::class);
-        Route::patch('menus/{menu}/default', [ApiMenuController::class, 'setDefault']);
+        // CMS - Post Types
+        Route::middleware('permission:posts.view|posts.manage')->group(function () {
+            Route::get('post-types', [ApiPostTypesController::class, 'index']);
+            Route::get('post-types/{postType}', [ApiPostTypesController::class, 'show']);
+        });
+        Route::middleware('permission:posts.manage')->group(function () {
+            Route::post('post-types', [ApiPostTypesController::class, 'store']);
+            Route::put('post-types/{postType}', [ApiPostTypesController::class, 'update']);
+            Route::patch('post-types/{postType}', [ApiPostTypesController::class, 'update']);
+            Route::delete('post-types/{postType}', [ApiPostTypesController::class, 'destroy']);
+        });
 
-        Route::apiResource('post-types', ApiPostTypesController::class);
+        // CMS - Posts
+        Route::middleware('permission:posts.view|posts.manage')->group(function () {
+            Route::get('posts', [ApiPostsController::class, 'index']);
+            Route::get('posts/{post}', [ApiPostsController::class, 'show']);
+        });
+        Route::middleware('permission:posts.manage')->group(function () {
+            Route::post('posts', [ApiPostsController::class, 'store']);
+            Route::put('posts/{post}', [ApiPostsController::class, 'update']);
+            Route::patch('posts/{post}', [ApiPostsController::class, 'update']);
+            Route::delete('posts/{post}', [ApiPostsController::class, 'destroy']);
+        });
 
-        Route::apiResource('posts', ApiPostsController::class);
+        // CMS - Post Type Categories
+        Route::middleware('permission:posts.view|posts.manage')->group(function () {
+            Route::get('post-types/{postType}/categories', [ApiPostTypeCategoriesController::class, 'index']);
+            Route::get('post-types/{postType}/categories/{category}', [ApiPostTypeCategoriesController::class, 'show']);
+        });
+        Route::middleware('permission:posts.manage')->group(function () {
+            Route::post('post-types/{postType}/categories', [ApiPostTypeCategoriesController::class, 'store']);
+            Route::put('post-types/{postType}/categories/{category}', [ApiPostTypeCategoriesController::class, 'update']);
+            Route::patch('post-types/{postType}/categories/{category}', [ApiPostTypeCategoriesController::class, 'update']);
+            Route::delete('post-types/{postType}/categories/{category}', [ApiPostTypeCategoriesController::class, 'destroy']);
+        });
 
-        // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
-        Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class);
-        // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
+        // CMS - Media Management
+        Route::middleware('permission:media.view|media.manage')->group(function () {
+            Route::get('media', [ApiMediaController::class, 'index']);
+            Route::get('media/{media}', [ApiMediaController::class, 'show']);
+        });
+        Route::middleware('permission:media.manage')->group(function () {
+            Route::post('media', [ApiMediaController::class, 'store']);
+            Route::put('media/{media}', [ApiMediaController::class, 'update']);
+            Route::patch('media/{media}', [ApiMediaController::class, 'update']);
+            Route::delete('media/{media}', [ApiMediaController::class, 'destroy']);
+            Route::delete('media/bulk', [ApiMediaController::class, 'bulkDestroy']);
+        });
 
+        // CMS - Folders
+        Route::middleware('permission:media.view|media.manage')->group(function () {
+            Route::get('folders', [ApiFolderController::class, 'index']);
+            Route::get('folders/{folder}', [ApiFolderController::class, 'show']);
+        });
+        Route::middleware('permission:media.manage')->group(function () {
+            Route::post('folders', [ApiFolderController::class, 'store']);
+            Route::put('folders/{folder}', [ApiFolderController::class, 'update']);
+            Route::patch('folders/{folder}', [ApiFolderController::class, 'update']);
+            Route::delete('folders/{folder}', [ApiFolderController::class, 'destroy']);
+            Route::post('folders/reorder', [ApiFolderController::class, 'reorder']);
+        });
 
-        Route::apiResource('media', ApiMediaController::class);
-        Route::delete('media/bulk', [ApiMediaController::class, 'bulkDestroy']);
-        Route::apiResource('folders', ApiFolderController::class);
-        Route::post('folders/reorder', [ApiFolderController::class, 'reorder']);
-        Route::apiResource('tags', ApiTagController::class);
+        // CMS - Tags
+        Route::middleware('permission:posts.view|posts.manage')->group(function () {
+            Route::get('tags', [ApiTagController::class, 'index']);
+            Route::get('tags/{tag}', [ApiTagController::class, 'show']);
+        });
+        Route::middleware('permission:posts.manage')->group(function () {
+            Route::post('tags', [ApiTagController::class, 'store']);
+            Route::put('tags/{tag}', [ApiTagController::class, 'update']);
+            Route::patch('tags/{tag}', [ApiTagController::class, 'update']);
+            Route::delete('tags/{tag}', [ApiTagController::class, 'destroy']);
+        });
 
-        Route::apiResource('blocks', ApiBlockController::class);
+        // CMS - Blocks
+        Route::middleware('permission:blocks.view|blocks.manage')->group(function () {
+            Route::get('blocks', [ApiBlockController::class, 'index']);
+            Route::get('blocks/{block}', [ApiBlockController::class, 'show']);
+        });
+        Route::middleware('permission:blocks.manage')->group(function () {
+            Route::post('blocks', [ApiBlockController::class, 'store']);
+            Route::put('blocks/{block}', [ApiBlockController::class, 'update']);
+            Route::patch('blocks/{block}', [ApiBlockController::class, 'update']);
+            Route::delete('blocks/{block}', [ApiBlockController::class, 'destroy']);
+        });
 
-        Route::apiResource('users', ApiUserController::class);
+        // Users Management
+        Route::middleware('permission:users.view|users.manage')->group(function () {
+            Route::get('users', [ApiUserController::class, 'index']);
+            Route::get('users/{user}', [ApiUserController::class, 'show']);
+        });
+        Route::middleware('permission:users.manage')->group(function () {
+            Route::post('users', [ApiUserController::class, 'store']);
+            Route::put('users/{user}', [ApiUserController::class, 'update']);
+            Route::patch('users/{user}', [ApiUserController::class, 'update']);
+            Route::delete('users/{user}', [ApiUserController::class, 'destroy']);
+        });
 
-        Route::prefix('forms')->group(function () {
+        // Forms Management
+        Route::middleware('permission:forms.view|forms.manage')->prefix('forms')->group(function () {
             Route::get('/', [ApiFormController::class, 'index']);
-            Route::post('/', [ApiFormController::class, 'store']);
             Route::get('{form}', [ApiFormController::class, 'show']);
+            Route::get('{form}/submissions', [ApiFormSubmissionController::class, 'index']);
+        });
+        Route::middleware('permission:forms.manage')->prefix('forms')->group(function () {
+            Route::post('/', [ApiFormController::class, 'store']);
             Route::put('{form}', [ApiFormController::class, 'update']);
             Route::delete('{form}', [ApiFormController::class, 'destroy']);
-
             Route::post('{form}/fields', [ApiFormFieldController::class, 'store']);
             Route::put('{form}/fields/{field}', [ApiFormFieldController::class, 'update']);
             Route::delete('{form}/fields/{field}', [ApiFormFieldController::class, 'destroy']);
-
-            Route::get('{form}/submissions', [ApiFormSubmissionController::class, 'index']);
         });
 
-
-
-        Route::get('orders', [ApiOrderController::class, 'index']);
-        Route::get('orders/{order}', [ApiOrderController::class, 'show']);
-        Route::put('orders/{order}/status', [ApiOrderController::class, 'updateStatus']);
+        // Orders Management
+        Route::middleware('permission:orders.view|orders.manage')->group(function () {
+            Route::get('orders', [ApiOrderController::class, 'index']);
+            Route::get('orders/{order}', [ApiOrderController::class, 'show']);
+        });
+        Route::middleware('permission:orders.manage')->group(function () {
+            Route::put('orders/{order}/status', [ApiOrderController::class, 'updateStatus']);
+        });
 
         // Loyalty System Routes
-        Route::prefix('loyalty')->group(function () {
+        Route::middleware('permission:loyalty.view|loyalty.manage')->prefix('loyalty')->group(function () {
             Route::get('summary', [ApiLoyaltyController::class, 'summary']);
             Route::get('transactions', [ApiLoyaltyController::class, 'transactions']);
-            Route::post('convert-to-voucher', [ApiLoyaltyController::class, 'convertToVoucher']);
             Route::get('settings', [ApiLoyaltyController::class, 'settings']);
-            Route::post('settings', [ApiLoyaltyController::class, 'updateSettings']);
-            
-            // Admin routes
             Route::get('dashboard-stats', [ApiLoyaltyController::class, 'dashboardStats']);
-            Route::post('manual-adjustment', [ApiLoyaltyController::class, 'manualAdjustment']);
             Route::get('customers', [ApiLoyaltyController::class, 'customers']);
+        });
+        Route::middleware('permission:loyalty.manage')->prefix('loyalty')->group(function () {
+            Route::post('convert-to-voucher', [ApiLoyaltyController::class, 'convertToVoucher']);
+            Route::post('settings', [ApiLoyaltyController::class, 'updateSettings']);
+            Route::post('manual-adjustment', [ApiLoyaltyController::class, 'manualAdjustment']);
         });
 
         // Voucher Routes
-        Route::prefix('vouchers')->group(function () {
+        Route::middleware('permission:vouchers.view|vouchers.manage')->prefix('vouchers')->group(function () {
             Route::get('/', [ApiVoucherController::class, 'adminIndex']);
             Route::get('active', [ApiVoucherController::class, 'active']);
             Route::post('validate', [ApiVoucherController::class, 'validateVoucher']);
             Route::get('stats', [ApiVoucherController::class, 'stats']);
-            
-            // Admin routes
+        });
+        Route::middleware('permission:vouchers.manage')->prefix('vouchers')->group(function () {
             Route::post('/', [ApiVoucherController::class, 'adminStore']);
             Route::put('{voucher}/status', [ApiVoucherController::class, 'updateStatus']);
         });
 
-        // Shipping Routes
-        Route::prefix('shipping')->group(function () {
+        // Shipping Routes (General - can be used by order management)
+        Route::middleware('permission:shipping.view|shipping.manage|orders.view|orders.manage')->prefix('shipping')->group(function () {
             Route::post('calculate-rates', [ShippingController::class, 'calculateRates']);
             Route::get('quotes/{cartId}', [ShippingController::class, 'getQuote']);
             Route::post('quotes/{quoteId}/select-method', [ShippingController::class, 'selectMethod']);
@@ -314,29 +500,40 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         });
 
         // Shipment Routes
-        Route::prefix('shipments')->group(function () {
+        Route::middleware('permission:shipping.view|shipping.manage')->prefix('shipments')->group(function () {
             Route::get('/', [ShipmentController::class, 'list']);
-            Route::post('/', [ShipmentController::class, 'create']);
             Route::get('{shipment}', [ShipmentController::class, 'show']);
             Route::get('{shipment}/track', [ShipmentController::class, 'track']);
             Route::get('track/{trackingNumber}', [ShipmentController::class, 'trackByNumber']);
             Route::get('{shipment}/label', [ShipmentController::class, 'getLabel']);
+        });
+        Route::middleware('permission:shipping.manage')->prefix('shipments')->group(function () {
+            Route::post('/', [ShipmentController::class, 'create']);
             Route::patch('{shipment}/status', [ShipmentController::class, 'updateStatus']);
         });
 
-        // Admin Shipping Management Routes
-        Route::prefix('admin/shipping')->group(function () {
-            Route::apiResource('carriers', ShippingCarrierController::class);
+        // Admin Shipping Carrier Management
+        Route::middleware('permission:shipping.view|shipping.manage')->prefix('admin/shipping')->group(function () {
+            Route::get('carriers', [ShippingCarrierController::class, 'index']);
+            Route::get('carriers/{carrier}', [ShippingCarrierController::class, 'show']);
+            Route::get('supported-carriers', [ShippingCarrierController::class, 'getSupportedCarriers']);
+        });
+        Route::middleware('permission:shipping.manage')->prefix('admin/shipping')->group(function () {
+            Route::post('carriers', [ShippingCarrierController::class, 'store']);
+            Route::put('carriers/{carrier}', [ShippingCarrierController::class, 'update']);
+            Route::patch('carriers/{carrier}', [ShippingCarrierController::class, 'update']);
+            Route::delete('carriers/{carrier}', [ShippingCarrierController::class, 'destroy']);
             Route::post('carriers/{carrier}/test-connection', [ShippingCarrierController::class, 'testConnection']);
             Route::patch('carriers/{carrier}/toggle-status', [ShippingCarrierController::class, 'toggleStatus']);
-            Route::get('supported-carriers', [ShippingCarrierController::class, 'getSupportedCarriers']);
         });
 
         // Admin Review Management Routes
-        Route::prefix('admin/reviews')->group(function () {
+        Route::middleware('permission:reviews.view|reviews.manage')->prefix('admin/reviews')->group(function () {
             Route::get('/', [AdminReviewController::class, 'index']);
-            Route::post('/', [AdminReviewController::class, 'store']);
             Route::get('{review}', [AdminReviewController::class, 'show']);
+        });
+        Route::middleware('permission:reviews.manage')->prefix('admin/reviews')->group(function () {
+            Route::post('/', [AdminReviewController::class, 'store']);
             Route::put('{review}', [AdminReviewController::class, 'update']);
             Route::delete('{review}', [AdminReviewController::class, 'destroy']);
             Route::post('bulk-delete', [AdminReviewController::class, 'bulkDelete']);
@@ -344,11 +541,17 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         });
 
         // Get reviews for specific product
-        Route::get('products/{product}/reviews', [AdminReviewController::class, 'getProductReviews']);
+        Route::middleware('permission:reviews.view|reviews.manage')->group(function () {
+            Route::get('products/{product}/reviews', [AdminReviewController::class, 'getProductReviews']);
+        });
 
         // Business Settings Management
-        Route::get('business-settings', 'App\Http\Controllers\Api\V1\BusinessSettingController@index');
-        Route::post('business-settings/update', 'App\Http\Controllers\BusinessSettingsController@update');
+        Route::middleware('permission:settings.view|settings.manage')->group(function () {
+            Route::get('business-settings', 'App\Http\Controllers\Api\V1\BusinessSettingController@index');
+        });
+        Route::middleware('permission:settings.manage')->group(function () {
+            Route::post('business-settings/update', 'App\Http\Controllers\BusinessSettingsController@update');
+        });
     });
 
     // If you also want "info" to be under v2/auth/info, move it inside the auth‐prefix too:
