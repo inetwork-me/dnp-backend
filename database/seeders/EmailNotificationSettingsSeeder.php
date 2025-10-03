@@ -37,7 +37,8 @@ class EmailNotificationSettingsSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            BusinessSetting::updateOrCreate(
+            // Use firstOrCreate to avoid overwriting existing settings
+            BusinessSetting::firstOrCreate(
                 ['type' => $setting['type']],
                 $setting
             );

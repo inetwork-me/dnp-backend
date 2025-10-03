@@ -27,6 +27,10 @@ class DatabaseSeeder extends Seeder
             TagSeeder::class,
         ]);
 
+        // Give User ID 1 all permissions (Super Admin)
+        // Safe to run - won't overwrite existing data
+        $this->call(SuperAdminPermissionsSeeder::class);
+
 
         // \App\Models\User::factory(10)->create();
 

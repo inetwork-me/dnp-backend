@@ -40,7 +40,9 @@ class ApiRolePermissionController extends Controller
      */
     public function getRolePermissions(Role $role)
     {
-        return response()->json($role->permissions);
+        // Exclude legacy permissions from the response
+        $permissions = $role->permissions()->where('is_legacy', false)->get();
+        return response()->json($permissions);
     }
 
     /**
@@ -127,13 +129,25 @@ class ApiRolePermissionController extends Controller
     /**
      * GET /api/v2/users/{user}/permissions
      * Get all permissions for a user (both from roles and direct)
+     * Excludes legacy permissions from the response
      */
     public function getUserPermissions(User $user)
     {
+        // Filter out legacy permissions
+        $allPermissions = $user->getAllPermissions()->filter(function($perm) {
+            return !$perm->is_legacy;
+        })->values();
+
+        $directPermissions = $user->permissions()->where('is_legacy', false)->get();
+
+        $rolePermissions = $user->getPermissionsViaRoles()->filter(function($perm) {
+            return !$perm->is_legacy;
+        })->values();
+
         return response()->json([
-            'all_permissions' => $user->getAllPermissions(),
-            'direct_permissions' => $user->permissions,
-            'role_permissions' => $user->getPermissionsViaRoles(),
+            'all_permissions' => $allPermissions,
+            'direct_permissions' => $directPermissions,
+            'role_permissions' => $rolePermissions,
         ]);
     }
 }

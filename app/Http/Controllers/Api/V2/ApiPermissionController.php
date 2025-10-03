@@ -12,14 +12,22 @@ class ApiPermissionController extends Controller
     /**
      * GET /api/v2/permissions
      * Get all permissions, optionally grouped by section
+     * Excludes legacy permissions by default (add ?include_legacy=true to show them)
      */
     public function index(Request $request)
     {
+        $query = Permission::query();
+
+        // Exclude legacy permissions unless explicitly requested
+        if (!$request->has('include_legacy') || $request->include_legacy != 'true') {
+            $query->where('is_legacy', false);
+        }
+
         if ($request->has('grouped') && $request->grouped == 'true') {
             return response()->json(Permission::groupedBySection());
         }
 
-        return response()->json(Permission::all());
+        return response()->json($query->get());
     }
 
     /**

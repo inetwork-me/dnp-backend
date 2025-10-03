@@ -191,6 +191,10 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
 
     Route::middleware('auth:sanctum')->group(function () {
 
+        // Auth user info endpoint
+        Route::get('auth/user', 'App\Http\Controllers\Api\V1\AuthController@user');
+        Route::post('auth/logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
+
         Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
 
         // Roles & Permissions Management (Admin Only)

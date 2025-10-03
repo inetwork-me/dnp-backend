@@ -140,7 +140,8 @@ class LoyaltySettingsSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            LoyaltySetting::updateOrCreate(
+            // Use firstOrCreate to avoid overwriting existing settings
+            LoyaltySetting::firstOrCreate(
                 ['key' => $setting['key']],
                 $setting
             );
