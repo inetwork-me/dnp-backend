@@ -278,6 +278,18 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::post('bmi-settings/update-order', [ApiBmiSettingController::class, 'updateOrder']);
         });
 
+        // Product Categories Management (MUST be before products/{product} route)
+        Route::middleware('permission:categories.view|categories.manage')->group(function () {
+            Route::get('products/categories', [ApiProductCategoryController::class, 'index']);
+            Route::get('products/categories/{category}', [ApiProductCategoryController::class, 'show']);
+        });
+        Route::middleware('permission:categories.manage')->group(function () {
+            Route::post('products/categories', [ApiProductCategoryController::class, 'store']);
+            Route::put('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
+            Route::patch('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
+            Route::delete('products/categories/{category}', [ApiProductCategoryController::class, 'destroy']);
+        });
+
         // Products Management
         Route::middleware('permission:products.view|products.manage')->group(function () {
             Route::get('/products', [ApiProductController::class, 'index']);
@@ -288,18 +300,6 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::post('/products', [ApiProductController::class, 'store']);
             Route::put('/products/{product}', [ApiProductController::class, 'update']);
             Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
-        });
-
-        // Product Categories Management
-        Route::middleware('permission:categories.view|categories.manage')->group(function () {
-            Route::get('products/categories', [ApiProductCategoryController::class, 'index']);
-            Route::get('products/categories/{category}', [ApiProductCategoryController::class, 'show']);
-        });
-        Route::middleware('permission:categories.manage')->group(function () {
-            Route::post('products/categories', [ApiProductCategoryController::class, 'store']);
-            Route::put('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
-            Route::patch('products/categories/{category}', [ApiProductCategoryController::class, 'update']);
-            Route::delete('products/categories/{category}', [ApiProductCategoryController::class, 'destroy']);
         });
 
         // CMS - Languages
