@@ -38,8 +38,8 @@ class ProductMiniCollection extends ResourceCollection
                     'package_details' => $data->packageDetails,
                     'is_subscription' => $data->is_subscription,
                     'loyalty_points' => $data->getEffectiveLoyaltyPoints(),
-                    'returns' => $data->returns
-
+                    'returns' => $data->returns,
+                    'requires_branch_selection' => $data->requires_branch_selection ?? false
 
                 ];
             })

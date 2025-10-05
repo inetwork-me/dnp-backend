@@ -59,7 +59,7 @@ class WebsiteCartController extends Controller
             ]);
         }
 
-        $cart->load('items.product', 'coupon');
+        $cart->load('items.product', 'items.branch', 'coupon');
 
         // Calculate counts & raw subtotal using discounted prices
         $totalCount = $cart->items->sum('quantity');
@@ -105,6 +105,7 @@ class WebsiteCartController extends Controller
             'quantity'   => 'required|integer|min:1',
             'options'    => 'array|nullable',
             'user_id'    => 'nullable|exists:users,id',
+            'branch_id'  => 'nullable|exists:branches,id',
         ]);
 
         // Use user_id from request body if provided, otherwise check auth
@@ -138,16 +139,23 @@ class WebsiteCartController extends Controller
 
         $product = Product::findOrFail($data['product_id']);
 
+        // Build unique constraint - include branch_id if provided
+        $uniqueConstraint = ['product_id' => $product->id];
+        if (isset($data['branch_id'])) {
+            $uniqueConstraint['branch_id'] = $data['branch_id'];
+        }
+
         $item = $cart->items()->updateOrCreate(
-            ['product_id' => $product->id],
+            $uniqueConstraint,
             [
                 'quantity'   => $data['quantity'],
                 'unit_price' => $product->unit_price,
                 'options'    => $data['options'] ?? [],
+                'branch_id'  => $data['branch_id'] ?? null,
             ]
         );
 
-        return response()->json($item->load('product'));
+        return response()->json($item->load('product', 'branch'));
     }
 
     /** 

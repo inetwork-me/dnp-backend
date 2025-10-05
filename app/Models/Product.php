@@ -35,6 +35,7 @@ class Product extends Model
         'function' => 'array',
         'purposeofuse' => 'array',
         'contraindication' => 'array',
+        'requires_branch_selection' => 'boolean',
 
     ];
 
@@ -143,6 +144,14 @@ class Product extends Model
     public function bids()
     {
         return $this->hasMany(AuctionProductBid::class);
+    }
+
+    /**
+     * Branches where this product is available (many-to-many)
+     */
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'product_branch');
     }
 
     // public function thumbnail()

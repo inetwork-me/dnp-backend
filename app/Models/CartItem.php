@@ -14,6 +14,7 @@ class CartItem extends Model
         'quantity',
         'unit_price',
         'options',
+        'branch_id',
     ];
 
     protected $casts = [
@@ -28,5 +29,10 @@ class CartItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

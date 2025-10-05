@@ -63,6 +63,7 @@ class WebsiteOrderController extends Controller
             'cart_items.*.product_id' => 'required_with:cart_items|exists:products,id',
             'cart_items.*.quantity' => 'required_with:cart_items|integer|min:1',
             'cart_items.*.options' => 'nullable|array',
+            'cart_items.*.branch_id' => 'nullable|exists:branches,id',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
             'guest_email'       => 'required_without:auth|email',
@@ -128,12 +129,27 @@ class WebsiteOrderController extends Controller
 
             // Add items to cart
             foreach ($data['cart_items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
+                $product = Product::with('branches')->findOrFail($item['product_id']);
+
+                // Validate branch selection for service products
+                if ($product->requires_branch_selection) {
+                    if (empty($item['branch_id'])) {
+                        abort(422, 'Branch selection is required for ' . $product->getTranslation('name'));
+                    }
+
+                    // Verify branch is available for this product
+                    $branchAvailable = $product->branches()->where('branches.id', $item['branch_id'])->exists();
+                    if (!$branchAvailable) {
+                        abort(422, 'Selected branch is not available for ' . $product->getTranslation('name'));
+                    }
+                }
+
                 $cart->items()->create([
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
                     'unit_price' => $product->unit_price,
                     'options' => $item['options'] ?? [],
+                    'branch_id' => $item['branch_id'] ?? null,
                 ]);
             }
 
@@ -297,6 +313,7 @@ class WebsiteOrderController extends Controller
                     'unit_price' => $ci->unit_price,
                     'line_total' => $ci->quantity * $ci->unit_price,
                     'options'    => $ci->options,
+                    'branch_id'  => $ci->branch_id,
                 ]);
 
                 // Deduct stock from product

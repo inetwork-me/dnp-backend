@@ -77,6 +77,10 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
+    // Branch routes
+    Route::get('branches', 'App\Http\Controllers\Api\V1\BranchController@index');
+    Route::get('products/{id}/branches', 'App\Http\Controllers\Api\V1\BranchController@getProductBranches');
+
     Route::apiResource('bmi', WebsiteBmi::class);
     Route::get('bmi/{bmi}/with-settings', [WebsiteBmi::class, 'showWithSettings']);
     Route::get('bmi-settings', [WebsiteBmi::class, 'settings']);
@@ -196,6 +200,12 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::post('auth/logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
 
         Route::get('/dashboard/overview', [DashboardController::class, 'overview']);
+
+        // Branch Management (Admin)
+        Route::apiResource('branches', 'App\Http\Controllers\Api\V2\BranchController');
+        Route::get('products/{id}/branches', 'App\Http\Controllers\Api\V2\BranchController@getProductBranches');
+        Route::patch('products/{id}/branch-requirement', 'App\Http\Controllers\Api\V2\BranchController@updateBranchRequirement');
+        Route::post('products/{id}/branches', 'App\Http\Controllers\Api\V2\BranchController@syncProductBranches');
 
         // Roles & Permissions Management (Admin Only)
         Route::middleware('permission:roles.view|roles.manage')->group(function () {

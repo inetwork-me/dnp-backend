@@ -16,11 +16,14 @@ class OrderItem extends Model
         'unit_price',
         'line_total',
         'options',
+        'branch_id',
     ];
 
     protected $casts = [
         'options' => 'array',
     ];
+
+    protected $with = ['product', 'branch'];
 
     public function order(): BelongsTo
     {
@@ -30,5 +33,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 }
