@@ -9,11 +9,29 @@ class ProductMiniCollection extends ResourceCollection
     public function toArray($request)
     {
         return [
-            'data' => $this->collection->map(function ($data) {
+            'data' => $this->collection->map(function ($data) use ($request) {
                 $wholesale_product =
                     ($data->wholesale_product == 1) ? true : false;
 
                 $avgRating = $data->avg_rating ?? (float) $data->rating;
+
+                // Check if product is in user's cart
+                $isInCart = false;
+                if ($request->user()) {
+                    $isInCart = $request->user()->cart()
+                        ->whereHas('items', function ($query) use ($data) {
+                            $query->where('product_id', $data->id);
+                        })
+                        ->exists();
+                }
+
+                // Check if product is in user's wishlist
+                $isInWishlist = false;
+                if ($request->user()) {
+                    $isInWishlist = $request->user()->wishlists()
+                        ->where('product_id', $data->id)
+                        ->exists();
+                }
 
                 return [
                     'id' => $data->id,
@@ -39,7 +57,9 @@ class ProductMiniCollection extends ResourceCollection
                     'is_subscription' => $data->is_subscription,
                     'loyalty_points' => $data->getEffectiveLoyaltyPoints(),
                     'returns' => $data->returns,
-                    'requires_branch_selection' => $data->requires_branch_selection ?? false
+                    'requires_branch_selection' => $data->requires_branch_selection ?? false,
+                    'is_in_cart' => $isInCart,
+                    'is_in_wishlist' => $isInWishlist
 
                 ];
             })

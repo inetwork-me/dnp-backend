@@ -137,7 +137,7 @@ class ProductController extends Controller
     }
 
 
-    public function show($slug)
+    public function show($slug, Request $request)
     {
         $product = Product::where('slug', $slug)
             ->withCount([
@@ -173,7 +173,25 @@ class ProductController extends Controller
         ];
         $bundleItems = $product->bundleItems;
 
-        return response()->json(compact('product', 'reviews_info', 'bundleItems'));
+        // Check if product is in user's cart
+        $isInCart = false;
+        if ($request->user()) {
+            $isInCart = $request->user()->cart()
+                ->whereHas('items', function ($query) use ($product) {
+                    $query->where('product_id', $product->id);
+                })
+                ->exists();
+        }
+
+        // Check if product is in user's wishlist
+        $isInWishlist = false;
+        if ($request->user()) {
+            $isInWishlist = $request->user()->wishlists()
+                ->where('product_id', $product->id)
+                ->exists();
+        }
+
+        return response()->json(compact('product', 'reviews_info', 'bundleItems', 'isInCart', 'isInWishlist'));
     }
 
     public function getPrice(Request $request)
