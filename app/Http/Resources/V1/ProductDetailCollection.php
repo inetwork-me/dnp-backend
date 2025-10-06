@@ -95,6 +95,7 @@ class ProductDetailCollection extends ResourceCollection
                     'link' => route('products.show', $data->slug),
                     'est_shipping_time' => (int)$data->est_shipping_days,
                     'requires_branch_selection' => $data->requires_branch_selection ?? false,
+                    'free_shipping' => (bool)($data->free_shipping ?? false),
 
                 ];
             })

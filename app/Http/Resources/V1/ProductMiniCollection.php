@@ -59,7 +59,8 @@ class ProductMiniCollection extends ResourceCollection
                     'returns' => $data->returns,
                     'requires_branch_selection' => $data->requires_branch_selection ?? false,
                     'is_in_cart' => $isInCart,
-                    'is_in_wishlist' => $isInWishlist
+                    'is_in_wishlist' => $isInWishlist,
+                    'free_shipping' => (bool)($data->free_shipping ?? false)
 
                 ];
             })

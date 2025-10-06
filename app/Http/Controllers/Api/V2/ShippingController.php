@@ -38,15 +38,62 @@ class ShippingController extends Controller
             'destination.city' => 'required|string',
             'destination.country' => 'required|string',
             'destination.postal_code' => 'nullable|string',
-            'packages' => 'required|array|min:1',
-            'packages.*.weight' => 'required|numeric|min:0.1',
+            'packages' => 'nullable|array|min:1',
+            'packages.*.weight' => 'nullable|numeric|min:0.1',
             'packages.*.length' => 'nullable|numeric|min:0.1',
             'packages.*.width' => 'nullable|numeric|min:0.1',
             'packages.*.height' => 'nullable|numeric|min:0.1',
             'cart_id' => 'nullable|exists:carts,id'
         ]);
 
-        $totalWeight = collect($validated['packages'])->sum('weight');
+        // Calculate total weight from cart if cart_id provided, otherwise use packages
+        $hasOnlyFreeShippingItems = false;
+
+        if (!empty($validated['cart_id'])) {
+            $cart = Cart::with('items.product')->find($validated['cart_id']);
+            $totalWeight = 0;
+            $validated['packages'] = [];
+            $allItemsFreeShipping = true;
+
+            if ($cart) {
+                foreach ($cart->items as $item) {
+                    // Only include simple and bundle products (exclude session/package)
+                    if (in_array($item->product->type, ['simple', 'bundle']) && $item->product->weight > 0) {
+                        // Check if this product has free shipping
+                        if ($item->product->free_shipping) {
+                            continue; // Skip free shipping items from weight calculation
+                        }
+
+                        $allItemsFreeShipping = false;
+                        $itemWeight = $item->product->weight * $item->quantity;
+                        $totalWeight += $itemWeight;
+
+                        // Add package info for API
+                        $validated['packages'][] = [
+                            'weight' => $itemWeight,
+                            'length' => 20, // Default dimensions
+                            'width' => 15,
+                            'height' => 10
+                        ];
+                    }
+                }
+            }
+
+            // Check if cart has only free shipping items
+            $hasOnlyFreeShippingItems = $allItemsFreeShipping && $cart->items->count() > 0;
+
+            // Default to 1kg if no shippable items found (but not free shipping)
+            if ($totalWeight == 0 && !$hasOnlyFreeShippingItems) {
+                $totalWeight = 1.0;
+                $validated['packages'] = [
+                    ['weight' => 1.0, 'length' => 20, 'width' => 15, 'height' => 10]
+                ];
+            }
+        } else {
+            // Use provided packages
+            $totalWeight = collect($validated['packages'] ?? [])->sum('weight');
+        }
+
         $rates = [];
 
         // Find applicable shipping zones
@@ -55,6 +102,19 @@ class ShippingController extends Controller
             ->filter(function ($zone) use ($validated) {
                 return $zone->includesAddress($validated['destination']);
             });
+
+        // Prioritize specific country zones over wildcard zones
+        // If we have a specific match, remove wildcard zones
+        $hasSpecificMatch = $zones->contains(function ($zone) use ($validated) {
+            return !in_array('*', $zone->countries) &&
+                   in_array($validated['destination']['country'], $zone->countries);
+        });
+
+        if ($hasSpecificMatch) {
+            $zones = $zones->filter(function ($zone) {
+                return !in_array('*', $zone->countries);
+            });
+        }
 
         foreach ($zones as $zone) {
             $methods = $zone->shippingMethods()
@@ -89,6 +149,24 @@ class ShippingController extends Controller
             }
         }
 
+        // If all items have free shipping, return free shipping option
+        if ($hasOnlyFreeShippingItems) {
+            $rates = [
+                [
+                    'method_id' => 'free_shipping',
+                    'carrier_id' => null,
+                    'carrier_name' => 'Free Shipping',
+                    'service_name' => 'Free Shipping',
+                    'service_code' => 'FREE',
+                    'price' => 0,
+                    'currency' => 'EGP',
+                    'currency_symbol' => 'EGP',
+                    'estimated_days' => 3,
+                    'is_free' => true
+                ]
+            ];
+        }
+
         // Save quote if cart_id provided
         if (isset($validated['cart_id']) && $validated['cart_id']) {
             $this->saveShippingQuote($validated['cart_id'], $validated['destination'], $rates);
@@ -97,7 +175,8 @@ class ShippingController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'rates' => $rates
+                'rates' => $rates,
+                'has_free_shipping' => $hasOnlyFreeShippingItems
             ]
         ]);
     }

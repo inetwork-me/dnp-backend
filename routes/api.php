@@ -77,6 +77,10 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
+    // City routes
+    Route::get('cities', 'App\Http\Controllers\Api\V1\CityController@index');
+    Route::get('cities/{id}', 'App\Http\Controllers\Api\V1\CityController@show');
+
     // Branch routes
     Route::get('branches', 'App\Http\Controllers\Api\V1\BranchController@index');
     Route::get('products/{id}/branches', 'App\Http\Controllers\Api\V1\BranchController@getProductBranches');
