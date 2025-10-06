@@ -245,8 +245,8 @@ class WebsiteOrderController extends Controller
 
         // 3) snapshot cart → order
         $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled, $appliedVoucher) {
-            // a) compute amounts
-            $subtotal = $cart->items->sum(fn ($i) => $i->quantity * $i->unit_price);
+            // a) compute amounts using discounted prices (same as cart display)
+            $subtotal = $cart->items->sum(fn ($i) => $i->quantity * home_discounted_base_price($i->product, false));
             $discount = $cart->coupon
                 ? $cart->coupon->calculateDiscount($subtotal)
                 : 0;
