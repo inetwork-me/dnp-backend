@@ -51,7 +51,10 @@ class ApiRolesController extends Controller
 
         $role->update($data);
 
-        return response()->json($role);
+        return response()->json([
+            'data' => $role->fresh(),
+            'message' => 'Role updated successfully'
+        ]);
     }
 
     /**

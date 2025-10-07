@@ -27,7 +27,7 @@ class ProductRequest extends FormRequest
     {
         // Convert string boolean values to actual booleans
         $booleanFields = ['published', 'is_top_selling', 'has_discount', 'is_subscription'];
-        
+
         foreach ($booleanFields as $field) {
             if ($this->has($field)) {
                 $value = $this->input($field);
@@ -39,6 +39,14 @@ class ProductRequest extends FormRequest
             } else {
                 // If field is not present (unchecked checkbox), set to false
                 $this->merge([$field => false]);
+            }
+        }
+
+        // Convert empty loyalty_points to null or 0
+        if ($this->has('loyalty_points')) {
+            $value = $this->input('loyalty_points');
+            if ($value === '' || $value === null) {
+                $this->merge(['loyalty_points' => 0]);
             }
         }
     }
@@ -83,7 +91,7 @@ class ProductRequest extends FormRequest
         $rules['is_top_selling'] = 'sometimes|boolean';
         $rules['has_discount'] = 'sometimes|boolean';
         $rules['is_subscription'] = 'sometimes|boolean';
-        $rules['loyalty_points'] = 'sometimes|integer|min:0';
+        $rules['loyalty_points'] = 'nullable|integer|min:0';
         
         return $rules;
     }
