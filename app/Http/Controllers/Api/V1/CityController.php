@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\DB;
 class CityController extends Controller
 {
     /**
-     * Get all active Aramex cities
+     * Get all active Aramex cities with translations
      */
     public function index(Request $request)
     {
+        $locale = $request->header('Accept-Language', 'en');
+
         $query = DB::table('aramex_cities')
             ->where('is_active', true)
             ->where('country_code', 'EG');
@@ -23,11 +25,19 @@ class CityController extends Controller
             $query->where('name', 'LIKE', "%{$search}%");
         }
 
-        $cities = $query->orderBy('name', 'asc')->get(['id', 'aramex_city_id', 'name']);
+        $cities = $query->orderBy('name', 'asc')->get(['id', 'aramex_city_id', 'name', 'name_ar']);
+
+        $data = $cities->map(function ($city) use ($locale) {
+            return [
+                'id' => $city->id,
+                'name' => $city->name, // English value for Aramex
+                'label' => $locale === 'ar' && $city->name_ar ? $city->name_ar : $city->name,
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $cities
+            'data' => $data
         ]);
     }
 
@@ -39,7 +49,7 @@ class CityController extends Controller
         $city = DB::table('aramex_cities')
             ->where('id', $id)
             ->where('is_active', true)
-            ->first(['id', 'aramex_city_id', 'name']);
+            ->first(['id', 'aramex_city_id', 'name', 'name_ar']);
 
         if (!$city) {
             return response()->json([
@@ -48,9 +58,15 @@ class CityController extends Controller
             ], 404);
         }
 
+        $locale = request()->header('Accept-Language', 'en');
+
         return response()->json([
             'success' => true,
-            'data' => $city
+            'data' => [
+                'id' => $city->id,
+                'name' => $city->name,
+                'label' => $locale === 'ar' && $city->name_ar ? $city->name_ar : $city->name,
+            ]
         ]);
     }
 }
