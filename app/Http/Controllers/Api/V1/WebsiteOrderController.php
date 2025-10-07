@@ -165,16 +165,22 @@ class WebsiteOrderController extends Controller
         $guestPassword = null;
 
         if (!$user) {
-            // Only create new user for guests
+            // Guest checkout - check if email already exists
+            $existingUser = \App\Models\User::where('email', $data['guest_email'])->first();
+
+            if ($existingUser) {
+                // Email already registered - reject checkout
+                abort(422, 'An account with this email already exists. Please login or use a different email address.');
+            }
+
+            // Create new user for guest
             $guestPassword = Str::random(12);
-            $user = \App\Models\User::firstOrCreate(
-                ['email' => $data['guest_email']],
-                [
-                    'password' => Hash::make($guestPassword),
-                    'name'     => $data['guest_name'],
-                    'phone'    => $data['guest_phone'] ?? null,
-                ]
-            );
+            $user = \App\Models\User::create([
+                'email' => $data['guest_email'],
+                'password' => Hash::make($guestPassword),
+                'name'     => $data['guest_name'],
+                'phone'    => $data['guest_phone'] ?? null,
+            ]);
 
             // Assign client role to guest user
             $clientRole = \Spatie\Permission\Models\Role::where('name', 'client')->first();
@@ -187,8 +193,10 @@ class WebsiteOrderController extends Controller
             $isGuestUser = true;
         } else {
             // For logged-in users, ensure cart is associated with the authenticated user
-            $cart->user()->associate($user);
-            $cart->save();
+            if ($cart->user_id !== $user->id) {
+                $cart->user()->associate($user);
+                $cart->save();
+            }
         }
 
         // 2.5) Apply coupon if provided and not already applied (AFTER user creation)
