@@ -436,7 +436,12 @@ class AramexService
                         $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
                         $errorMessage = $errors ?: $errorMessage;
                     }
-                    
+
+                    Log::error('Aramex API returned errors', [
+                        'notifications' => $data['Notifications'] ?? [],
+                        'full_response' => $data
+                    ]);
+
                     throw new Exception($errorMessage);
                 }
 
@@ -539,8 +544,441 @@ class AramexService
 
     private function calculateEgyptianInternationalRate($weight)
     {
-        // International from Egypt in EGP 
+        // International from Egypt in EGP
         // Base rate: 200 EGP + 50 EGP per kg
         return 200.00 + ($weight * 50.00);
+    }
+
+    /**
+     * Print shipping label
+     */
+    public function printLabel($shipmentNumber, $originEntity = 'CAI', $productGroup = 'DOM'): array
+    {
+        try {
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'LabelInfo' => [
+                    'ReportID' => 9729,
+                    'ReportType' => 'URL' // URL or PDF
+                ],
+                'OriginEntity' => $originEntity,
+                'ProductGroup' => $productGroup,
+                'ShipmentNumber' => $shipmentNumber,
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(30)->post($this->baseUrl . '/PrintLabel', $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Label printing failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                return [
+                    'success' => true,
+                    'label_url' => $data['ShipmentLabel']['LabelURL'] ?? null,
+                    'label_file_contents' => $data['ShipmentLabel']['LabelFileContents'] ?? null,
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to print label. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex label printing failed', [
+                'error' => $e->getMessage(),
+                'shipment_number' => $shipmentNumber
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Track shipments by tracking numbers
+     */
+    public function trackShipments($shipmentNumbers, $getLastUpdateOnly = false): array
+    {
+        try {
+            // Ensure shipmentNumbers is an array
+            if (!is_array($shipmentNumbers)) {
+                $shipmentNumbers = [$shipmentNumbers];
+            }
+
+            $trackingUrl = str_replace(
+                '/ShippingAPI.V2/Shipping/Service_1_0.svc/json',
+                '/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackShipments',
+                $this->baseUrl
+            );
+
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'GetLastTrackingUpdateOnly' => $getLastUpdateOnly,
+                'Shipments' => $shipmentNumbers,
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(30)->post($trackingUrl, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Tracking failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                return [
+                    'success' => true,
+                    'tracking_results' => $data['TrackingResults'] ?? [],
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to track shipments. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex tracking failed', [
+                'error' => $e->getMessage(),
+                'shipment_numbers' => $shipmentNumbers
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Create a pickup request
+     */
+    public function createPickup($pickupData): array
+    {
+        try {
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'LabelInfo' => [
+                    'ReportID' => 9729,
+                    'ReportType' => 'URL'
+                ],
+                'Pickup' => [
+                    'PickupAddress' => [
+                        'Line1' => $pickupData['address']['line1'] ?? '',
+                        'Line2' => $pickupData['address']['line2'] ?? '',
+                        'Line3' => '',
+                        'City' => $pickupData['address']['city'] ?? '',
+                        'StateOrProvinceCode' => '',
+                        'PostCode' => $pickupData['address']['postal_code'] ?? '',
+                        'CountryCode' => $pickupData['address']['country'] ?? '',
+                        'Longitude' => 0,
+                        'Latitude' => 0,
+                        'BuildingNumber' => null,
+                        'BuildingName' => null,
+                        'Floor' => null,
+                        'Apartment' => null,
+                        'POBox' => null,
+                        'Description' => null
+                    ],
+                    'PickupContact' => [
+                        'Department' => '',
+                        'PersonName' => $pickupData['contact']['person_name'] ?? '',
+                        'Title' => '',
+                        'CompanyName' => $pickupData['contact']['company_name'] ?? '',
+                        'PhoneNumber1' => $pickupData['contact']['phone'] ?? '',
+                        'PhoneNumber1Ext' => '',
+                        'PhoneNumber2' => '',
+                        'PhoneNumber2Ext' => '',
+                        'FaxNumber' => '',
+                        'CellPhone' => $pickupData['contact']['phone'] ?? '',
+                        'EmailAddress' => $pickupData['contact']['email'] ?? '',
+                        'Type' => ''
+                    ],
+                    'PickupLocation' => $pickupData['pickup_location'] ?? 'Reception',
+                    'PickupDate' => $this->formatAramexDate($pickupData['pickup_date']),
+                    'ReadyTime' => $this->formatAramexDate($pickupData['ready_time']),
+                    'LastPickupTime' => $this->formatAramexDate($pickupData['last_pickup_time']),
+                    'ClosingTime' => $this->formatAramexDate($pickupData['closing_time'] ?? $pickupData['last_pickup_time']),
+                    'Comments' => $pickupData['comments'] ?? '',
+                    'Reference1' => $pickupData['reference'] ?? '',
+                    'Reference2' => '',
+                    'Vehicle' => '',
+                    'Shipments' => $pickupData['shipments'] ?? [],
+                    'PickupItems' => $pickupData['pickup_items'] ?? [],
+                    'Status' => 'Ready',
+                    'ExistingShipments' => null,
+                    'Branch' => '',
+                    'RouteCode' => ''
+                ],
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(60)->post($this->baseUrl . '/CreatePickup', $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Pickup creation failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                return [
+                    'success' => true,
+                    'pickup_guid' => $data['ProcessedPickup']['GUID'] ?? null,
+                    'pickup_reference' => $data['ProcessedPickup']['Reference1'] ?? null,
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to create pickup. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex pickup creation failed', [
+                'error' => $e->getMessage(),
+                'pickupData' => $this->maskSensitiveData($pickupData)
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Track pickup by reference or GUID
+     */
+    public function trackPickup($reference): array
+    {
+        try {
+            $trackingUrl = str_replace(
+                '/ShippingAPI.V2/Shipping/Service_1_0.svc/json',
+                '/ShippingAPI.V2/Tracking/Service_1_0.svc/json/TrackPickup',
+                $this->baseUrl
+            );
+
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'Reference' => $reference,
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(30)->post($trackingUrl, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Pickup tracking failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                return [
+                    'success' => true,
+                    'pickup_info' => $data['PickupInfo'] ?? null,
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to track pickup. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex pickup tracking failed', [
+                'error' => $e->getMessage(),
+                'reference' => $reference
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Cancel a scheduled pickup
+     */
+    public function cancelPickup($pickupGuid, $comments = ''): array
+    {
+        try {
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'PickupGUID' => $pickupGuid,
+                'Comments' => $comments,
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(30)->post($this->baseUrl . '/CancelPickup', $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Pickup cancellation failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+                    throw new Exception($errorMessage);
+                }
+
+                return [
+                    'success' => true,
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to cancel pickup. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex pickup cancellation failed', [
+                'error' => $e->getMessage(),
+                'pickup_guid' => $pickupGuid
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Validate shipping address
+     */
+    public function validateAddress($address): array
+    {
+        try {
+            $locationUrl = str_replace(
+                '/ShippingAPI.V2/Shipping/Service_1_0.svc/json',
+                '/ShippingAPI.V2/Location/Service_1_0.svc/json/ValidateAddress',
+                $this->baseUrl
+            );
+
+            $payload = [
+                'ClientInfo' => $this->clientInfo,
+                'Address' => [
+                    'Line1' => $address['line1'] ?? '',
+                    'Line2' => $address['line2'] ?? '',
+                    'Line3' => '',
+                    'City' => $address['city'] ?? '',
+                    'StateOrProvinceCode' => $address['state'] ?? '',
+                    'PostCode' => $address['postal_code'] ?? '',
+                    'CountryCode' => $address['country'] ?? '',
+                    'Longitude' => 0,
+                    'Latitude' => 0,
+                    'BuildingNumber' => null,
+                    'BuildingName' => null,
+                    'Floor' => null,
+                    'Apartment' => null,
+                    'POBox' => null,
+                    'Description' => null
+                ],
+                'Transaction' => [
+                    'Reference1' => '',
+                    'Reference2' => '',
+                    'Reference3' => '',
+                    'Reference4' => '',
+                    'Reference5' => ''
+                ]
+            ];
+
+            $response = Http::timeout(30)->post($locationUrl, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['HasErrors']) && $data['HasErrors'] === true) {
+                    $errorMessage = 'Address validation failed';
+                    if (isset($data['Notifications']) && is_array($data['Notifications'])) {
+                        $errors = collect($data['Notifications'])->pluck('Message')->implode(', ');
+                        $errorMessage = $errors ?: $errorMessage;
+                    }
+
+                    return [
+                        'success' => false,
+                        'is_valid' => false,
+                        'error' => $errorMessage,
+                        'carrier_response' => $data
+                    ];
+                }
+
+                // Aramex returns validation status
+                $isValid = isset($data['IsValid']) ? $data['IsValid'] : false;
+
+                return [
+                    'success' => true,
+                    'is_valid' => $isValid,
+                    'suggestions' => $data['SuggestedAddresses'] ?? [],
+                    'carrier_response' => $data
+                ];
+            }
+
+            throw new Exception('Failed to validate address. HTTP Status: ' . $response->status());
+
+        } catch (Exception $e) {
+            Log::error('Aramex address validation failed', [
+                'error' => $e->getMessage(),
+                'address' => $address
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Format date/time for Aramex API
+     * Aramex uses: /Date(1484096770000-0500)/
+     */
+    private function formatAramexDate($dateTime): string
+    {
+        if (is_string($dateTime)) {
+            $timestamp = strtotime($dateTime);
+        } elseif ($dateTime instanceof \DateTime) {
+            $timestamp = $dateTime->getTimestamp();
+        } else {
+            $timestamp = $dateTime;
+        }
+
+        $milliseconds = $timestamp * 1000;
+        return "/Date({$milliseconds}+0000)/";
     }
 }

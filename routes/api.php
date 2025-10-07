@@ -35,9 +35,11 @@ use App\Http\Controllers\Api\V2\ApiVoucherController;
 use App\Http\Controllers\Api\V2\DashboardController;
 use App\Http\Controllers\Api\V2\ShippingController;
 use App\Http\Controllers\Api\V2\ShipmentController;
+use App\Http\Controllers\Api\V2\PickupController;
 use App\Http\Controllers\Api\V2\Admin\ShippingCarrierController;
 use App\Http\Controllers\Api\V2\Admin\AdminReviewController;
 use App\Http\Controllers\Api\V1\BrandController;
+use App\Http\Controllers\Api\V1\TrackingController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -76,6 +78,10 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 });
 
 Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
+
+    // Public Tracking (no authentication required)
+    Route::post('track', [TrackingController::class, 'track']);
+    Route::post('validate-address', [TrackingController::class, 'validateAddress']);
 
     // City routes
     Route::get('cities', 'App\Http\Controllers\Api\V1\CityController@index');
@@ -523,11 +529,22 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::get('{shipment}', [ShipmentController::class, 'show']);
             Route::get('{shipment}/track', [ShipmentController::class, 'track']);
             Route::get('track/{trackingNumber}', [ShipmentController::class, 'trackByNumber']);
-            Route::get('{shipment}/label', [ShipmentController::class, 'getLabel']);
+            Route::get('{shipment}/label', [ShipmentController::class, 'printLabel']);
         });
         Route::middleware('permission:shipping.manage')->prefix('shipments')->group(function () {
             Route::post('/', [ShipmentController::class, 'create']);
             Route::patch('{shipment}/status', [ShipmentController::class, 'updateStatus']);
+        });
+
+        // Pickup Routes
+        Route::middleware('permission:shipping.view|shipping.manage')->prefix('pickups')->group(function () {
+            Route::get('/', [PickupController::class, 'index']);
+            Route::get('{pickup}', [PickupController::class, 'show']);
+            Route::get('{pickup}/track', [PickupController::class, 'track']);
+        });
+        Route::middleware('permission:shipping.manage')->prefix('pickups')->group(function () {
+            Route::post('/', [PickupController::class, 'store']);
+            Route::post('{pickup}/cancel', [PickupController::class, 'cancel']);
         });
 
         // Admin Shipping Carrier Management

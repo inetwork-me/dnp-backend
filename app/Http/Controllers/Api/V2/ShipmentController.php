@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Shipment;
 use App\Models\Order;
 use App\Models\ShippingCarrier;
+use App\Services\Shipping\AramexService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class ShipmentController extends Controller
 {
@@ -53,49 +56,103 @@ class ShipmentController extends Controller
     {
         $validated = $request->validate([
             'order_id' => 'required|exists:orders,id',
-            'carrier_id' => 'required|exists:shipping_carriers,id',
             'shipment_data' => 'required|array',
             'shipment_data.origin' => 'required|array',
-            'shipment_data.destination' => 'required|array',
-            'shipment_data.packages' => 'required|array|min:1',
-            'shipment_data.reference' => 'nullable|string|max:255'
+            'shipment_data.weight' => 'required|numeric|min:0.1',
+            'shipment_data.description' => 'nullable|string',
+            'shipment_data.reference' => 'nullable|string'
         ]);
 
-        // Check if order already has a shipment
-        $existingShipment = Shipment::where('order_id', $validated['order_id'])->first();
-        if ($existingShipment) {
+        try {
+            $order = Order::with('user')->findOrFail($validated['order_id']);
+
+            // Check if order already has shipment
+            if ($order->shipments()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order already has a shipment'
+                ], 422);
+            }
+
+            // Get Aramex carrier
+            $carrier = ShippingCarrier::where('slug', 'aramex')->firstOrFail();
+
+            // Initialize Aramex service
+            $aramexConfig = [
+                'username' => config('shipping.aramex.username'),
+                'password' => config('shipping.aramex.password'),
+                'account_number' => config('shipping.aramex.account_number'),
+                'account_pin' => config('shipping.aramex.account_pin'),
+                'account_entity' => config('shipping.aramex.account_entity', 'CAI'),
+                'account_country_code' => config('shipping.aramex.account_country_code', 'EG'),
+                'is_production' => config('shipping.aramex.is_production', false)
+            ];
+
+            $aramexService = new AramexService($aramexConfig);
+
+            // Prepare shipment data
+            $shipmentData = [
+                'reference' => $validated['shipment_data']['reference'] ?? 'ORD-' . $order->id,
+                'origin' => $validated['shipment_data']['origin'],
+                'destination' => [
+                    'line1' => $order->shipping_address['line1'] ?? '',
+                    'line2' => $order->shipping_address['line2'] ?? '',
+                    'city' => $order->shipping_address['city'] ?? '',
+                    'country' => $order->shipping_address['country'] ?? 'EG',
+                    'postal_code' => $order->shipping_address['postal_code'] ?? ''
+                ],
+                'packages' => [['weight' => $validated['shipment_data']['weight']]],
+                'weight' => $validated['shipment_data']['weight'],
+                'description' => $validated['shipment_data']['description'] ?? 'Order items',
+                'product_group' => $validated['shipment_data']['origin']['country'] === ($order->shipping_address['country'] ?? 'EG') ? 'DOM' : 'EXP',
+                'product_type' => $validated['shipment_data']['origin']['country'] === ($order->shipping_address['country'] ?? 'EG') ? 'CDS' : 'PDX',
+                'shipper_name' => config('app.name', 'DNP Store'),
+                'shipper_company' => config('app.name', 'DNP Store'),
+                'shipper_phone' => config('shipping.aramex.shipper_phone'),
+                'shipper_email' => config('shipping.aramex.shipper_email'),
+                'consignee_name' => $order->user->name,
+                'consignee_company' => $order->user->company_name ?? '',
+                'consignee_phone' => $order->shipping_address['phone'] ?? $order->user->phone,
+                'consignee_email' => $order->user->email
+            ];
+
+            // Create shipment via Aramex API
+            $result = $aramexService->createShipment($shipmentData);
+
+            if (!$result['success']) {
+                throw new Exception($result['error'] ?? 'Failed to create shipment');
+            }
+
+            // Save shipment to database
+            $shipment = Shipment::create([
+                'order_id' => $order->id,
+                'carrier_id' => $carrier->id,
+                'tracking_number' => $result['tracking_number'],
+                'status' => Shipment::STATUS_BOOKED,
+                'carrier_response' => $result['carrier_response'],
+                'shipped_at' => now()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Shipment created successfully',
+                'data' => [
+                    'shipment' => $shipment->load(['order', 'carrier']),
+                    'tracking_number' => $result['tracking_number']
+                ]
+            ], 201);
+
+        } catch (Exception $e) {
+            Log::error('Shipment creation failed', [
+                'order_id' => $validated['order_id'],
+                'error' => $e->getMessage()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Order already has a shipment'
-            ], 422);
+                'message' => 'Failed to create shipment: ' . $e->getMessage()
+            ], 500);
         }
-
-        $order = Order::findOrFail($validated['order_id']);
-        $carrier = ShippingCarrier::findOrFail($validated['carrier_id']);
-
-        // TODO: Integrate with actual carrier API to create shipment
-        $trackingNumber = $this->generateTrackingNumber($carrier);
-        
-        $shipment = Shipment::create([
-            'order_id' => $validated['order_id'],
-            'carrier_id' => $validated['carrier_id'],
-            'tracking_number' => $trackingNumber,
-            'status' => Shipment::STATUS_PENDING,
-            'carrier_response' => [
-                'created_at' => now(),
-                'shipment_data' => $validated['shipment_data']
-            ]
-        ]);
-
-        $shipment->load(['order', 'carrier']);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Shipment created successfully',
-            'data' => [
-                'shipment' => $shipment
-            ]
-        ], 201);
     }
 
     public function show($shipmentId): JsonResponse
@@ -130,19 +187,50 @@ class ShipmentController extends Controller
 
     public function track($shipmentId): JsonResponse
     {
-        $shipment = Shipment::with(['order', 'carrier'])
-            ->findOrFail($shipmentId);
+        try {
+            $shipment = Shipment::with(['order', 'carrier'])->findOrFail($shipmentId);
 
-        // TODO: Integrate with carrier API for real-time tracking
-        $trackingInfo = $this->getTrackingInfo($shipment);
+            if ($shipment->carrier->slug !== 'aramex') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Real-time tracking only supported for Aramex shipments'
+                ], 422);
+            }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'shipment' => $shipment,
-                'tracking_info' => $trackingInfo
-            ]
-        ]);
+            // Initialize Aramex service
+            $aramexConfig = [
+                'username' => config('shipping.aramex.username'),
+                'password' => config('shipping.aramex.password'),
+                'account_number' => config('shipping.aramex.account_number'),
+                'account_pin' => config('shipping.aramex.account_pin'),
+                'account_entity' => config('shipping.aramex.account_entity', 'CAI'),
+                'account_country_code' => config('shipping.aramex.account_country_code', 'EG'),
+                'is_production' => config('shipping.aramex.is_production', false)
+            ];
+
+            $aramexService = new AramexService($aramexConfig);
+            $result = $aramexService->trackShipments($shipment->tracking_number, false);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'shipment' => $shipment,
+                    'tracking_results' => $result['tracking_results'],
+                    'carrier_response' => $result['carrier_response']
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Shipment tracking failed', [
+                'shipment_id' => $shipmentId,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to track shipment: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function trackByNumber($trackingNumber): JsonResponse
@@ -169,27 +257,65 @@ class ShipmentController extends Controller
         ]);
     }
 
-    public function getLabel($shipmentId): JsonResponse
+    public function printLabel($shipmentId): JsonResponse
     {
-        $shipment = Shipment::findOrFail($shipmentId);
+        try {
+            $shipment = Shipment::with('carrier')->findOrFail($shipmentId);
 
-        if (!$shipment->carrier->supports_labels) {
+            if ($shipment->carrier->slug !== 'aramex') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Label printing only supported for Aramex shipments'
+                ], 422);
+            }
+
+            // Initialize Aramex service
+            $aramexConfig = [
+                'username' => config('shipping.aramex.username'),
+                'password' => config('shipping.aramex.password'),
+                'account_number' => config('shipping.aramex.account_number'),
+                'account_pin' => config('shipping.aramex.account_pin'),
+                'account_entity' => config('shipping.aramex.account_entity', 'CAI'),
+                'account_country_code' => config('shipping.aramex.account_country_code', 'EG'),
+                'is_production' => config('shipping.aramex.is_production', false)
+            ];
+
+            $aramexService = new AramexService($aramexConfig);
+
+            // Get product group from carrier_response
+            $productGroup = $shipment->carrier_response['Shipments'][0]['Details']['ProductGroup'] ?? 'DOM';
+            $originEntity = config('shipping.aramex.account_entity', 'CAI');
+
+            $result = $aramexService->printLabel($shipment->tracking_number, $originEntity, $productGroup);
+
+            // Update shipment with label info
+            $shipment->update([
+                'shipping_label' => [
+                    'label_url' => $result['label_url'],
+                    'label_file_contents' => $result['label_file_contents'],
+                    'generated_at' => now()
+                ]
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'label_url' => $result['label_url'],
+                    'label_file_contents' => $result['label_file_contents']
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Label printing failed', [
+                'shipment_id' => $shipmentId,
+                'error' => $e->getMessage()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Carrier does not support shipping labels'
-            ], 422);
+                'message' => 'Failed to print label: ' . $e->getMessage()
+            ], 500);
         }
-
-        // TODO: Integrate with carrier API to get label
-        $labelUrl = $this->generateShippingLabel($shipment);
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'label_url' => $labelUrl,
-                'format' => 'PDF'
-            ]
-        ]);
     }
 
     public function updateStatus(Request $request, $shipmentId): JsonResponse
