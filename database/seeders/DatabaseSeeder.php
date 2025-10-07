@@ -31,6 +31,11 @@ class DatabaseSeeder extends Seeder
         // Safe to run - won't overwrite existing data
         $this->call(SuperAdminPermissionsSeeder::class);
 
+        // Shipping-related seeders
+        $this->call([
+            CitiesSeeder::class,
+            AramexShippingSeeder::class,
+        ]);
 
         // \App\Models\User::factory(10)->create();
 
