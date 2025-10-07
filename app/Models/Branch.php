@@ -21,6 +21,8 @@ class Branch extends Model
 
     protected $casts = [
         'name' => 'array', // JSON: {"en": "Branch Name", "ar": "اسم الفرع"}
+        'address' => 'array', // JSON: {"en": "Address", "ar": "العنوان"}
+        'city' => 'array', // JSON: {"en": "City", "ar": "المدينة"}
         'is_active' => 'boolean',
     ];
 
@@ -30,6 +32,22 @@ class Branch extends Model
     public function getName($locale = 'en')
     {
         return $this->name[$locale] ?? $this->name['en'] ?? '';
+    }
+
+    /**
+     * Get address by locale
+     */
+    public function getAddress($locale = 'en')
+    {
+        return $this->address[$locale] ?? $this->address['en'] ?? '';
+    }
+
+    /**
+     * Get city by locale
+     */
+    public function getCity($locale = 'en')
+    {
+        return $this->city[$locale] ?? $this->city['en'] ?? '';
     }
 
     /**
