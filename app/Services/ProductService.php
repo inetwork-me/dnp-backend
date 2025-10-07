@@ -153,9 +153,14 @@ class ProductService
         $slug .= $same_slug_count > 1 ? '-' . $same_slug_count + 1 : '';
 
         // Default settings for flags
-        $flags = ['refundable', 'is_quantity_multiplied', 'cash_on_delivery', 'featured', 'todays_deal'];
+        $flags = ['refundable', 'is_quantity_multiplied', 'cash_on_delivery', 'featured', 'todays_deal', 'free_shipping'];
         foreach ($flags as $flag) {
-            $collection[$flag] = $collection[$flag] ?? 0;
+            // Convert array values to integer (handle checkbox arrays like ["0"] or ["1"])
+            if (isset($collection[$flag]) && is_array($collection[$flag])) {
+                $collection[$flag] = (int) ($collection[$flag][0] ?? 0);
+            } else {
+                $collection[$flag] = $collection[$flag] ?? 0;
+            }
         }
 
         // Process tags
@@ -263,6 +268,8 @@ class ProductService
 
         // $data['product_service_custom_data'] = ($customAttributes);
 
+        // Convert collection back to array after all modifications
+        $data = $collection->toArray();
 
         $product->update($data);
 
