@@ -66,14 +66,18 @@ class WebsiteOrderController extends Controller
             'cart_items.*.branch_id' => 'nullable|exists:branches,id',
             'billing_address'   => 'array|nullable',
             'payment_method'    => 'string|nullable',
-            'guest_email'       => 'required_without:auth|email',
-            'guest_name'        => 'required_without:auth|string',
-            'guest_phone'       => 'string|nullable',
             'coupon_code'       => 'string|nullable',
             'voucher_code'      => 'string|nullable',
             'currency'          => 'string|nullable|in:EGP,USD,SAR,AED',
             'currency_rate'     => 'numeric|nullable|min:0',
         ];
+
+        // Only require guest fields if user is not authenticated
+        if (!$request->user()) {
+            $validationRules['guest_email'] = 'required|email';
+            $validationRules['guest_name'] = 'required|string';
+            $validationRules['guest_phone'] = 'nullable|string';
+        }
 
         // Add shipping validation only if shipping is enabled
         if ($shippingEnabled) {
