@@ -57,6 +57,12 @@ class WebsiteOrderController extends Controller
     {
         $shippingEnabled = is_shipping_enabled();
 
+        // Attempt Sanctum authentication for routes without auth middleware
+        $authenticatedUser = null;
+        if ($request->bearerToken()) {
+            $authenticatedUser = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken())?->tokenable;
+        }
+
         $validationRules = [
             'cart_id'           => 'nullable|exists:carts,id',
             'cart_items'        => 'required_without:cart_id|array',
@@ -73,7 +79,7 @@ class WebsiteOrderController extends Controller
         ];
 
         // Only require guest fields if user is not authenticated
-        if (!$request->user()) {
+        if (!$authenticatedUser) {
             $validationRules['guest_email'] = 'required|email';
             $validationRules['guest_name'] = 'required|string';
             $validationRules['guest_phone'] = 'nullable|string';
@@ -90,8 +96,8 @@ class WebsiteOrderController extends Controller
         $data = $request->validate($validationRules);
 
         // 1) load or create cart + applied coupon with ownership verification
-        // Use user_id from request if provided, otherwise check auth
-        $userId = $request->input('user_id') ?? optional($request->user())->id;
+        // Use user_id from request if provided, otherwise check manually authenticated user, then request user
+        $userId = $request->input('user_id') ?? optional($authenticatedUser ?? $request->user())->id;
         $guestToken = $request->header('X-Guest-Token');
 
         // If cart_id provided, load existing cart
@@ -164,13 +170,20 @@ class WebsiteOrderController extends Controller
         abort_if($cart->items->isEmpty(), 400, 'Cart is empty.');
 
         // 2) find or create user FIRST (before coupon validation)
-        $user = $request->user();
+        // Use manually authenticated user if available, otherwise try request user
+        $user = $authenticatedUser ?? $request->user();
         $isGuestUser = false;
         $guestPassword = null;
 
         if (!$user) {
             // Guest checkout - check if email already exists
-            $existingUser = \App\Models\User::where('email', $data['guest_email'])->first();
+            $guestEmail = $data['guest_email'] ?? null;
+
+            if (!$guestEmail) {
+                abort(422, 'Email is required for guest checkout.');
+            }
+
+            $existingUser = \App\Models\User::where('email', $guestEmail)->first();
 
             if ($existingUser) {
                 // Email already registered - reject checkout
@@ -180,9 +193,9 @@ class WebsiteOrderController extends Controller
             // Create new user for guest
             $guestPassword = Str::random(12);
             $user = \App\Models\User::create([
-                'email' => $data['guest_email'],
+                'email' => $guestEmail,
                 'password' => Hash::make($guestPassword),
-                'name'     => $data['guest_name'],
+                'name'     => $data['guest_name'] ?? 'Guest User',
                 'phone'    => $data['guest_phone'] ?? null,
             ]);
 
