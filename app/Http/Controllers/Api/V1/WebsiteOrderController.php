@@ -457,10 +457,26 @@ class WebsiteOrderController extends Controller
             \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
         }
 
-        // 6) Loyalty points will be processed when order status changes to 'completed'
+        // 6) Send order confirmation email to customer
+        try {
+            // Check if order confirmation emails are enabled
+            $orderConfirmationEmailEnabled = \App\Models\BusinessSetting::where('type', 'order_confirmation_email_enabled')->first();
+            if (!$orderConfirmationEmailEnabled || $orderConfirmationEmailEnabled->value !== '1') {
+                \Log::info('Order confirmation emails are disabled, skipping for order ' . $order->order_number);
+            } else {
+                // Send order confirmation to the customer (works for both guest and authenticated users)
+                $user->notify(new \App\Notifications\OrderConfirmationNotification($order));
+                \Log::info('Order confirmation email sent to ' . $user->email . ' for order ' . $order->order_number);
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the order
+            \Log::error('Order confirmation email failed for order ' . $order->id . ': ' . $e->getMessage());
+        }
+
+        // 7) Loyalty points will be processed when order status changes to 'completed'
         // No longer processing loyalty points immediately on order creation
 
-        // 6) return with items & coupon
+        // 8) return with items & coupon
         return response()->json(
             $order->load('items.product', 'coupon'),
             201
