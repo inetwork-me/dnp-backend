@@ -16,13 +16,24 @@ class WishlistController extends Controller
     // Get user's wishlist
     public function index(Request $request)
     {
-        $wishlist = Wishlist::where('user_id', $request->user()->id)
+        $userId = $request->user()->id;
+
+        $wishlist = Wishlist::where('user_id', $userId)
             ->with(['product:id,name,slug,thumbnail_img,unit_price,discount,discount_type,label,current_stock,category_id,thumbnail', 'product.main_category:id,name'])
             ->get();
 
+        // Get user's active cart product IDs
+        $cartProductIds = \App\Models\Cart::where('user_id', $userId)
+            ->where('status', 'open')
+            ->with('items:cart_id,product_id')
+            ->first()
+            ?->items
+            ->pluck('product_id')
+            ->toArray() ?? [];
+
         return response()->json([
             'success' => true,
-            'items' => $wishlist->map(function ($item) {
+            'items' => $wishlist->map(function ($item) use ($cartProductIds) {
                 return [
                     'id' => $item->product->id,
                     'name' => $item->product->name,
@@ -34,6 +45,7 @@ class WishlistController extends Controller
                     'label' => $item->product->label,
                     'current_stock' => $item->product->current_stock,
                     'thumbnail' => $item->product->thumbnail,
+                    'isAddedToCart' => in_array($item->product->id, $cartProductIds),
                     'category' => $item->product->main_category ? [
                         'id' => $item->product->main_category->id,
                         'name' => $item->product->main_category->name,
