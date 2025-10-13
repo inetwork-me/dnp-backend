@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V2\OrderCollection;
 use App\Models\Order;
+use App\Services\StockTransactionService;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -80,8 +81,37 @@ class ApiOrderController extends Controller
             ], 400);
         }
 
+        // Check if order is being cancelled
+        $oldStatus = $order->status;
+        $newStatus = $updateData['status'] ?? null;
+        $isCancelling = $newStatus === 'cancelled' && $oldStatus !== 'cancelled';
+
         // This triggers your OrderObserver->updating() and writes the history record
         $order->update($updateData);
+
+        // Restore stock if order is cancelled
+        if ($isCancelling) {
+            $stockService = new StockTransactionService();
+            $order->load('items.product');
+
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    // Refresh product from database to get current stock
+                    $item->product->refresh();
+
+                    // Log the transaction BEFORE updating stock
+                    $stockService->logOrderCancellation(
+                        $item->product,
+                        $item->quantity,
+                        $order->id,
+                        auth()->id()
+                    );
+
+                    // Then restore stock
+                    $item->product->increment('current_stock', $item->quantity);
+                }
+            }
+        }
 
         // Reload to include the fresh history
         $order->load('statusHistories.user');

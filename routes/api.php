@@ -40,6 +40,7 @@ use App\Http\Controllers\Api\V2\Admin\ShippingCarrierController;
 use App\Http\Controllers\Api\V2\Admin\AdminReviewController;
 use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\V1\TrackingController;
+use App\Http\Controllers\Api\V2\StockTransactionController;
 
 Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function () {
     Route::post('login', 'App\Http\Controllers\Api\V1\AuthController@login');
@@ -320,6 +321,13 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::post('/products', [ApiProductController::class, 'store']);
             Route::put('/products/{product}', [ApiProductController::class, 'update']);
             Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
+        });
+
+        // Stock Transaction Logs
+        Route::middleware('permission:products.view|products.manage')->group(function () {
+            Route::get('/stock-transactions', [StockTransactionController::class, 'index']);
+            Route::get('/products/{product}/stock-transactions', [StockTransactionController::class, 'forProduct']);
+            Route::get('/products/{product}/stock-transactions/stats', [StockTransactionController::class, 'stats']);
         });
 
         // CMS - Languages

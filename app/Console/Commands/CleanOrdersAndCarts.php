@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\StockTransactionService;
 
 class CleanOrdersAndCarts extends Command
 {
@@ -107,11 +108,20 @@ class CleanOrdersAndCarts extends Command
     {
         $orderItems = OrderItem::with('product')->get();
         $count = 0;
+        $stockService = new StockTransactionService();
 
         foreach ($orderItems as $orderItem) {
             if ($orderItem->product) {
                 // Increment current_stock back (reverse the decrement from order creation)
                 $orderItem->product->increment('current_stock', $orderItem->quantity);
+
+                // Log the stock restoration transaction
+                $stockService->logCleanupRestore(
+                    $orderItem->product,
+                    $orderItem->quantity,
+                    $orderItem->order_id
+                );
+
                 $count++;
             }
         }

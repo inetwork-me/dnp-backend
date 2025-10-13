@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\LoyaltyService;
+use App\Services\StockTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use DB;
@@ -344,6 +345,16 @@ class WebsiteOrderController extends Controller
                 // Deduct stock from product
                 $product = \App\Models\Product::find($ci->product_id);
                 if ($product) {
+                    // Log stock transaction BEFORE decrementing
+                    $stockService = new StockTransactionService();
+                    $stockService->logOrderDecrease(
+                        $product,
+                        $ci->quantity,
+                        $order->id,
+                        $user->id
+                    );
+
+                    // Then deduct stock
                     $product->decrement('current_stock', $ci->quantity);
                 }
             }

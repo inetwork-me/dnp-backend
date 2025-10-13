@@ -212,4 +212,12 @@ class Product extends Model
     {
         return $this->getEffectiveLoyaltyPoints();
     }
+
+    /**
+     * Get stock transactions for this product
+     */
+    public function stockTransactions()
+    {
+        return $this->hasMany(ProductStockTransaction::class);
+    }
 }
