@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use App\Models\OrderItem;
+use App\Models\Product;
 
 class CleanOrdersAndCarts extends Command
 {
@@ -19,7 +21,7 @@ class CleanOrdersAndCarts extends Command
      *
      * @var string
      */
-    protected $description = 'Clean all orders, order items, carts, and cart items from the database';
+    protected $description = 'Clean all orders, order items, carts, and cart items from the database (with stock restoration)';
 
     /**
      * Execute the console command.
@@ -45,6 +47,11 @@ class CleanOrdersAndCarts extends Command
 
             // Use DB transaction wrapper instead of manual begin/commit
             DB::transaction(function () {
+                // Restore stock BEFORE deleting order items
+                $this->info('Restoring product stock...');
+                $stockRestoredCount = $this->restoreProductStock();
+                $this->info("✓ Restored stock for {$stockRestoredCount} order items");
+
                 // Delete in correct order to handle foreign key constraints
                 $this->info('Deleting order items...');
                 DB::table('order_items')->delete();
@@ -89,5 +96,26 @@ class CleanOrdersAndCarts extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Restore product stock from all order items
+     *
+     * @return int Number of order items processed
+     */
+    protected function restoreProductStock(): int
+    {
+        $orderItems = OrderItem::with('product')->get();
+        $count = 0;
+
+        foreach ($orderItems as $orderItem) {
+            if ($orderItem->product) {
+                // Increment current_stock back (reverse the decrement from order creation)
+                $orderItem->product->increment('current_stock', $orderItem->quantity);
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }
