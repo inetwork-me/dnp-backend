@@ -39,12 +39,16 @@ class PasswordResetController extends Controller
 
     public function forgetRequest(Request $request)
     {
+        $request->validate([
+            'email_or_phone' => 'required',
+            'send_code_by' => 'required|in:email,phone'
+        ]);
+
         if ($request->send_code_by == 'phone') {
             $user = User::where('phone', $request->email_or_phone)->first();
         } else {
             $user = User::where('email', $request->email_or_phone)->first();
         }
-
 
         if (!$user) {
             return response()->json([
@@ -53,13 +57,12 @@ class PasswordResetController extends Controller
             ], 404);
         }
 
-        if ($user) {
-            $user->verification_code = rand(100000, 999999);
-            $user->save();
-        }
+        // Generate 6-digit verification code
+        $user->verification_code = rand(100000, 999999);
+        $user->save();
 
+        // Send notification
         $user->notify(new AppEmailVerificationNotification($user->verification_code));
-
 
         return response()->json([
             'result' => true,
@@ -69,7 +72,22 @@ class PasswordResetController extends Controller
 
     public function verifyCode(Request $request)
     {
-        $user = User::where('verification_code', $request->verification_code)->first();
+        $request->validate([
+            'email_or_phone' => 'required',
+            'verification_code' => 'required',
+            'verify_by' => 'required|in:email,phone'
+        ]);
+
+        // Find user by email or phone AND verification code
+        if ($request->verify_by == 'email') {
+            $user = User::where('email', $request->email_or_phone)
+                        ->where('verification_code', $request->verification_code)
+                        ->first();
+        } else {
+            $user = User::where('phone', $request->email_or_phone)
+                        ->where('verification_code', $request->verification_code)
+                        ->first();
+        }
 
         if ($user != null) {
             return response()->json([
@@ -80,14 +98,31 @@ class PasswordResetController extends Controller
         } else {
             return response()->json([
                 'result' => false,
-                'message' => translate('Invalid verification code'),
+                'message' => translate('Invalid verification code or email/phone'),
             ], 400);
         }
     }
 
     public function confirmReset(Request $request)
     {
-        $user = User::where('verification_code', $request->verification_code)->first();
+        // Validate input
+        $request->validate([
+            'email_or_phone' => 'required',
+            'verification_code' => 'required',
+            'password' => 'required|min:6|confirmed',
+            'verify_by' => 'required|in:email,phone'
+        ]);
+
+        // Find user by email/phone AND verification code (security fix)
+        if ($request->verify_by == 'email') {
+            $user = User::where('email', $request->email_or_phone)
+                        ->where('verification_code', $request->verification_code)
+                        ->first();
+        } else {
+            $user = User::where('phone', $request->email_or_phone)
+                        ->where('verification_code', $request->verification_code)
+                        ->first();
+        }
 
         if ($user != null) {
             $user->verification_code = null;
@@ -95,25 +130,28 @@ class PasswordResetController extends Controller
             $user->save();
             return response()->json([
                 'result' => true,
-                'message' => translate('Your password is reset.Please login'),
+                'message' => translate('Your password is reset. Please login'),
             ], 200);
         } else {
             return response()->json([
                 'result' => false,
-                'message' => translate('No user is found'),
-            ], 200);
+                'message' => translate('Invalid verification code or email/phone'),
+            ], 400);
         }
     }
 
     public function resendCode(Request $request)
     {
+        $request->validate([
+            'email_or_phone' => 'required',
+            'verify_by' => 'required|in:email,phone'
+        ]);
 
         if ($request->verify_by == 'email') {
             $user = User::where('email', $request->email_or_phone)->first();
         } else {
             $user = User::where('phone', $request->email_or_phone)->first();
         }
-
 
         if (!$user) {
             return response()->json([
@@ -122,6 +160,7 @@ class PasswordResetController extends Controller
             ], 404);
         }
 
+        // Generate new 6-digit verification code
         $user->verification_code = rand(100000, 999999);
         $user->save();
 
