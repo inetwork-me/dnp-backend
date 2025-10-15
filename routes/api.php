@@ -115,6 +115,8 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::post('cart/items', [WebsiteCartController::class, 'addItem']);
     Route::put('cart/items/{item}', [WebsiteCartController::class, 'updateItem']);
     Route::delete('cart/items/{item}', [WebsiteCartController::class, 'removeItem']);
+    // Cart ownership transfer (guest → user on login)
+    Route::post('cart/transfer-ownership', [WebsiteCartController::class, 'transferOwnership']);
     // NEW coupon routes
     Route::post('/cart/{cart}/apply-coupon', [WebsiteCartController::class, 'applyCoupon']);
     Route::delete('/cart/{cart}/remove-coupon', [WebsiteCartController::class, 'removeCoupon']);

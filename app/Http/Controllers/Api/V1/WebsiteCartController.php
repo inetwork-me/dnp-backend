@@ -234,13 +234,67 @@ class WebsiteCartController extends Controller
 
     /**
      * DELETE /api/cart/{cart}/remove-coupon
-     * 
+     *
      * Detaches any coupon from the cart.
      */
     public function removeCoupon(Cart $cart)
     {
         $cart->update(['coupon_id' => null]);
         return response()->noContent();
+    }
+
+    /**
+     * POST /api/v1/cart/transfer-ownership
+     *
+     * Transfers a guest cart to an authenticated user.
+     * Simply updates the cart's user_id and removes guest_token.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function transferOwnership(Request $request)
+    {
+        $validated = $request->validate([
+            'cart_id' => 'required|integer|exists:carts,id',
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        $cartId = $validated['cart_id'];
+        $userId = $validated['user_id'];
+
+        // Find the cart
+        $cart = Cart::findOrFail($cartId);
+
+        // Security: Only allow transfer if cart is guest cart (no user_id)
+        if ($cart->user_id !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart already belongs to a user'
+            ], 400);
+        }
+
+        // Security: Only allow transfer if cart is open
+        if ($cart->status !== 'open') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only open carts can be transferred'
+            ], 400);
+        }
+
+        // Transfer ownership: Set user_id and clear guest_token
+        $cart->update([
+            'user_id' => $userId,
+            'guest_token' => null,
+        ]);
+
+        // Load cart with items and return
+        $cart->load('items.product', 'items.branch', 'coupon');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart ownership transferred successfully',
+            'cart' => $cart,
+        ], 200);
     }
 
 }
