@@ -495,6 +495,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         });
         Route::middleware('permission:orders.manage')->group(function () {
             Route::put('orders/{order}/status', [ApiOrderController::class, 'updateStatus']);
+            Route::delete('orders/{order}', [ApiOrderController::class, 'destroy']);
         });
 
         // Loyalty System Routes

@@ -121,4 +121,47 @@ class ApiOrderController extends Controller
             'data'    => $order,
         ]);
     }
+
+    /**
+     * Delete an order
+     * Restores stock for all items before deletion (only if not already cancelled)
+     */
+    public function destroy(Order $order): JsonResponse
+    {
+        // Only restore stock if order wasn't already cancelled or refunded
+        // (cancelled/refunded orders already had their stock restored)
+        $shouldRestoreStock = !in_array($order->status, ['cancelled', 'refunded']);
+
+        if ($shouldRestoreStock) {
+            // Restore stock for all order items
+            $stockService = new StockTransactionService();
+            $order->load('items.product');
+
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    // Refresh product from database to get current stock
+                    $item->product->refresh();
+
+                    // Log the transaction BEFORE updating stock
+                    $stockService->logOrderCancellation(
+                        $item->product,
+                        $item->quantity,
+                        $order->id,
+                        auth()->id()
+                    );
+
+                    // Restore stock
+                    $item->product->increment('current_stock', $item->quantity);
+                }
+            }
+        }
+
+        // Delete the order (cascade will delete items, status histories, etc.)
+        $order->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order deleted successfully',
+        ]);
+    }
 }
