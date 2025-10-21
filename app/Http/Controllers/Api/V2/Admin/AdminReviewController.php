@@ -98,6 +98,8 @@ class AdminReviewController extends Controller
             'rating' => 'sometimes|integer|between:1,5',
             'comment' => 'sometimes|string|max:1000',
             'status' => 'sometimes|integer|in:0,1',
+            'user_name' => 'sometimes|string|max:255',
+            'user_email' => 'sometimes|email|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -108,7 +110,37 @@ class AdminReviewController extends Controller
             ], 422);
         }
 
+        // Update review fields
         $review->update($request->only(['rating', 'comment', 'status']));
+
+        // Update user name and email if provided (for fake reviews)
+        if ($request->has('user_name') || $request->has('user_email')) {
+            $userUpdateData = [];
+
+            if ($request->has('user_name')) {
+                $userUpdateData['name'] = $request->user_name;
+            }
+
+            if ($request->has('user_email')) {
+                // Check if email is already taken by another user
+                $existingUser = User::where('email', $request->user_email)
+                    ->where('id', '!=', $review->user_id)
+                    ->first();
+
+                if ($existingUser) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Email already exists for another user',
+                    ], 422);
+                }
+
+                $userUpdateData['email'] = $request->user_email;
+            }
+
+            if (!empty($userUpdateData)) {
+                $review->user->update($userUpdateData);
+            }
+        }
 
         return response()->json([
             'success' => true,
