@@ -32,7 +32,37 @@ class OrderConfirmationNotification extends Notification implements ShouldQueue
         $itemsText = '';
         foreach ($order->items as $item) {
             $productName = $item->product ? $item->product->getTranslation('name') : 'Product';
-            $itemsText .= '• ' . $productName . ' x' . $item->quantity . ' - ' . number_format($item->line_total, 2) . ' EGP' . "\n";
+            $product = $item->product;
+
+            // Build item line with price info
+            $itemLine = '• ' . $productName . ' x' . $item->quantity;
+
+            // Check if product has discount
+            if ($product && $product->discount > 0) {
+                $originalPrice = $product->unit_price;
+                $discountType = $product->discount_type ?? 'percent';
+
+                // Calculate discounted price
+                if ($discountType === 'amount') {
+                    $discountedPrice = $originalPrice - $product->discount;
+                    $discountDisplay = '-' . number_format($product->discount, 2) . ' EGP';
+                } else {
+                    $discountedPrice = $originalPrice - ($originalPrice * $product->discount / 100);
+                    $discountDisplay = '-' . $product->discount . '%';
+                }
+
+                // Show original price (strikethrough simulated with text), discounted price, and discount badge
+                $itemLine .= ' - ' . number_format($originalPrice, 2) . ' EGP → ' . number_format($discountedPrice, 2) . ' EGP (' . $discountDisplay . ')';
+            } else {
+                // No discount, just show unit price
+                $unitPrice = $product ? $product->unit_price : ($item->line_total / $item->quantity);
+                $itemLine .= ' - ' . number_format($unitPrice, 2) . ' EGP each';
+            }
+
+            // Add line total
+            $itemLine .= ' = ' . number_format($item->line_total, 2) . ' EGP';
+
+            $itemsText .= $itemLine . "\n";
         }
 
         $mailMessage = (new MailMessage)

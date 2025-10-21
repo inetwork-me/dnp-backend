@@ -53,10 +53,16 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
 
     Route::post('signup', 'App\Http\Controllers\Api\V1\AuthController@signup');
     Route::post('social-login', 'App\Http\Controllers\Api\V1\AuthController@socialLogin');
+
+    // Password Reset Flow (Public)
     Route::post('password/forget_request', 'App\Http\Controllers\Api\V1\PasswordResetController@forgetRequest');
     Route::post('password/verify_code', 'App\Http\Controllers\Api\V1\PasswordResetController@verifyCode');
     Route::post('password/confirm_reset', 'App\Http\Controllers\Api\V1\PasswordResetController@confirmReset');
     Route::post('password/resend_code', 'App\Http\Controllers\Api\V1\PasswordResetController@resendCode');
+
+    // Email/Phone Verification OTP (Public - No Auth Required)
+    Route::post('resend_otp', 'App\Http\Controllers\Api\V1\AuthController@resendVerificationOTP');
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', 'App\Http\Controllers\Api\V1\AuthController@logout');
         Route::get('account-deletion', 'App\Http\Controllers\Api\V1\AuthController@account_deletion');
@@ -143,8 +149,12 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
         Route::get('orders', [WebsiteOrderController::class, 'index']);
         Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+
+        // User Reviews (Customer manages their own reviews)
         Route::get('reviews', [WebsiteReviewController::class, 'index']);
         Route::post('reviews', [WebsiteReviewController::class, 'store']);
+        Route::put('reviews/{id}', [WebsiteReviewController::class, 'update']);
+        Route::delete('reviews/{id}', [WebsiteReviewController::class, 'destroy']);
 
         // Loyalty endpoints for website
         Route::prefix('loyalty')->group(function () {

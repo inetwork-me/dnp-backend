@@ -207,6 +207,64 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Public resend OTP for signup/email verification (no authentication required)
+     * Used when user signs up but doesn't receive verification code
+     */
+    public function resendVerificationOTP(Request $request)
+    {
+        $request->validate([
+            'email_or_phone' => 'required',
+            'verify_by' => 'required|in:email,phone'
+        ]);
+
+        // Find user by email or phone
+        if ($request->verify_by == 'email') {
+            $user = User::where('email', $request->email_or_phone)->first();
+        } else {
+            $user = User::where('phone', $request->email_or_phone)->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => translate('User not found')
+            ], 404);
+        }
+
+        // Check if user is already verified
+        if ($user->email_verified_at != null) {
+            return response()->json([
+                'result' => false,
+                'message' => translate('Your account is already verified')
+            ], 400);
+        }
+
+        // Generate new verification code
+        $user->verification_code = rand(100000, 999999);
+        $user->save();
+
+        // Send verification code
+        if ($request->verify_by == 'email') {
+            try {
+                $user->notify(new AppEmailVerificationNotification($user->verification_code));
+            } catch (\Exception $e) {
+                return response()->json([
+                    'result' => false,
+                    'message' => translate('Failed to send verification code')
+                ], 500);
+            }
+        } else {
+            $otpController = new OTPVerificationController();
+            $otpController->send_code($user);
+        }
+
+        return response()->json([
+            'result' => true,
+            'message' => translate('Verification code sent successfully')
+        ], 200);
+    }
+
     public function login(Request $request)
     {
         // 1) Default login_by, validation, etc.  (unchanged)  
