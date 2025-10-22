@@ -173,14 +173,83 @@ class WebsiteCartController extends Controller
         return $item->load('product');
     }
 
-    /** 
-     * DELETE /api/cart/items/{item} 
-     * (unchanged) 
+    /**
+     * DELETE /api/cart/items/{item_id}
+     * Remove an item from cart with proper validation
      */
-    public function removeItem(CartItem $item)
+    public function removeItem(Request $request, $item_id)
     {
+        // Find the cart item with its cart relationship
+        $item = CartItem::with('cart')->find($item_id);
+
+        if (!$item) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart item not found'
+            ], 404);
+        }
+
+        // Get the cart that this item belongs to
+        $cart = $item->cart;
+
+        if (!$cart) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart not found for this item'
+            ], 404);
+        }
+
+        // Get current user/guest token
+        // Try to authenticate with Sanctum Bearer token if present
+        $user = $request->user('sanctum');
+        $userId = $user ? $user->id : null;
+        $guestToken = $request->header('X-Guest-Token');
+
+        // Verify ownership: either by user_id or guest_token
+        $hasAccess = false;
+
+        if ($userId && $cart->user_id && (int)$cart->user_id === (int)$userId) {
+            // Authenticated user owns this cart
+            $hasAccess = true;
+        } elseif ($guestToken && $cart->guest_token === $guestToken && $cart->user_id === null) {
+            // Guest user owns this cart
+            $hasAccess = true;
+        } elseif (!$userId && !$guestToken) {
+            // No authentication provided at all
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required. Please provide user token or guest token.',
+                'debug' => [
+                    'has_user' => $userId ? true : false,
+                    'has_guest_token' => $guestToken ? true : false,
+                ]
+            ], 401);
+        }
+
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to remove this item',
+                'debug' => [
+                    'cart_user_id' => $cart->user_id,
+                    'cart_user_id_type' => gettype($cart->user_id),
+                    'cart_guest_token' => $cart->guest_token ? substr($cart->guest_token, 0, 10) . '...' : 'null',
+                    'request_user_id' => $userId,
+                    'request_user_id_type' => gettype($userId),
+                    'request_guest_token' => $guestToken ? substr($guestToken, 0, 10) . '...' : 'null',
+                    'user_match' => $userId && $cart->user_id && (int)$cart->user_id === (int)$userId,
+                    'guest_match' => $guestToken && $cart->guest_token === $guestToken,
+                ]
+            ], 403);
+        }
+
+        // Delete the item
         $item->delete();
-        return response()->noContent();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item removed from cart successfully'
+        ], 200);
     }
 
     /**
