@@ -34,7 +34,7 @@ class ProductController extends Controller
         $query = Product::query()
             // ->where('published', 1)
             ->when($isPackage, fn ($q) => $q->with('packageDetails'))
-            ->when($isSession, fn ($q) => $q->with('packageDetails'))
+            ->when($isSession, fn ($q) => $q->with(['packageDetails', 'branches']))
             ->withAvg('reviews as avg_rating', 'rating')
             ->with(['brand', 'main_category']);
 
