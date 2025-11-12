@@ -24,12 +24,38 @@ class WebsiteOrderController extends Controller
     {
         $this->loyaltyService = $loyaltyService;
     }
-    // GET /api/orders
+    // GET /api/orders?type=session or /api/orders?type=session,package
     public function index(Request $request)
     {
-        $orders = Order::where('user_id', $request->user()->id)
-            ->with(['items.product', 'latestShipment'])
-            ->get();
+        // Validate type filter (comma-separated values allowed)
+        $request->validate([
+            'type' => 'nullable|string'
+        ]);
+
+        $query = Order::where('user_id', $request->user()->id);
+
+        // Filter by product type(s) if specified
+        if ($request->filled('type')) {
+            // Split comma-separated types
+            $types = array_map('trim', explode(',', $request->query('type')));
+
+            // Validate each type
+            $validTypes = ['simple', 'bundle', 'subscription', 'service', 'package', 'session', 'onlinepackage'];
+            $types = array_filter($types, fn($type) => in_array($type, $validTypes));
+
+            if (!empty($types)) {
+                $query->whereHas('items.product', function ($q) use ($types) {
+                    $q->whereIn('type', $types);
+                });
+            }
+        }
+
+        // Load relationships - include branch for session/package location info
+        $orders = $query->with([
+            'items.product',
+            'items.branch',
+            'latestShipment'
+        ])->get();
 
         // Ensure total_amount is calculated for orders that might be missing it
         foreach ($orders as $order) {
