@@ -25,6 +25,7 @@ class WebsiteCartController extends Controller
         $userId = $request->input('user_id') ?? optional($request->user())->id;
         $guestToken = $request->header('X-Guest-Token');
 
+
         // Create or fetch the open cart, and eager-load items + coupon in one go
         if ($userId) {
             // Authenticated user - use user_id

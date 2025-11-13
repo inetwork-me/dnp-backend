@@ -134,15 +134,23 @@ class WebsiteOrderController extends Controller
 
             // Verify cart ownership
             if ($userId) {
-                // Authenticated user - verify user_id matches
-                if ($cart->user_id !== $userId) {
+                // Authenticated user - verify user_id matches (with type casting)
+                if ($cart->user_id && (int)$cart->user_id !== (int)$userId) {
                     abort(403, 'Unauthorized to access this cart');
                 }
+                // If cart has no user_id but has guest_token, it's still a guest cart
+                if (!$cart->user_id && $cart->guest_token) {
+                    abort(403, 'Cart has not been transferred to user. Please transfer ownership first.');
+                }
             } else if ($guestToken) {
-                // Guest user - verify guest_token matches or cart has no token (legacy cart)
+                // Guest user - verify guest_token matches
                 if ($cart->guest_token && $cart->guest_token !== $guestToken) {
                     // Cart belongs to a different guest
                     abort(403, 'Unauthorized to access this cart');
+                }
+                // If cart has user_id, it belongs to a user, not a guest
+                if ($cart->user_id) {
+                    abort(403, 'Cart belongs to an authenticated user');
                 }
                 // If cart has no guest_token (legacy), allow access and update it
                 if (!$cart->guest_token) {
