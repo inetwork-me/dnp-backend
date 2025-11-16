@@ -15,9 +15,12 @@ class CityController extends Controller
     {
         $locale = $request->header('Accept-Language', 'en');
 
+        // Default to Egypt if no country_code is provided (backward compatibility)
+        $countryCode = $request->input('country_code', 'EG');
+
         $query = DB::table('aramex_cities')
             ->where('is_active', true)
-            ->where('country_code', 'EG');
+            ->where('country_code', $countryCode);
 
         // Optional search parameter
         if ($request->has('search')) {

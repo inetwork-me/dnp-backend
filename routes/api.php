@@ -90,6 +90,10 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::post('track', [TrackingController::class, 'track']);
     Route::post('validate-address', [TrackingController::class, 'validateAddress']);
 
+    // Country routes
+    Route::get('countries', 'App\Http\Controllers\Api\V1\CountryController@index');
+    Route::get('countries/{id}', 'App\Http\Controllers\Api\V1\CountryController@show');
+
     // City routes
     Route::get('cities', 'App\Http\Controllers\Api\V1\CityController@index');
     Route::get('cities/{id}', 'App\Http\Controllers\Api\V1\CityController@show');
