@@ -70,8 +70,8 @@ Route::group(['prefix' => 'v1/auth', 'middleware' => ['app_language']], function
         Route::put('user/profile', 'App\Http\Controllers\Api\V1\AuthController@updateProfile');
         Route::get('resend_code', 'App\Http\Controllers\Api\V1\AuthController@resendCode');
         Route::post('confirm_code', 'App\Http\Controllers\Api\V1\AuthController@confirmCode');
-        Route::get('orders', [WebsiteOrderController::class, 'index']);
-        Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+        // Route::get('orders', [WebsiteOrderController::class, 'index']); // Moved to auth:sanctum group below
+        // Route::get('orders/{order}', [WebsiteOrderController::class, 'show']); // Using public route below
 
         // Wishlist routes
         Route::get('wishlist', 'App\Http\Controllers\Api\V1\WishlistController@index');
@@ -136,6 +136,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
 
     // ORDERS / CHECKOUT
     Route::post('checkout', [WebsiteOrderController::class, 'store']);
+    Route::get('orders/public/{order}', [WebsiteOrderController::class, 'show']); // Public route for payment page
     Route::put('orders/{order}/payment-status', [WebsiteOrderController::class, 'updatePaymentStatus']);
 
     // SHIPPING - V1 Routes for frontend compatibility
@@ -152,7 +153,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['app_language']], function () {
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('orders', [WebsiteOrderController::class, 'index']);
-        Route::get('orders/{order}', [WebsiteOrderController::class, 'show']);
+        // Route::get('orders/{order}', [WebsiteOrderController::class, 'show']); // Using public route above
 
         // User Reviews (Customer manages their own reviews)
         Route::get('reviews', [WebsiteReviewController::class, 'index']);
