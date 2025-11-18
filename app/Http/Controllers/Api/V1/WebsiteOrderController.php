@@ -551,4 +551,52 @@ class WebsiteOrderController extends Controller
             'order' => $order->load('items.product', 'coupon'),
         ]);
     }
+
+    /**
+     * Generate payment URL for an order
+     * POST /api/v1/orders/{order}/payment-url
+     */
+    public function generatePaymentUrl(Order $order)
+    {
+        // Verify order belongs to current user (for authenticated users)
+        $user = request()->user();
+
+        if ($user && $order->user_id !== $user->id) {
+            abort(403, 'Unauthorized to access this order');
+        }
+
+        // Only generate payment URL for unpaid orders
+        if ($order->payment_status !== 'unpaid') {
+            return response()->json([
+                'success' => false,
+                'error' => 'Order is already ' . $order->payment_status,
+            ], 400);
+        }
+
+        // Only for credit card payment method
+        if (!in_array($order->payment_method, ['mpgs', 'credit_card'])) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Payment method does not require payment URL',
+            ], 400);
+        }
+
+        // Generate payment URL using MPGS service
+        try {
+            $mpgsService = new \App\Services\Payment\MpgsPaymentService();
+            $result = $mpgsService->generatePaymentUrl($order);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            \Log::error('Payment URL Generation Error', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to generate payment URL: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

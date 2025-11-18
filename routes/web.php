@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\V1\MpgsPaymentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -18,3 +19,9 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// MPGS Payment Redirects (web routes for redirects from MPGS)
+Route::prefix('api/payment/mpgs')->group(function () {
+    Route::get('success', [MpgsPaymentController::class, 'success'])->name('mpgs.success');
+    Route::get('cancel', [MpgsPaymentController::class, 'cancel'])->name('mpgs.cancel');
+});
