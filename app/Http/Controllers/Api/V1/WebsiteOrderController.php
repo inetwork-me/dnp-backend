@@ -74,9 +74,9 @@ class WebsiteOrderController extends Controller
     }
 
     // GET /api/orders/{order}
-    public function show(Order $order)
+    public function show(Request $request, Order $order)
     {
-        $this->authorize('view', $order);
+        // Public endpoint - return order with basic details
         return $order->load('items.product');
     }
 
