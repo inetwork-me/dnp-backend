@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
+use App\Observers\OrderObserver;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -16,17 +18,19 @@ class AppServiceProvider extends ServiceProvider
    */
   public function boot()
   {
-      Schema::defaultStringLength(191);
-      Paginator::useBootstrap();    
-      try {
-          // $settings = \App\Models\BusinessSetting::where('type', 'shipping_add_token_oto')->first();
-          // if (!empty($settings)) {
-          //     config(['oto.refresh_token' => $settings->value]);
-          // }
-      } catch (\Exception $e) {
-          // Log the error or handle it accordingly
-          \Log::error('Database connection error: ' . $e->getMessage());
-      }
+    Schema::defaultStringLength(191);
+    Paginator::useBootstrap();
+    Order::observe(OrderObserver::class);
+
+    try {
+      // $settings = \App\Models\BusinessSetting::where('type', 'shipping_add_token_oto')->first();
+      // if (!empty($settings)) {
+      //     config(['oto.refresh_token' => $settings->value]);
+      // }
+    } catch (\Exception $e) {
+      // Log the error or handle it accordingly
+      \Log::error('Database connection error: ' . $e->getMessage());
+    }
   }
 
   /**

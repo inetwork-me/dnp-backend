@@ -13,6 +13,30 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(AdminSeeder::class);
+        $this->call([ProductSpecificationsTableSeeder::class]);
+        $this->call([SettingTableSeeder::class]);
+        $this->call([MenuTableSeeder::class]);
+        $this->call([
+            PostTypeSeeder::class,
+            PostSeeder::class,
+
+        ]);
+        $this->call([PostTypeCategorySeeder::class]);
+        $this->call([
+            MediaFolderSeeder::class,
+            TagSeeder::class,
+        ]);
+
+        // Give User ID 1 all permissions (Super Admin)
+        // Safe to run - won't overwrite existing data
+        $this->call(SuperAdminPermissionsSeeder::class);
+
+        // Shipping-related seeders
+        $this->call([
+            CitiesSeeder::class,
+            AramexShippingSeeder::class,
+        ]);
+
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([

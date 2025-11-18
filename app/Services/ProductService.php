@@ -27,7 +27,7 @@ class ProductService
 
         // Process tags
         $tags = !empty($collection['tags'][0])
-            ? implode(',', array_map(fn($tag) => $tag->value, json_decode($collection['tags'][0])))
+            ? implode(',', array_map(fn ($tag) => $tag->value, json_decode($collection['tags'][0])))
             : '';
         $collection['tags'] = $tags;
 
@@ -39,8 +39,8 @@ class ProductService
 
         // Set default meta data
         $collection['meta_title'] = $collection['meta_title'] ?? $collection['name'];
-        $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
-        $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
+        // $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
+        // $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
 
         // Handle shipping cost
         $shipping_cost = isset($collection['shipping_type']) && $collection['shipping_type'] === 'flat_rate'
@@ -105,9 +105,14 @@ class ProductService
             $attributes = json_encode(array());
         }
 
-        // Check publication status
-        $published = !in_array($collection['button'], ['unpublish', 'draft']);
-        unset($collection['button']);
+        // Check publication status - prefer explicit published field over button
+        $published = $collection['published'] ?? false;
+        
+        // Legacy button handling (for backward compatibility)
+        if (isset($collection['button'])) {
+            $published = !in_array($collection['button'], ['unpublish', 'draft'], true);
+            unset($collection['button']);
+        }
 
         // Handle custom attributes
         $customAttributes = [];
@@ -148,36 +153,41 @@ class ProductService
         $slug .= $same_slug_count > 1 ? '-' . $same_slug_count + 1 : '';
 
         // Default settings for flags
-        $flags = ['refundable', 'is_quantity_multiplied', 'cash_on_delivery', 'featured', 'todays_deal'];
+        $flags = ['refundable', 'is_quantity_multiplied', 'cash_on_delivery', 'featured', 'todays_deal', 'free_shipping'];
         foreach ($flags as $flag) {
-            $collection[$flag] = $collection[$flag] ?? 0;
+            // Convert array values to integer (handle checkbox arrays like ["0"] or ["1"])
+            if (isset($collection[$flag]) && is_array($collection[$flag])) {
+                $collection[$flag] = (int) ($collection[$flag][0] ?? 0);
+            } else {
+                $collection[$flag] = $collection[$flag] ?? 0;
+            }
         }
 
         // Process tags
         $tags = !empty($collection['tags'][0])
-            ? implode(',', array_map(fn($tag) => $tag->value, json_decode($collection['tags'][0])))
+            ? implode(',', array_map(fn ($tag) => $tag->value, json_decode($collection['tags'][0])))
             : '';
         $collection['tags'] = $tags;
 
         // Handle discount dates
-        [$discount_start_date, $discount_end_date] = $collection['date_range']
-            ? array_map('strtotime', explode(' to ', $collection['date_range']))
-            : [null, null];
+        // [$discount_start_date, $discount_end_date] = $collection['date_range']
+        //     ? array_map('strtotime', explode(' to ', $collection['date_range']))
+        //     : [null, null];
         unset($collection['date_range']);
 
         // Set meta data defaults
         $collection['meta_title'] = $collection['meta_title'] ?? $collection['name'];
-        $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
-        $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
+        // $collection['meta_description'] = $collection['meta_description'] ?? strip_tags($collection['description']);
+        // $collection['meta_img'] = $collection['meta_img'] ?? $collection['thumbnail_img'];
 
-        if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
-            $collection = $collection->except(['name', 'unit', 'description']);
-        }
+        // if ($collection['lang'] != env("DEFAULT_LANGUAGE")) {
+        //     $collection = $collection->except(['name', 'unit', 'description']);
+        // }
         unset($collection['lang']);
 
         // Handle shipping cost
         if (isset($collection['shipping_type'])) {
-            $shipping_cost = $collection['shipping_type'] === 'flat_rate' ? $collection['flat_shipping_cost'] : 0;
+            // $shipping_cost = $collection['shipping_type'] === 'flat_rate' ? $collection['flat_shipping_cost'] : 0;
             unset($collection['flat_shipping_cost']);
         } else {
             $shipping_cost = 0;
@@ -246,18 +256,20 @@ class ProductService
         }
         unset($collection['product_service_custom_data']);
 
-        $data = $collection->merge(compact(
-            'discount_start_date',
-            'discount_end_date',
-            'shipping_cost',
-            'slug',
-            'colors',
-            'choice_options',
-            'attributes'
-        ))->toArray();
+        // $data = $collection->merge(compact(
+        //     'discount_start_date',
+        //     'discount_end_date',
+        //     'shipping_cost',
+        //     'slug',
+        //     'colors',
+        //     'choice_options',
+        //     'attributes'
+        // ))->toArray();
 
-        $data['product_service_custom_data'] = ($customAttributes);
+        // $data['product_service_custom_data'] = ($customAttributes);
 
+        // Convert collection back to array after all modifications
+        $data = $collection->toArray();
 
         $product->update($data);
 

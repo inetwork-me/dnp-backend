@@ -94,9 +94,10 @@ class AuthController extends Controller
 
     //     return $this->loginSuccess($user);
     // }
-    
+
     public function signup(Request $request)
     {
+        // Custom error messages
         $messages = array(
             'name.required' => translate('Name is required'),
             'email.required' => translate('Email is required'),
@@ -106,31 +107,38 @@ class AuthController extends Controller
             'password.confirmed' => translate('Password confirmation does not match'),
             'password.min' => translate('Minimum 6 digits required for password')
         );
+
+        // Validate name, email+unique, password+confirmation
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|string',
+            'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'email_or_phone' => [
-                'required',
-                ['email', 'unique:users,email'],
-            ],
+
         ], $messages);
 
         if ($validator->fails()) {
             return response()->json([
                 'result' => false,
                 'message' => $validator->errors()->all()
-            ]);
+            ], 422);
         }
 
+        // create user 
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->verification_code = rand(100000, 999999);
+
+        // At this point, if you want to enforce email verification, you could
+        // check a BusinessSetting. For now, we'll mark email_verified_at immediately.
+        $user->email_verified_at = Carbon::now();
         $user->save();
 
+        // Assign default customer role
+        $user->assignRole('client');
 
-        $user->email_verified_at = Carbon::now();
+
         // if ($user->email != null) {
         //     if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
         //         $user->email_verified_at = date('Y-m-d H:m:s');
@@ -199,77 +207,156 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Public resend OTP for signup/email verification (no authentication required)
+     * Used when user signs up but doesn't receive verification code
+     */
+    public function resendVerificationOTP(Request $request)
+    {
+        $request->validate([
+            'email_or_phone' => 'required',
+            'verify_by' => 'required|in:email,phone'
+        ]);
+
+        // Find user by email or phone
+        if ($request->verify_by == 'email') {
+            $user = User::where('email', $request->email_or_phone)->first();
+        } else {
+            $user = User::where('phone', $request->email_or_phone)->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'result' => false,
+                'message' => translate('User not found')
+            ], 404);
+        }
+
+        // Check if user is already verified
+        if ($user->email_verified_at != null) {
+            return response()->json([
+                'result' => false,
+                'message' => translate('Your account is already verified')
+            ], 400);
+        }
+
+        // Generate new verification code
+        $user->verification_code = rand(100000, 999999);
+        $user->save();
+
+        // Send verification code
+        if ($request->verify_by == 'email') {
+            try {
+                $user->notify(new AppEmailVerificationNotification($user->verification_code));
+            } catch (\Exception $e) {
+                return response()->json([
+                    'result' => false,
+                    'message' => translate('Failed to send verification code')
+                ], 500);
+            }
+        } else {
+            $otpController = new OTPVerificationController();
+            $otpController->send_code($user);
+        }
+
+        return response()->json([
+            'result' => true,
+            'message' => translate('Verification code sent successfully')
+        ], 200);
+    }
+
     public function login(Request $request)
     {
+        // 1) Default login_by, validation, etc.  (unchanged)  
         $request->login_by = $request->login_by ?? 'email';
-        $messages = array(
-            'email.required' => $request->login_by == 'email' ? translate('Email is required') : translate('Phone is required'),
-            'email.email' => translate('Email must be a valid email address'),
-            'email.numeric' => translate('Phone must be a number.'),
+        $messages = [
+            'email.required'    => $request->login_by == 'email'
+                ? translate('Email is required')
+                : translate('Phone is required'),
+            'email.email'       => translate('Email must be a valid email address'),
+            'email.numeric'     => translate('Phone must be a number.'),
             'password.required' => translate('Password is required'),
-        );
+        ];
         $validator = Validator::make($request->all(), [
             'password' => 'required',
             'login_by' => 'nullable',
-            'email' => [
+            'email'    => [
                 'required',
-                Rule::when($request->login_by === 'email', ['email', 'required']),
-                Rule::when($request->login_by === 'phone', ['numeric', 'required']),
-            ]
+                Rule::when($request->login_by === 'email', ['email']),
+                Rule::when($request->login_by === 'phone', ['numeric']),
+            ],
         ], $messages);
 
         if ($validator->fails()) {
             return response()->json([
-                'result' => false,
-                'message' => $validator->errors()->all()
+                'result'  => false,
+                'message' => $validator->errors()->all(),
             ]);
         }
 
-        $delivery_boy_condition = $request->has('user_type') && $request->user_type == 'delivery_boy';
-        $seller_condition = $request->has('user_type') && $request->user_type == 'seller';
-        $req_email = $request->email;
+        // 2) TODO  only let customer works here
+        $credential = $request->email;
 
-        if ($delivery_boy_condition) {
-            $user = User::whereIn('user_type', ['delivery_boy'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
-        } elseif ($seller_condition) {
-            $user = User::whereIn('user_type', ['seller'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
-        } else {
-            $user = User::whereIn('user_type', ['customer'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
+        // 3) Single lookup for either vendor or customer
+        $user = User::where(function ($q) use ($credential) {
+            $q->where('email', $credential)
+                ->orWhere('phone', $credential);
+        })
+            ->first();
+
+        // 4) If no user found
+        if (!$user) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('User not found'),
+                'user'    => null,
+            ], 401);
         }
 
-        if ($user != null) {
-            if (!$user->banned) {
-                if (Hash::check($request->password, $user->password)) {
-                    return $this->loginSuccess($user);
-                } else {
-                    return response()->json(['result' => false, 'message' => translate('Unauthorized'), 'user' => null], 401);
-                }
-            } else {
-                return response()->json(['result' => false, 'message' => translate('User is banned'), 'user' => null], 401);
-            }
-        } else {
-            return response()->json(['result' => false, 'message' => translate('User not found'), 'user' => null], 401);
+        // 5) Check banned
+        if ($user->banned) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('User is banned'),
+                'user'    => null,
+            ], 401);
         }
+
+        // 6) Verify password
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('Unauthorized'),
+                'user'    => null,
+            ], 401);
+        }
+
+        // 7) Success
+        return $this->loginSuccess($user);
     }
 
     public function user(Request $request)
     {
         return response()->json($request->user());
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully',
+            'user' => $user->fresh()
+        ]);
     }
 
     public function logout(Request $request)
@@ -365,7 +452,13 @@ class AuthController extends Controller
                 $existing_or_new_user->email_verified_at = date('Y-m-d H:m:s');
             }
 
+            $isNewUser = !$existing_or_new_user->exists;
             $existing_or_new_user->save();
+
+            // Assign default customer role if it's a new user
+            if ($isNewUser || !$existing_or_new_user->hasAnyRole()) {
+                $existing_or_new_user->assignRole('client');
+            }
 
             return $this->loginSuccess($existing_or_new_user);
         }
@@ -377,6 +470,10 @@ class AuthController extends Controller
         if (!$token) {
             $token = $user->createToken('API Token')->plainTextToken;
         }
+
+        // Get or create customer profile to include address data
+        $customer = $user->getOrCreateCustomer();
+
         return response()->json([
             'result' => true,
             'message' => translate('Successfully logged in'),
@@ -391,7 +488,20 @@ class AuthController extends Controller
                 'avatar' => $user->avatar,
                 'avatar_original' => uploaded_asset($user->avatar_original),
                 'phone' => $user->phone,
-                'email_verified' => $user->email_verified_at != null
+                'email_verified' => $user->email_verified_at != null,
+                // Include customer address data for checkout auto-fill
+                'first_name' => $customer->first_name ?? explode(' ', $user->name)[0] ?? null,
+                'last_name' => $customer->last_name ?? (str_contains($user->name, ' ') ? substr($user->name, strpos($user->name, ' ') + 1) : null),
+                'billing_address' => $customer->billing_address,
+                'billing_city' => $customer->billing_city,
+                'billing_state' => $customer->billing_state,
+                'billing_country' => $customer->billing_country,
+                'billing_postal_code' => $customer->billing_postal_code,
+                'shipping_address' => $customer->shipping_address,
+                'shipping_city' => $customer->shipping_city,
+                'shipping_state' => $customer->shipping_state,
+                'shipping_country' => $customer->shipping_country,
+                'shipping_postal_code' => $customer->shipping_postal_code,
             ]
         ]);
     }

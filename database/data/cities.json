@@ -1,0 +1,1222 @@
+[
+    {
+        "aramex_city_id": "170",
+        "name": "Qaliubia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "2587",
+        "name": "Cairo Suez Desert Rd",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "5037",
+        "name": "Nasr City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "6250",
+        "name": "sohag City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "16996",
+        "name": "Borg Al Arab City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "20968",
+        "name": "Manfalut",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "27040",
+        "name": "Benha ",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "27224",
+        "name": "Awaied-Ras Souda",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "35091",
+        "name": "Tanta",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "52550",
+        "name": "Luxour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "60339",
+        "name": "Al Tour City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "62197",
+        "name": "Abu Zaabal",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "63070",
+        "name": "Port Said",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "71345",
+        "name": "El Zeitoun",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "71991",
+        "name": "Sadat City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "75220",
+        "name": "Shubra",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "75741",
+        "name": "Katamiah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "76766",
+        "name": "Ismailia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "87270",
+        "name": "El Qantara Sharq",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "87494",
+        "name": "Saqara",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "90892",
+        "name": "Dahab City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "98082",
+        "name": "Cairo",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "112578",
+        "name": "Sedi Kreir",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "113846",
+        "name": "Moustorod",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "115414",
+        "name": "Zakazik",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "116383",
+        "name": "Ghamrah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "120636",
+        "name": "Fayoum",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "123757",
+        "name": "Menia City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "124294",
+        "name": "Al Monib",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "124829",
+        "name": "Kafr Saad",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "128678",
+        "name": "Dokki ",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "130365",
+        "name": "Wadi El Natroun",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "137670",
+        "name": "Maraqia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "137681",
+        "name": "Al Arish",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "137777",
+        "name": "Al Matarya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "139333",
+        "name": "Nag Hamadi",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "148275",
+        "name": "New Salhia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "159985",
+        "name": "Marabella",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "163256",
+        "name": "El Salam City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "165048",
+        "name": "Marinah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "165716",
+        "name": "Qalioub",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "168272",
+        "name": "Tebin",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "170719",
+        "name": "El Maadi",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "173853",
+        "name": "Ain Shams",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "174927",
+        "name": "Bani Swif",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "177582",
+        "name": "Maadi",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "186160",
+        "name": "Ramsis",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "196476",
+        "name": "Kasr El Einy",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "198912",
+        "name": "Deir Mawas",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "205156",
+        "name": "Rafah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "209110",
+        "name": "Al Menofiah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "217393",
+        "name": "Bolak El Dakrour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "219260",
+        "name": "October City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "219453",
+        "name": "Mokattam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "222138",
+        "name": "Dar El Salam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "228778",
+        "name": "Taba City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "232860",
+        "name": "Garden City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "233634",
+        "name": "Berkeit Sabb",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "234851",
+        "name": "Qena",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "238923",
+        "name": "Al Mahala",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "240921",
+        "name": "Suez",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "240961",
+        "name": "Samalut",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "241637",
+        "name": "Shebin El Koum",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "241663",
+        "name": "Manial El Rodah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "242322",
+        "name": "Dumiatta",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "242989",
+        "name": "Kaha ",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "250271",
+        "name": "Badrashin",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "257106",
+        "name": "Desouk",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "257808",
+        "name": "Helwan",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "257840",
+        "name": "El Ayat",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "259039",
+        "name": "Ras Seidr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "264357",
+        "name": "Abasya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "266409",
+        "name": "Tala",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "269831",
+        "name": "Omranya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "275982",
+        "name": "Marsa Matrouh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "280389",
+        "name": "Ein Al Sukhna",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "280894",
+        "name": "Hurghada",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "284972",
+        "name": "15 Of May City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "285431",
+        "name": "Kom Ombo",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "285630",
+        "name": "Khanka",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "291742",
+        "name": "Rod El Farag",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "295913",
+        "name": "Al Obour City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "298454",
+        "name": "Aswan",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "303963",
+        "name": "Bani Mazar",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "305568",
+        "name": "Al Haram",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "305709",
+        "name": "Shubra El Kheima",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "306122",
+        "name": "Damanhour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "311068",
+        "name": "Attaba",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "311856",
+        "name": "Kafr Saqr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "316802",
+        "name": "Alex Desert Rd.",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "320116",
+        "name": "Cornish El Nile",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "324271",
+        "name": "Nuwibaa",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "332586",
+        "name": "High Dam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "339871",
+        "name": "Heliopolis",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "351007",
+        "name": "Al Nobariah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "355619",
+        "name": "Giza",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "356032",
+        "name": "Fayid",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "363651",
+        "name": "Down Town",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "365856",
+        "name": "El Marg",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "366486",
+        "name": "Badr City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "366989",
+        "name": "Belqas",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "370354",
+        "name": "Safaga",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "371353",
+        "name": "Qift",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "372861",
+        "name": "Mansheyt Naser",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "376630",
+        "name": "Zamalek",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "377215",
+        "name": "Kafr Al Sheikh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "394962",
+        "name": "Meet Ghamr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "398026",
+        "name": "Quesna",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "401255",
+        "name": "El Saf",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "403078",
+        "name": "Hadayek El Qobah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "410588",
+        "name": "Belbis",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "416660",
+        "name": "Inshas",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "566020",
+        "name": "Marsa Alam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "566401",
+        "name": "Al Wahat",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "566402",
+        "name": "Siwa",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "566404",
+        "name": "Ras Shoqeir",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "849913",
+        "name": "El Wadi El Gadid",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "849916",
+        "name": "Toshka",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "852242",
+        "name": "EL rehab",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980086",
+        "name": "Al Waraq",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980087",
+        "name": "Imbaba",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980088",
+        "name": "Al Marg",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980089",
+        "name": "AL Qanater",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980090",
+        "name": "Dahshour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980091",
+        "name": "Abo Rawash",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980092",
+        "name": "El Hawamdiah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980093",
+        "name": "EL Korimat",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980094",
+        "name": "Atfeah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980095",
+        "name": "Torah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980096",
+        "name": "Beigam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980097",
+        "name": "Bahtem",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980125",
+        "name": "Bargiel",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980133",
+        "name": "ABOU SOMBO",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980134",
+        "name": "EL SAWAH",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980136",
+        "name": "EL GOUNA",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "980137",
+        "name": "RAS GHAREB",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017297",
+        "name": "Alexandria",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017298",
+        "name": "Assiut",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017299",
+        "name": "Mohandiseen",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017300",
+        "name": "Agouza",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017301",
+        "name": "Mansoura",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017302",
+        "name": "10Th Of Ramadan City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1017303",
+        "name": "Sharm El Sheikh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1041703",
+        "name": "New Cairo",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1041705",
+        "name": "Al Shorouk",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084241",
+        "name": "Abdeen",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084242",
+        "name": "Abnub",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084246",
+        "name": "Abu Kebir",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084248",
+        "name": "Abu Qurqas",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084249",
+        "name": "Abu Radis",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084250",
+        "name": "Abu Tesht",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084251",
+        "name": "Abu Tij",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084252",
+        "name": "Aga",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084255",
+        "name": "Al Amaria",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084256",
+        "name": "Al Amireya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084259",
+        "name": "Al Badari",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084261",
+        "name": "Al Burlos",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084264",
+        "name": "Al Fashn",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084265",
+        "name": "Al Fath",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084267",
+        "name": "Al Husseiniya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084268",
+        "name": "Al Ibrahimiya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084269",
+        "name": "Al Idwah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084271",
+        "name": "Al Mahmmoudeya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084272",
+        "name": "Al Manzalah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084275",
+        "name": "Al Qanayat",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084276",
+        "name": "Al Qantarah Gharb",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084277",
+        "name": "Al Qarna",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084279",
+        "name": "Al Qusiyyah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084281",
+        "name": "Al Wahat Al Dakhla",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084282",
+        "name": "Al Waili",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084283",
+        "name": "Al Waqf",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084286",
+        "name": "Armant",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084287",
+        "name": "As Santah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084289",
+        "name": "Ashmoun",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084290",
+        "name": "At Tall Al Kabir",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084291",
+        "name": "Awlad Saqr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084292",
+        "name": "Awsim",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084293",
+        "name": "Bab El Sharia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084295",
+        "name": "Bani Ebeid",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084298",
+        "name": "Basioun",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084300",
+        "name": "Beba",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084301",
+        "name": "Bila",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084308",
+        "name": "Daraw",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084309",
+        "name": "Dayrout",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084310",
+        "name": "Dekernes",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084312",
+        "name": "Deshna",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084314",
+        "name": "Edfo",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084315",
+        "name": "Ehnasia",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084317",
+        "name": "El Basatin",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084318",
+        "name": "El Dabaa",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084319",
+        "name": "El Gamaliya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084326",
+        "name": "El Salloum",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084327",
+        "name": "El Wasta",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084328",
+        "name": "El Zawya El Hamra",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084330",
+        "name": "El-Bagour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084333",
+        "name": "El-Hamam",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084334",
+        "name": "El-Hamoul",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084335",
+        "name": "El-Reyad",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084337",
+        "name": "El-Sayeda Zainab",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084338",
+        "name": "El-Senbellawein",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084339",
+        "name": "Esna",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084341",
+        "name": "Faqous",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084342",
+        "name": "Faraskour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084345",
+        "name": "Fowah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084350",
+        "name": "Ibshaway",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084352",
+        "name": "Itsa",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084357",
+        "name": "Kafr El-Zayat",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084358",
+        "name": "Kafr Shokr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084362",
+        "name": "Maghaghah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084363",
+        "name": "Mallawi",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084377",
+        "name": "Markaz Juhaynah Al-Gharbyah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084384",
+        "name": "Mashtool El Souk",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084385",
+        "name": "Matay",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084386",
+        "name": "Menouf City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084387",
+        "name": "Menyet El-Nasr",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084388",
+        "name": "Metobas",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084389",
+        "name": "Minya El Qamh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084391",
+        "name": "Nabaroh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084393",
+        "name": "Naqadah",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084394",
+        "name": "Nasr El Nouba",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084395",
+        "name": "Nasser",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084401",
+        "name": "Port Fouad",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084406",
+        "name": "Qillin",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084409",
+        "name": "Qotour",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084410",
+        "name": "Qus",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084411",
+        "name": "Ras Elbar",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084412",
+        "name": "Sahel Selim",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084413",
+        "name": "Saint Catherine",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084415",
+        "name": "Samannoud",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084416",
+        "name": "Samasta",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084419",
+        "name": "Sheikh Zayed City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084420",
+        "name": "Sheikh Zuweid",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084421",
+        "name": "Sherbeen",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084422",
+        "name": "Shibin Al Qanater",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084424",
+        "name": "Shuhada",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084426",
+        "name": "Sidi Barrani",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084427",
+        "name": "Sidi Salem",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084428",
+        "name": "Sinnuris",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084430",
+        "name": "Talkha",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084431",
+        "name": "Tamiya",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084433",
+        "name": "Toukh",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084437",
+        "name": "Youssef Al Seddik",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084438",
+        "name": "Zarka City",
+        "country_code": "EG"
+    },
+    {
+        "aramex_city_id": "1084440",
+        "name": "Zefta",
+        "country_code": "EG"
+    }
+]

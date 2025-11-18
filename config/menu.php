@@ -19,8 +19,8 @@ return [
     [
         'title' => 'Coupons',
         'icon' => 'sale.png',
-        'route' => 'page1.html',
-        'is_route' => false,
+        'route' => 'coupons.index',
+        'is_route' => true,
     ],
     [
         'title' => 'Brands',
@@ -57,7 +57,7 @@ return [
             ['title' => 'Add Admin', 'route' => '#', 'is_route' => false],
         ]
     ],
-    
+
     [
         'title' => 'Customer',
         'icon' => 'users.png',
@@ -82,6 +82,6 @@ return [
         'route' => 'page1.html',
         'is_route' => false,
     ],
-    
-    
+
+
 ];
