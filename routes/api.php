@@ -337,6 +337,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::post('/products', [ApiProductController::class, 'store']);
             Route::put('/products/{product}', [ApiProductController::class, 'update']);
             Route::delete('/products/{product}', [ApiProductController::class, 'destroy']);
+            Route::post('/products/{product}/remove-from-carts', [ApiProductController::class, 'removeFromCarts']);
         });
 
         // Stock Transaction Logs

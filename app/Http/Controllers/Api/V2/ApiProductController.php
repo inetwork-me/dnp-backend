@@ -382,23 +382,270 @@ class ApiProductController extends Controller
      */
     public function destroy(Product $product): JsonResponse
     {
-        $product->product_translations()->delete();
-        $product->categories()->detach();
-        $product->stocks()->delete();
-        $product->taxes()->delete();
-        $product->frequently_bought_products()->delete();
+        // Check for blocking relationships before deletion
+        $blockingReasons = [];
 
-        // Optionally: Cart::where('product_id',$product->id)->delete();
-        // Optionally: Wishlist::where('product_id',$product->id)->delete();
+        try {
 
-        $product->delete();
+        // Check cart items
+        $cartItemsCount = \App\Models\CartItem::where('product_id', $product->id)->count();
+        if ($cartItemsCount > 0) {
+            $cartItemsDetails = \App\Models\CartItem::where('product_id', $product->id)
+                ->with('cart.user')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'cart_id' => $item->cart_id,
+                        'quantity' => $item->quantity,
+                        'user' => $item->cart->user ? $item->cart->user->name : 'Guest',
+                        'created_at' => $item->created_at->format('Y-m-d H:i')
+                    ];
+                });
 
-        // Artisan::call('view:clear');
-        // Artisan::call('cache:clear');
+            $blockingReasons[] = [
+                'type' => 'cart_items',
+                'count' => $cartItemsCount,
+                'message' => "Product is in {$cartItemsCount} active cart(s)",
+                'details' => $cartItemsDetails
+            ];
+        }
 
-        return response()->json([
-            'message' => 'Product deleted successfully',
-        ], 200);
+        // Check order items
+        $orderItemsCount = \App\Models\OrderItem::where('product_id', $product->id)->count();
+        if ($orderItemsCount > 0) {
+            $orderItems = \App\Models\OrderItem::where('product_id', $product->id)
+                ->with('order.user')
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'order_number' => $item->order->order_number ?? 'N/A',
+                        'quantity' => $item->quantity,
+                        'customer' => $item->order->user->name ?? 'Guest',
+                        'order_status' => $item->order->order_status ?? 'unknown',
+                        'created_at' => $item->created_at->format('Y-m-d H:i')
+                    ];
+                });
+
+            $blockingReasons[] = [
+                'type' => 'orders',
+                'count' => $orderItemsCount,
+                'message' => "Product has {$orderItemsCount} order(s)",
+                'details' => $orderItems,
+                'showing' => min(10, $orderItemsCount)
+            ];
+        }
+
+        // Check wishlists
+        $wishlistsCount = $product->wishlists()->count();
+        if ($wishlistsCount > 0) {
+            $wishlists = $product->wishlists()
+                ->with('user')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'user' => $item->user->name,
+                        'created_at' => $item->created_at->format('Y-m-d H:i')
+                    ];
+                });
+
+            $blockingReasons[] = [
+                'type' => 'wishlists',
+                'count' => $wishlistsCount,
+                'message' => "Product is in {$wishlistsCount} wishlist(s)",
+                'details' => $wishlists
+            ];
+        }
+
+        // Check reviews
+        $reviewsCount = $product->reviews()->count();
+        if ($reviewsCount > 0) {
+            $reviews = $product->reviews()
+                ->with('user')
+                ->get()
+                ->map(function ($review) {
+                    return [
+                        'rating' => $review->rating,
+                        'user' => $review->user->name ?? 'Guest',
+                        'created_at' => $review->created_at->format('Y-m-d H:i')
+                    ];
+                });
+
+            $blockingReasons[] = [
+                'type' => 'reviews',
+                'count' => $reviewsCount,
+                'message' => "Product has {$reviewsCount} review(s)",
+                'details' => $reviews
+            ];
+        }
+
+        // Check bundle items (products that include this product in a bundle)
+        $bundlesCount = \DB::table('bundle_product')
+            ->where('product_id', $product->id)
+            ->count();
+        if ($bundlesCount > 0) {
+            $bundles = \DB::table('bundle_product')
+                ->join('products', 'bundle_product.bundle_id', '=', 'products.id')
+                ->where('bundle_product.product_id', $product->id)
+                ->select('products.id', 'products.name', 'bundle_product.quantity')
+                ->get();
+
+            $blockingReasons[] = [
+                'type' => 'bundles',
+                'count' => $bundlesCount,
+                'message' => "Product is included in {$bundlesCount} bundle(s)",
+                'details' => $bundles->map(function ($bundle) {
+                    return [
+                        'bundle_id' => $bundle->id,
+                        'bundle_name' => $bundle->name,
+                        'quantity' => $bundle->quantity
+                    ];
+                })
+            ];
+        }
+
+        } catch (\Exception $e) {
+            // If checking relationships fails, log the error and continue with safe deletion attempt
+            \Log::error('Error checking product relationships for deletion', [
+                'product_id' => $product->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+
+        // If there are blocking reasons, return detailed error
+        if (!empty($blockingReasons)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete product due to existing relationships',
+                'blocking_reasons' => $blockingReasons,
+                'total_blocks' => count($blockingReasons),
+                'product' => [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'type' => $product->type
+                ]
+            ], 422);
+        }
+
+        // If no blocking reasons, proceed with deletion
+        try {
+            DB::beginTransaction();
+
+            $product->product_translations()->delete();
+            $product->categories()->detach();
+            $product->stocks()->delete();
+            $product->taxes()->delete();
+            $product->frequently_bought_products()->delete();
+
+            $product->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * POST /api/products/{product}/remove-from-carts
+     * Remove product from all active carts and notify users
+     */
+    public function removeFromCarts(Product $product): JsonResponse
+    {
+        try {
+            DB::beginTransaction();
+
+            // Get all cart items for this product with user information
+            $cartItems = \App\Models\CartItem::where('product_id', $product->id)
+                ->with(['cart.user'])
+                ->get();
+
+            if ($cartItems->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product is not in any carts',
+                ], 404);
+            }
+
+            $affectedUsers = [];
+            $guestCarts = 0;
+            $removedCount = 0;
+
+            foreach ($cartItems as $cartItem) {
+                $cart = $cartItem->cart;
+
+                // Track affected users
+                if ($cart->user) {
+                    $affectedUsers[] = [
+                        'id' => $cart->user->id,
+                        'name' => $cart->user->name,
+                        'email' => $cart->user->email,
+                        'quantity' => $cartItem->quantity,
+                    ];
+                } else {
+                    $guestCarts++;
+                }
+
+                // Remove the cart item
+                $cartItem->delete();
+                $removedCount++;
+            }
+
+            // Send notifications to affected users
+            foreach (collect($affectedUsers)->unique('id') as $user) {
+                // Log notification for now (you can implement email/push notifications later)
+                \Log::info('Product removed from cart - User notification', [
+                    'user_id' => $user['id'],
+                    'user_name' => $user['name'],
+                    'user_email' => $user['email'],
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'quantity' => $user['quantity'],
+                    'message' => "The product '{$product->name}' has been removed from your cart as it is no longer available."
+                ]);
+
+                // TODO: Implement actual notifications
+                // Option 1: Create in-app notification if you have a notifications table
+                // Option 2: Send email notification
+                // Mail::to($user['email'])->send(new ProductRemovedFromCart($product, $user));
+                // Option 3: Send push notification
+                // Option 4: Use Laravel Notifications
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Product removed from {$removedCount} cart(s)",
+                'data' => [
+                    'removed_count' => $removedCount,
+                    'affected_users' => count(collect($affectedUsers)->unique('id')),
+                    'guest_carts' => $guestCarts,
+                    'users' => collect($affectedUsers)->unique('id')->values(),
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove product from carts',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
