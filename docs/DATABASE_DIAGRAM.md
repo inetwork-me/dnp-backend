@@ -6,74 +6,46 @@ This document contains the complete database schema for the DNP multi-vendor nut
 
 ---
 
-## Complete ER Diagram
+## 1. Users & Authentication
 
 ```mermaid
 erDiagram
-    %% ==========================================
-    %% AUTHENTICATION & USERS
-    %% ==========================================
-
     users {
         bigint id PK
         string name
         string email UK
         string password
         string verification_code
-        timestamp created_at
-        timestamp updated_at
     }
-
     customers {
         bigint id PK
         bigint user_id FK
         string first_name
         string last_name
-        string gender
         string phone
-        text billing_address
-        text shipping_address
         int total_loyalty_points
         string membership_tier
         string referral_code
         bigint referred_by FK
-        string status
     }
-
     staff {
         bigint id PK
         bigint user_id FK
         bigint role_id FK
     }
-
     roles {
         bigint id PK
         string name
         string guard_name
     }
-
     permissions {
         bigint id PK
         string name
         string guard_name
-        string section
     }
-
     role_has_permissions {
         bigint permission_id FK
         bigint role_id FK
-    }
-
-    model_has_roles {
-        bigint role_id FK
-        string model_type
-        bigint model_id
-    }
-
-    model_has_permissions {
-        bigint permission_id FK
-        string model_type
-        bigint model_id
     }
 
     users ||--o| customers : "has profile"
@@ -81,14 +53,15 @@ erDiagram
     staff }o--|| roles : "has role"
     roles ||--o{ role_has_permissions : "has"
     permissions ||--o{ role_has_permissions : "assigned to"
-    roles ||--o{ model_has_roles : "assigned via"
-    permissions ||--o{ model_has_permissions : "assigned via"
     customers ||--o{ customers : "referred_by"
+```
 
-    %% ==========================================
-    %% PRODUCTS & CATALOG
-    %% ==========================================
+---
 
+## 2. Products & Catalog
+
+```mermaid
+erDiagram
     products {
         bigint id PK
         bigint user_id FK
@@ -96,16 +69,10 @@ erDiagram
         bigint brand_id FK
         string name
         decimal unit_price
-        decimal purchase_price
         int current_stock
         json attributes
-        json colors
-        json variations
-        json multimedia
         boolean published
-        timestamp created_at
     }
-
     product_stocks {
         bigint id PK
         bigint product_id FK
@@ -114,404 +81,236 @@ erDiagram
         decimal price
         int qty
     }
-
     product_translations {
         bigint id PK
         bigint product_id FK
         string lang
         string name
-        text description
     }
-
     product_categories {
         bigint product_id FK
         bigint category_id FK
     }
-
     product_taxes {
         bigint id PK
         bigint product_id FK
-        bigint tax_id
         decimal tax
-        string tax_type
     }
 
-    product_commissions {
-        bigint id PK
-        bigint product_id FK
-        decimal commission
-        string commission_type
-    }
+    products ||--o{ product_stocks : "variants"
+    products ||--o{ product_translations : "i18n"
+    products ||--o{ product_categories : "categories"
+    products ||--o{ product_taxes : "taxes"
+```
 
-    product_stock_transactions {
-        bigint id PK
-        bigint product_id FK
-        bigint user_id FK
-        bigint order_id FK
-        string transaction_type
-        int quantity_change
-        timestamp created_at
-    }
+---
 
-    frequently_bought_products {
-        bigint id PK
-        bigint product_id FK
-        bigint related_product_id FK
-    }
+## 3. Categories & Attributes
 
-    products ||--o{ product_stocks : "has variants"
-    products ||--o{ product_translations : "translations"
-    products ||--o{ product_categories : "in categories"
-    products ||--o{ product_taxes : "has taxes"
-    products ||--o{ product_commissions : "has commissions"
-    products ||--o{ product_stock_transactions : "stock history"
-    products ||--o{ frequently_bought_products : "related products"
-    users ||--o{ products : "vendor owns"
-    users ||--o{ product_stock_transactions : "performed by"
-
-    %% ==========================================
-    %% CATEGORIES & ATTRIBUTES
-    %% ==========================================
-
+```mermaid
+erDiagram
     categories {
         bigint id PK
         bigint parent_id FK
         int level
         string name
-        int order_level
         decimal commission_rate
-        timestamp deleted_at
     }
-
     category_translations {
         bigint id PK
         bigint category_id FK
         string lang
         string name
     }
-
     attributes {
         bigint id PK
         string name
     }
-
-    attribute_translations {
-        bigint id PK
-        bigint attribute_id FK
-        string lang
-        string name
-    }
-
     attribute_values {
         bigint id PK
         bigint attribute_id FK
         string value
-        string color_code
     }
-
     attribute_category {
         bigint category_id FK
         bigint attribute_id FK
     }
-
-    categories ||--o{ categories : "parent-child"
-    categories ||--o{ category_translations : "translations"
-    categories ||--o{ products : "contains"
-    categories ||--o{ product_categories : "has products"
-    categories ||--o{ attribute_category : "has attributes"
-    attributes ||--o{ attribute_translations : "translations"
-    attributes ||--o{ attribute_values : "has values"
-    attributes ||--o{ attribute_category : "for categories"
-
-    %% ==========================================
-    %% BRANDS
-    %% ==========================================
-
     brands {
         bigint id PK
         string name
-        string logo
         string slug
-        string meta_title
-        string meta_description
     }
 
-    brand_translations {
-        bigint id PK
-        bigint brand_id FK
-        string lang
-        string name
-        string meta_title
-        string meta_description
-    }
+    categories ||--o{ categories : "parent"
+    categories ||--o{ category_translations : "i18n"
+    categories ||--o{ attribute_category : "attrs"
+    attributes ||--o{ attribute_values : "values"
+    attributes ||--o{ attribute_category : "cats"
+```
 
-    brands ||--o{ brand_translations : "translations"
-    brands ||--o{ products : "has products"
+---
 
-    %% ==========================================
-    %% SHOPPING CART
-    %% ==========================================
+## 4. Shopping Cart & Orders
 
+```mermaid
+erDiagram
     carts {
         bigint id PK
         bigint user_id FK
         string status
-        string guest_token UK
-        timestamp created_at
+        string guest_token
     }
-
     cart_items {
         bigint id PK
         bigint cart_id FK
         bigint product_id FK
-        bigint branch_id FK
         int quantity
         decimal unit_price
-        json options
     }
-
-    users ||--o{ carts : "has carts"
-    carts ||--o{ cart_items : "contains"
-    products ||--o{ cart_items : "added to cart"
-
-    %% ==========================================
-    %% ORDERS
-    %% ==========================================
-
     orders {
         bigint id PK
         bigint user_id FK
         bigint cart_id FK
-        bigint coupon_id FK
         string order_number
         string status
         decimal total_amount
-        json shipping_address
-        string payment_method
         string payment_status
-        timestamp created_at
     }
-
     order_items {
         bigint id PK
         bigint order_id FK
         bigint product_id FK
-        bigint branch_id FK
         int quantity
-        decimal unit_price
         decimal line_total
-        json options
     }
-
     order_status_histories {
         bigint id PK
         bigint order_id FK
-        bigint user_id FK
         string old_status
         string new_status
-        timestamp created_at
     }
 
-    users ||--o{ orders : "places"
-    carts ||--o| orders : "converts to"
+    carts ||--o{ cart_items : "contains"
+    carts ||--o| orders : "becomes"
     orders ||--o{ order_items : "contains"
-    products ||--o{ order_items : "ordered"
-    orders ||--o{ order_status_histories : "status changes"
-    users ||--o{ order_status_histories : "changed by"
-    orders ||--o{ product_stock_transactions : "stock changes"
+    orders ||--o{ order_status_histories : "history"
+```
 
-    %% ==========================================
-    %% SHIPPING
-    %% ==========================================
+---
 
+## 5. Shipping & Logistics
+
+```mermaid
+erDiagram
     shipping_carriers {
         bigint id PK
         string name
         string slug
         json api_config
-        boolean supports_tracking
-        boolean supports_labels
-        boolean supports_live_rates
     }
-
     shipping_zones {
         bigint id PK
         string name
         json countries
-        boolean is_active
     }
-
     shipping_methods {
         bigint id PK
         bigint carrier_id FK
         bigint zone_id FK
         string name
-        string service_code
         int estimated_days
-        string rate_source
     }
-
     shipments {
         bigint id PK
         bigint order_id FK
         bigint carrier_id FK
         string tracking_number
         string status
-        json carrier_response
-        json shipping_label
-        timestamp shipped_at
-        timestamp delivered_at
-    }
-
-    pickups {
-        bigint id PK
-        bigint vendor_id FK
-        string pickup_guid
-        string reference_number
-        string status
-        json pickup_address
-        string contact_person
-        date pickup_date
     }
 
     shipping_carriers ||--o{ shipping_methods : "provides"
-    shipping_zones ||--o{ shipping_methods : "available in"
-    shipping_carriers ||--o{ shipments : "ships via"
-    orders ||--o{ shipments : "shipped as"
-    users ||--o{ pickups : "vendor pickups"
+    shipping_zones ||--o{ shipping_methods : "in zone"
+    shipping_carriers ||--o{ shipments : "ships"
+```
 
-    %% ==========================================
-    %% GEOGRAPHIC
-    %% ==========================================
+---
 
+## 6. Geographic Data
+
+```mermaid
+erDiagram
     zones {
         bigint id PK
         string name
-        boolean status
     }
-
     countries {
         bigint id PK
         string code
         string name
         bigint zone_id FK
-        boolean status
     }
-
     states {
         bigint id PK
         string name
         bigint country_id FK
-        boolean status
     }
-
     cities {
         bigint id PK
         string name
         bigint state_id FK
         decimal cost
-        boolean status
-    }
-
-    city_translations {
-        bigint id PK
-        bigint city_id FK
-        string lang
-        string name
     }
 
     zones ||--o{ countries : "contains"
-    countries ||--o{ states : "has states"
-    states ||--o{ cities : "has cities"
-    cities ||--o{ city_translations : "translations"
+    countries ||--o{ states : "has"
+    states ||--o{ cities : "has"
+```
 
-    %% ==========================================
-    %% COUPONS & DISCOUNTS
-    %% ==========================================
+---
 
+## 7. Coupons & Loyalty
+
+```mermaid
+erDiagram
     coupons {
         bigint id PK
         string code UK
         string type
         decimal value
-        int usage_limit_per_customer
-        int usage_limit_global
         timestamp starts_at
         timestamp ends_at
-        boolean active
     }
-
     coupon_redemptions {
         bigint id PK
         bigint coupon_id FK
         bigint user_id FK
-        bigint cart_id FK
         bigint order_id FK
         decimal discount
     }
-
-    coupons ||--o{ coupon_redemptions : "redeemed"
-    coupons ||--o{ orders : "applied to"
-    users ||--o{ coupon_redemptions : "used by"
-    carts ||--o{ coupon_redemptions : "applied in"
-    orders ||--o{ coupon_redemptions : "finalized in"
-
-    %% ==========================================
-    %% LOYALTY & REWARDS
-    %% ==========================================
-
     loyalty_points_transactions {
         bigint id PK
         bigint customer_id FK
         bigint order_id FK
-        bigint product_id FK
         string type
         int points
-        string description
-        json metadata
-        bigint created_by FK
     }
-
-    loyalty_settings {
-        bigint id PK
-        string key
-        string value
-        string type
-        string group
-    }
-
     vouchers {
         bigint id PK
         string code UK
         bigint customer_id FK
         decimal value
-        string currency
-        int points_used
         string status
-        timestamp expires_at
-        timestamp used_at
-        bigint used_in_order FK
-        bigint created_by FK
     }
 
-    customers ||--o{ loyalty_points_transactions : "earns/spends"
-    orders ||--o{ loyalty_points_transactions : "from order"
-    products ||--o{ loyalty_points_transactions : "from product"
-    customers ||--o{ vouchers : "owns"
-    orders ||--o{ vouchers : "used in"
-    users ||--o{ loyalty_points_transactions : "created by"
-    users ||--o{ vouchers : "created by"
+    coupons ||--o{ coupon_redemptions : "used"
+```
 
-    %% ==========================================
-    %% WISHLISTS & REVIEWS
-    %% ==========================================
+---
 
-    wishlists {
-        bigint id PK
-        bigint user_id FK
-        bigint product_id FK
-    }
+## 8. Reviews & Wishlists
 
+```mermaid
+erDiagram
     reviews {
         bigint id PK
         bigint product_id FK
@@ -519,39 +318,67 @@ erDiagram
         int rating
         text comment
         string status
-        boolean viewed
     }
-
-    users ||--o{ wishlists : "has wishlist"
-    products ||--o{ wishlists : "wishlisted"
-    users ||--o{ reviews : "writes"
-    products ||--o{ reviews : "reviewed"
-
-    %% ==========================================
-    %% BRANCHES
-    %% ==========================================
-
+    wishlists {
+        bigint id PK
+        bigint user_id FK
+        bigint product_id FK
+    }
     branches {
         bigint id PK
         json name
         string code
         string address
-        string city
-        string phone
-        string email
-        boolean is_active
-        int sort_order
     }
-
     product_branch {
         bigint product_id FK
         bigint branch_id FK
     }
 
-    branches ||--o{ product_branch : "has products"
-    products ||--o{ product_branch : "available at"
-    branches ||--o{ cart_items : "items from"
-    branches ||--o{ order_items : "fulfilled by"
+    branches ||--o{ product_branch : "products"
+```
+
+---
+
+## 9. Content & CMS
+
+```mermaid
+erDiagram
+    blog_categories {
+        bigint id PK
+        string category_name
+        string slug
+    }
+    blogs {
+        bigint id PK
+        bigint category_id FK
+        string title
+        string slug
+    }
+    recipe_categories {
+        bigint id PK
+        string category_name
+    }
+    recipes {
+        bigint id PK
+        bigint category_id FK
+        string title
+        int calories
+    }
+    posts {
+        bigint id PK
+        bigint post_type_id FK
+        string slug
+        bigint author_id FK
+    }
+    post_types {
+        bigint id PK
+        json label
+    }
+
+    blog_categories ||--o{ blogs : "has"
+    recipe_categories ||--o{ recipes : "has"
+    post_types ||--o{ posts : "typed"
 ```
 
 ---
