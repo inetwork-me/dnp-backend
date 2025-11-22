@@ -383,124 +383,28 @@ erDiagram
 
 ---
 
-## Domain-Specific Diagrams
-
-### 1. User & Authentication Domain
+## 10. Cross-Domain Relationships (Overview)
 
 ```mermaid
 erDiagram
-    users ||--o| customers : "has profile"
-    users ||--o{ staff : "can be staff"
-    users ||--o{ carts : "has carts"
-    users ||--o{ orders : "places orders"
-    users ||--o{ reviews : "writes reviews"
-    users ||--o{ wishlists : "has wishlist"
-    users ||--o{ products : "vendor owns"
-    users ||--o{ uploads : "uploads files"
-
-    staff }o--|| roles : "has role"
-    roles ||--o{ role_has_permissions : "has permissions"
-    permissions ||--o{ role_has_permissions : "assigned to roles"
-
-    customers ||--o{ loyalty_points_transactions : "earns points"
-    customers ||--o{ vouchers : "owns vouchers"
-    customers ||--o{ customers : "referred by"
-```
-
-### 2. Product & Catalog Domain
-
-```mermaid
-erDiagram
-    products ||--o{ product_stocks : "has variants"
-    products ||--o{ product_translations : "i18n"
-    products ||--o{ product_categories : "categorized"
-    products ||--o{ product_taxes : "taxed"
-    products ||--o{ product_commissions : "commission"
-    products ||--o{ product_branch : "at branches"
-    products ||--o{ frequently_bought_products : "related"
-    products ||--o{ reviews : "reviewed"
-    products ||--o{ wishlists : "wishlisted"
-    products ||--o{ cart_items : "in carts"
-    products ||--o{ order_items : "ordered"
-
-    categories ||--o{ categories : "parent-child"
-    categories ||--o{ category_translations : "i18n"
-    categories ||--o{ products : "main category"
-    categories ||--o{ product_categories : "products"
-    categories ||--o{ attribute_category : "attributes"
-
-    brands ||--o{ brand_translations : "i18n"
-    brands ||--o{ products : "branded"
-
-    attributes ||--o{ attribute_translations : "i18n"
-    attributes ||--o{ attribute_values : "values"
-    attributes ||--o{ attribute_category : "categories"
-```
-
-### 3. Order & Shopping Domain
-
-```mermaid
-erDiagram
-    users ||--o{ carts : "owns"
-    carts ||--o{ cart_items : "contains"
-    carts ||--o| orders : "converts to"
-
-    orders ||--o{ order_items : "contains"
-    orders ||--o{ order_status_histories : "status changes"
-    orders ||--o{ shipments : "shipped"
-    orders ||--o{ coupon_redemptions : "discounts"
-    orders ||--o{ loyalty_points_transactions : "points"
-    orders ||--o{ product_stock_transactions : "stock"
+    users ||--o| customers : "profile"
+    users ||--o{ carts : "shopping"
+    users ||--o{ orders : "purchases"
+    users ||--o{ products : "sells"
 
     products ||--o{ cart_items : "added"
     products ||--o{ order_items : "ordered"
+    products }o--|| categories : "categorized"
+    products }o--|| brands : "branded"
 
-    coupons ||--o{ coupon_redemptions : "used"
-    coupons ||--o{ orders : "applied"
+    carts ||--o{ cart_items : "contains"
+    carts ||--o| orders : "checkout"
 
-    branches ||--o{ cart_items : "from"
-    branches ||--o{ order_items : "fulfilled"
-```
+    orders ||--o{ order_items : "items"
+    orders ||--o{ shipments : "shipped"
 
-### 4. Shipping Domain
-
-```mermaid
-erDiagram
-    shipping_carriers ||--o{ shipping_methods : "provides"
-    shipping_carriers ||--o{ shipments : "ships"
-
-    shipping_zones ||--o{ shipping_methods : "methods"
-
-    orders ||--o{ shipments : "shipped as"
-
-    users ||--o{ pickups : "vendor pickups"
-
-    zones ||--o{ countries : "contains"
-    countries ||--o{ states : "has"
-    states ||--o{ cities : "has"
-    cities ||--o{ city_translations : "i18n"
-```
-
-### 5. Content & CMS Domain
-
-```mermaid
-erDiagram
-    blog_categories ||--o{ blogs : "contains"
-    blogs ||--o{ blog_translations : "i18n"
-
-    recipe_categories ||--o{ recipes : "contains"
-    recipes ||--o{ recipe_translations : "i18n"
-
-    post_types ||--o{ posts : "typed as"
-    posts ||--o{ post_translations : "i18n"
-    users ||--o{ posts : "authored"
-
-    media_folders ||--o{ media : "contains"
-    media ||--o{ media_tag : "tagged"
-    tags ||--o{ media_tag : "tags"
-
-    forms ||--o{ form_fields : "has fields"
-    forms ||--o{ form_submissions : "submissions"
+    customers ||--o{ loyalty_points_transactions : "rewards"
+    customers ||--o{ vouchers : "redeems"
 ```
 
 ---
