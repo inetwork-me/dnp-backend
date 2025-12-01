@@ -16,7 +16,7 @@ class PostCollection extends ResourceCollection
                     'title' => $data->title,
                     'slug' => $data->slug,
                     'description' => $data->description,
-                    // 'content' => $data->content,
+                    'content' => $data->content,
                     // 'blocks' => $data->blocks,
                     'featured_image' => $data->featured_image,
                     'created_at' => $data->created_at,
