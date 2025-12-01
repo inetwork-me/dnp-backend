@@ -366,6 +366,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::middleware('permission:settings.manage')->group(function () {
             Route::patch('/settings', [ApiSettingController::class, 'update']);
             Route::patch('/settings/batch', [ApiSettingController::class, 'batchUpdate']);
+            Route::delete('/settings/{key}', [ApiSettingController::class, 'destroy']);
         });
 
         // Email Settings

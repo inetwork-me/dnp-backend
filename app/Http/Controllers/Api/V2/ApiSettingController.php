@@ -103,4 +103,26 @@ class ApiSettingController extends Controller
             'updated'  => $updated,
         ]);
     }
+
+    /**
+     * DELETE /api/settings/{key}
+     * Delete a setting by its key.
+     */
+    public function destroy(string $key)
+    {
+        $setting = Setting::where('key', $key)->first();
+
+        if (!$setting) {
+            return response()->json([
+                'message' => 'Setting not found.',
+            ], 404);
+        }
+
+        $setting->delete();
+
+        return response()->json([
+            'message' => 'Setting deleted successfully.',
+            'key'     => $key,
+        ]);
+    }
 }
