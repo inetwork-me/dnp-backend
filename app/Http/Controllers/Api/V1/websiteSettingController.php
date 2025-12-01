@@ -33,11 +33,14 @@ class WebsiteSettingController extends Controller
             }
 
             if ($group === 'menu') {
+                $menuId = $value['default'] ?? null;
 
-                $menuId = $value['default'];
-                $menu = Menu::where('id', '=', $menuId)->get();
-
-                $grouped[$group][$innerKey] = $menu[0]->items;
+                if ($menuId) {
+                    $menu = Menu::find($menuId);
+                    $grouped[$group][$innerKey] = $menu ? $menu->items : [];
+                } else {
+                    $grouped[$group][$innerKey] = [];
+                }
             } else {
                 $grouped[$group][$innerKey] = $value;
             }
