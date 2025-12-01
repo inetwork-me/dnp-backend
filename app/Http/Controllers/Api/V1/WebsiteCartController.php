@@ -21,8 +21,11 @@ class WebsiteCartController extends Controller
      */
     public function current(Request $request)
     {
-        // Use user_id from query param if provided, otherwise check auth
-        $userId = $request->input('user_id') ?? optional($request->user())->id;
+        // Try to get user from Bearer token if present (even though route is public)
+        $user = $request->user('sanctum');
+
+        // Use user_id from query param if provided, otherwise use authenticated user
+        $userId = $request->input('user_id') ?? ($user ? $user->id : null);
         $guestToken = $request->header('X-Guest-Token');
 
 

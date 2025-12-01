@@ -326,7 +326,7 @@ class AuthController extends Controller
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'result'  => false,
-                'message' => translate('Unauthorized'),
+                'message' => translate('Invalid email or password'),
                 'user'    => null,
             ], 401);
         }
