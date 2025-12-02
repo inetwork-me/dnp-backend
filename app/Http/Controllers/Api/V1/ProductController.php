@@ -53,10 +53,10 @@ class ProductController extends Controller
         }
 
         // 5. Filter by type (simple, physical, digital, bundle, package, session)
+        // Supports comma-separated values: ?type=simple,package
         if ($request->filled('type')) {
-            $type = $request->query('type');
-            // No need to map simple to physical - use the actual database value
-            $query->where('type', $type);
+            $types = explode(',', $request->query('type'));
+            $query->whereIn('type', $types);
         }
 
         // 6. Filter by categories (comma-separated category slugs)
