@@ -45,6 +45,7 @@ class ProductMiniCollection extends ResourceCollection
                     'stroked_price' => home_base_price($data),
                     'main_price' => $data->unit_price,
                     'discounted_price' => home_discounted_base_price($data),
+                    'discounted_price_formatted' => (float) home_discounted_base_price($data, false),
                     'rating' => (float) $data->rating,
                     'sales' => (int) $data->num_of_sale,
                     'current_stock' =>  $data->current_stock,
