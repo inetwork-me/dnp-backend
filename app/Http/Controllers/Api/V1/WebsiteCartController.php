@@ -74,7 +74,7 @@ class WebsiteCartController extends Controller
 
         if ($coupon) {
             // Use your Coupon model’s validity check
-            if ($coupon->isValidForUser($request->user())) {
+            if ($coupon->isValidForUser($request->user('sanctum'))) {
                 $discount = $coupon->calculateDiscount($subtotal);
             } else {
                 // detach invalid coupon
@@ -113,7 +113,7 @@ class WebsiteCartController extends Controller
         ]);
 
         // Use user_id from request body if provided, otherwise check auth
-        $userId = $data['user_id'] ?? optional($request->user())->id;
+        $userId = $data['user_id'] ?? optional($request->user('sanctum'))->id;
         $guestToken = $request->header('X-Guest-Token');
 
         // Find or create cart based on auth status
@@ -270,7 +270,7 @@ class WebsiteCartController extends Controller
         $coupon = Coupon::where('code', $request->code)->firstOrFail();
 
         // Use the model's comprehensive validation method
-        $user = $request->user(); // Get current authenticated user (if any)
+        $user = $request->user('sanctum'); // Get current authenticated user (if any)
         if (!$coupon->isValidForUser($user)) {
             // Determine specific error message
             if ($coupon->ends_at && Carbon::now()->gt($coupon->ends_at)) {
