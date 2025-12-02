@@ -285,19 +285,21 @@ class WebsiteOrderController extends Controller
         $appliedVoucher = null;
         if (!empty($data['voucher_code'])) {
             $customer = $user->getOrCreateCustomer();
-            $voucher = \App\Models\Voucher::where('code', $data['voucher_code'])
-                ->where(function ($query) use ($customer) {
-                    $query->where('customer_id', $customer->id) // Personal voucher
-                          ->orWhereNull('customer_id'); // General/promotional voucher
-                })
-                ->first();
+
+            // First check if voucher exists at all
+            $voucher = \App\Models\Voucher::where('code', $data['voucher_code'])->first();
 
             if (!$voucher) {
-                abort(400, 'Invalid voucher code');
+                abort(400, translate('Invalid voucher code'));
+            }
+
+            // Check if voucher belongs to this user (if it's a personal voucher)
+            if ($voucher->customer_id !== null && $voucher->customer_id !== $customer->id) {
+                abort(400, translate('This voucher does not belong to your account'));
             }
 
             if (!$voucher->isUsable()) {
-                abort(400, $voucher->isExpired() ? 'Voucher has expired' : 'Voucher is not active');
+                abort(400, $voucher->isExpired() ? translate('Voucher has expired') : translate('Voucher is not active'));
             }
 
             $appliedVoucher = $voucher;

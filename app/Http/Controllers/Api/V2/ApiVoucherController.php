@@ -51,25 +51,28 @@ class ApiVoucherController extends Controller
 
         $customer = $request->user()->getOrCreateCustomer();
 
-        // Look for voucher - either belongs to current customer OR is a general voucher (no customer_id)
-        $voucher = Voucher::where('code', $data['code'])
-            ->where(function ($query) use ($customer) {
-                $query->where('customer_id', $customer->id) // Personal voucher
-                      ->orWhereNull('customer_id'); // General/promotional voucher
-            })
-            ->first();
+        // First check if voucher exists at all
+        $voucher = Voucher::where('code', $data['code'])->first();
 
         if (!$voucher) {
             return response()->json([
                 'valid' => false,
-                'message' => 'Voucher not found or not valid for this account'
+                'message' => translate('Invalid voucher code')
             ], 404);
+        }
+
+        // Check if voucher belongs to this user (if it's a personal voucher)
+        if ($voucher->customer_id !== null && $voucher->customer_id !== $customer->id) {
+            return response()->json([
+                'valid' => false,
+                'message' => translate('This voucher does not belong to your account')
+            ], 400);
         }
 
         if (!$voucher->isUsable()) {
             return response()->json([
                 'valid' => false,
-                'message' => $voucher->isExpired() ? 'Voucher has expired' : 'Voucher is not active',
+                'message' => $voucher->isExpired() ? translate('Voucher has expired') : translate('Voucher is not active'),
                 'voucher' => $voucher
             ], 400);
         }
@@ -77,7 +80,7 @@ class ApiVoucherController extends Controller
         return response()->json([
             'valid' => true,
             'voucher' => $voucher,
-            'message' => 'Voucher is valid and can be used'
+            'message' => translate('Voucher is valid and can be used')
         ]);
     }
 
