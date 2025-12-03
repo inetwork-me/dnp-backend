@@ -21,6 +21,7 @@ class Order extends Model
         'discount',
         'tax',
         'coupon_id',
+        'voucher_code',
         'shipping_method_id',
         'shipping_cost',
         'shipping_quote_data',

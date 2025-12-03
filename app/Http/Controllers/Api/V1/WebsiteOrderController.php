@@ -80,6 +80,22 @@ class WebsiteOrderController extends Controller
         return $order->load('items.product');
     }
 
+    // GET /api/v1/orders/public/{order} - Public endpoint for payment page
+    public function showPublic(Order $order)
+    {
+        // Return only necessary fields for payment (no sensitive data)
+        return response()->json([
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'total_amount' => $order->total_amount,
+            'currency' => $order->currency ?? 'EGP',
+            'payment_status' => $order->payment_status,
+            'payment_method' => $order->payment_method,
+            'status' => $order->status,
+            'created_at' => $order->created_at,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $shippingEnabled = is_shipping_enabled();
@@ -305,8 +321,11 @@ class WebsiteOrderController extends Controller
             $appliedVoucher = $voucher;
         }
 
+        // Check if this is an online payment (credit card) - we'll defer some actions until payment succeeds
+        $isOnlinePayment = ($data['payment_method'] ?? null) === 'credit_card';
+
         // 3) snapshot cart → order
-        $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled, $appliedVoucher) {
+        $order = DB::transaction(function () use ($cart, $data, $user, $shippingEnabled, $appliedVoucher, $isOnlinePayment) {
             // a) compute amounts using discounted prices (same as cart display)
             $subtotal = $cart->items->sum(fn ($i) => $i->quantity * home_discounted_base_price($i->product, false));
             $discount = $cart->coupon
@@ -365,9 +384,11 @@ class WebsiteOrderController extends Controller
                 'billing_address'  => $data['billing_address'] ?? ($shippingEnabled ? ($data['shipping_address'] ?? null) : null),
                 'payment_method'   => $data['payment_method'] ?? null,
                 'payment_status'   => 'unpaid',
+                // Store voucher code for later redemption (for online payments)
+                'voucher_code'     => $appliedVoucher ? $appliedVoucher->code : null,
             ]);
 
-            // c) copy each cart item and update product stock
+            // c) copy each cart item (stock deduction deferred for online payments)
             foreach ($cart->items as $ci) {
                 $order->items()->create([
                     'product_id' => $ci->product_id,
@@ -378,25 +399,27 @@ class WebsiteOrderController extends Controller
                     'branch_id'  => $ci->branch_id,
                 ]);
 
-                // Deduct stock from product
-                $product = \App\Models\Product::find($ci->product_id);
-                if ($product) {
-                    // Log stock transaction BEFORE decrementing
-                    $stockService = new StockTransactionService();
-                    $stockService->logOrderDecrease(
-                        $product,
-                        $ci->quantity,
-                        $order->id,
-                        $user->id
-                    );
+                // Only deduct stock immediately for non-online payments (COD, etc.)
+                if (!$isOnlinePayment) {
+                    $product = \App\Models\Product::find($ci->product_id);
+                    if ($product) {
+                        // Log stock transaction BEFORE decrementing
+                        $stockService = new StockTransactionService();
+                        $stockService->logOrderDecrease(
+                            $product,
+                            $ci->quantity,
+                            $order->id,
+                            $user->id
+                        );
 
-                    // Then deduct stock
-                    $product->decrement('current_stock', $ci->quantity);
+                        // Then deduct stock
+                        $product->decrement('current_stock', $ci->quantity);
+                    }
                 }
             }
 
-            // d) record coupon redemption + bump global counter
-            if ($cart->coupon) {
+            // d) record coupon redemption (deferred for online payments)
+            if ($cart->coupon && !$isOnlinePayment) {
                 DB::transaction(function () use ($cart, $order, $discount, $user) {
                     // Final validation check to prevent race conditions
                     if (!$cart->coupon->isValidForUser($user)) {
@@ -413,18 +436,20 @@ class WebsiteOrderController extends Controller
                 });
             }
 
-            // e) mark voucher as used if applied
-            if ($appliedVoucher) {
+            // e) mark voucher as used (deferred for online payments)
+            if ($appliedVoucher && !$isOnlinePayment) {
                 $appliedVoucher->markAsUsed($order);
             }
 
-            // f) close out the cart
-            $cart->update(['status' => 'converted']);
+            // f) close out the cart (deferred for online payments)
+            if (!$isOnlinePayment) {
+                $cart->update(['status' => 'converted']);
+            }
 
             return $order;
         });
 
-        // 4) Handle guest user account setup
+        // 4) Handle guest user account setup (always do this, even for online payments)
         if ($isGuestUser && $guestPassword) {
             try {
                 // Create customer profile for guest user
@@ -458,13 +483,15 @@ class WebsiteOrderController extends Controller
                     $customer->update($customerUpdateData);
                 }
 
-                // Send welcome email with login credentials if enabled
-                $welcomeEmailEnabled = \App\Models\BusinessSetting::where('type', 'customer_welcome_email_enabled')->first();
-                if ($welcomeEmailEnabled && $welcomeEmailEnabled->value === '1') {
-                    $user->notify(new \App\Notifications\GuestUserWelcomeNotification($user, $guestPassword, $order));
-                    \Log::info('Welcome email sent to guest user: ' . $user->email);
-                } else {
-                    \Log::info('Customer welcome emails are disabled, skipping for user: ' . $user->email);
+                // Send welcome email only for non-online payments (online payments send after payment success)
+                if (!$isOnlinePayment) {
+                    $welcomeEmailEnabled = \App\Models\BusinessSetting::where('type', 'customer_welcome_email_enabled')->first();
+                    if ($welcomeEmailEnabled && $welcomeEmailEnabled->value === '1') {
+                        $user->notify(new \App\Notifications\GuestUserWelcomeNotification($user, $guestPassword, $order));
+                        \Log::info('Welcome email sent to guest user: ' . $user->email);
+                    } else {
+                        \Log::info('Customer welcome emails are disabled, skipping for user: ' . $user->email);
+                    }
                 }
 
             } catch (\Exception $e) {
@@ -473,51 +500,55 @@ class WebsiteOrderController extends Controller
             }
         }
 
-        // 5) Send admin notification for new order
-        try {
-            // Check if new order emails are enabled
-            $newOrderEmailEnabled = \App\Models\BusinessSetting::where('type', 'new_order_email_enabled')->first();
-            if (!$newOrderEmailEnabled || $newOrderEmailEnabled->value !== '1') {
-                \Log::info('New order email notifications are disabled, skipping for order ' . $order->order_number);
-            } else {
-                // Get admin emails from settings
-                $adminEmailsSetting = \App\Models\BusinessSetting::where('type', 'admin_notification_emails')->first();
-                $adminEmails = $adminEmailsSetting ? json_decode($adminEmailsSetting->value, true) : [];
+        // 5) Send admin notification for new order (skip for online payments - sent after payment success)
+        if (!$isOnlinePayment) {
+            try {
+                // Check if new order emails are enabled
+                $newOrderEmailEnabled = \App\Models\BusinessSetting::where('type', 'new_order_email_enabled')->first();
+                if (!$newOrderEmailEnabled || $newOrderEmailEnabled->value !== '1') {
+                    \Log::info('New order email notifications are disabled, skipping for order ' . $order->order_number);
+                } else {
+                    // Get admin emails from settings
+                    $adminEmailsSetting = \App\Models\BusinessSetting::where('type', 'admin_notification_emails')->first();
+                    $adminEmails = $adminEmailsSetting ? json_decode($adminEmailsSetting->value, true) : [];
 
-                // Fallback to env if no admin emails configured
-                if (empty($adminEmails)) {
-                    $adminEmails = [env('ADMIN_NOTIFICATION_EMAIL', config('mail.from.address'))];
-                }
-
-                // Send notification to all admin emails
-                foreach ($adminEmails as $adminEmail) {
-                    if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
-                        \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
-                            ->notify(new \App\Notifications\NewOrderAdminNotification($order));
+                    // Fallback to env if no admin emails configured
+                    if (empty($adminEmails)) {
+                        $adminEmails = [env('ADMIN_NOTIFICATION_EMAIL', config('mail.from.address'))];
                     }
-                }
 
-                \Log::info('Admin notifications sent for order ' . $order->order_number . ' to ' . count($adminEmails) . ' admin(s)');
+                    // Send notification to all admin emails
+                    foreach ($adminEmails as $adminEmail) {
+                        if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                            \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
+                                ->notify(new \App\Notifications\NewOrderAdminNotification($order));
+                        }
+                    }
+
+                    \Log::info('Admin notifications sent for order ' . $order->order_number . ' to ' . count($adminEmails) . ' admin(s)');
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the order
+                \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            // Log error but don't fail the order
-            \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
         }
 
-        // 6) Send order confirmation email to customer
-        try {
-            // Check if order confirmation emails are enabled
-            $orderConfirmationEmailEnabled = \App\Models\BusinessSetting::where('type', 'order_confirmation_email_enabled')->first();
-            if (!$orderConfirmationEmailEnabled || $orderConfirmationEmailEnabled->value !== '1') {
-                \Log::info('Order confirmation emails are disabled, skipping for order ' . $order->order_number);
-            } else {
-                // Send order confirmation to the customer (works for both guest and authenticated users)
-                $user->notify(new \App\Notifications\OrderConfirmationNotification($order));
-                \Log::info('Order confirmation email sent to ' . $user->email . ' for order ' . $order->order_number);
+        // 6) Send order confirmation email to customer (skip for online payments - sent after payment success)
+        if (!$isOnlinePayment) {
+            try {
+                // Check if order confirmation emails are enabled
+                $orderConfirmationEmailEnabled = \App\Models\BusinessSetting::where('type', 'order_confirmation_email_enabled')->first();
+                if (!$orderConfirmationEmailEnabled || $orderConfirmationEmailEnabled->value !== '1') {
+                    \Log::info('Order confirmation emails are disabled, skipping for order ' . $order->order_number);
+                } else {
+                    // Send order confirmation to the customer (works for both guest and authenticated users)
+                    $user->notify(new \App\Notifications\OrderConfirmationNotification($order));
+                    \Log::info('Order confirmation email sent to ' . $user->email . ' for order ' . $order->order_number);
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the order
+                \Log::error('Order confirmation email failed for order ' . $order->id . ': ' . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            // Log error but don't fail the order
-            \Log::error('Order confirmation email failed for order ' . $order->id . ': ' . $e->getMessage());
         }
 
         // 7) Loyalty points will be processed when order status changes to 'completed'
@@ -543,8 +574,17 @@ class WebsiteOrderController extends Controller
             'payment_status' => $data['payment_status'],
         ]);
 
-        // If payment is confirmed, update order status to processing
-        if ($data['payment_status'] === 'paid' && $order->status === 'pending') {
+        // If payment is confirmed for online payment orders, finalize the order
+        // Check: payment_method is credit_card AND cart is not yet converted (not finalized)
+        $cart = Cart::find($order->cart_id);
+        $isOnlinePayment = $order->payment_method === 'credit_card';
+        $needsFinalization = $cart && $cart->status !== 'converted';
+
+        if ($data['payment_status'] === 'paid' && $isOnlinePayment && $needsFinalization) {
+            $this->finalizeOnlinePaymentOrder($order);
+        }
+        // If payment is confirmed for COD or already finalized orders, just update status
+        elseif ($data['payment_status'] === 'paid' && $order->status === 'pending') {
             $order->update(['status' => 'processing']);
         }
 
@@ -552,5 +592,107 @@ class WebsiteOrderController extends Controller
             'message' => 'Payment status updated successfully',
             'order' => $order->load('items.product', 'coupon'),
         ]);
+    }
+
+    /**
+     * Finalize an online payment order after successful payment.
+     * This handles all the deferred actions: stock deduction, cart clearing, emails, etc.
+     */
+    protected function finalizeOnlinePaymentOrder(Order $order)
+    {
+        $user = $order->user;
+        $cart = Cart::find($order->cart_id);
+
+        DB::transaction(function () use ($order, $user, $cart) {
+            // 1) Deduct stock for each order item
+            foreach ($order->items as $item) {
+                $product = \App\Models\Product::find($item->product_id);
+                if ($product) {
+                    // Log stock transaction
+                    $stockService = new StockTransactionService();
+                    $stockService->logOrderDecrease(
+                        $product,
+                        $item->quantity,
+                        $order->id,
+                        $user->id
+                    );
+
+                    // Deduct stock
+                    $product->decrement('current_stock', $item->quantity);
+                }
+            }
+
+            // 2) Record coupon redemption if coupon was applied
+            if ($order->coupon_id && $order->coupon) {
+                $coupon = $order->coupon;
+                // Check if redemption already exists to avoid duplicates
+                $existingRedemption = $coupon->redemptions()
+                    ->where('order_id', $order->id)
+                    ->exists();
+
+                if (!$existingRedemption) {
+                    $coupon->redemptions()->create([
+                        'user_id'  => $user->id,
+                        'cart_id'  => $order->cart_id,
+                        'order_id' => $order->id,
+                        'discount' => $order->discount,
+                    ]);
+                    $coupon->increment('times_used');
+                }
+            }
+
+            // 3) Mark voucher as used if one was applied
+            if ($order->voucher_code) {
+                $voucher = \App\Models\Voucher::where('code', $order->voucher_code)->first();
+                if ($voucher && !$voucher->used_at) {
+                    $voucher->markAsUsed($order);
+                }
+            }
+
+            // 4) Close out the cart
+            if ($cart) {
+                $cart->update(['status' => 'converted']);
+            }
+
+            // 5) Update order status to processing
+            $order->update(['status' => 'processing']);
+        });
+
+        // 6) Send admin notification
+        try {
+            $newOrderEmailEnabled = \App\Models\BusinessSetting::where('type', 'new_order_email_enabled')->first();
+            if ($newOrderEmailEnabled && $newOrderEmailEnabled->value === '1') {
+                $adminEmailsSetting = \App\Models\BusinessSetting::where('type', 'admin_notification_emails')->first();
+                $adminEmails = $adminEmailsSetting ? json_decode($adminEmailsSetting->value, true) : [];
+
+                if (empty($adminEmails)) {
+                    $adminEmails = [env('ADMIN_NOTIFICATION_EMAIL', config('mail.from.address'))];
+                }
+
+                foreach ($adminEmails as $adminEmail) {
+                    if (filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                        \Illuminate\Support\Facades\Notification::route('mail', $adminEmail)
+                            ->notify(new \App\Notifications\NewOrderAdminNotification($order));
+                    }
+                }
+
+                \Log::info('Admin notifications sent for paid order ' . $order->order_number);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Admin notification failed for order ' . $order->id . ': ' . $e->getMessage());
+        }
+
+        // 7) Send order confirmation email to customer
+        try {
+            $orderConfirmationEmailEnabled = \App\Models\BusinessSetting::where('type', 'order_confirmation_email_enabled')->first();
+            if ($orderConfirmationEmailEnabled && $orderConfirmationEmailEnabled->value === '1') {
+                $user->notify(new \App\Notifications\OrderConfirmationNotification($order));
+                \Log::info('Order confirmation email sent for paid order ' . $order->order_number);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Order confirmation email failed for order ' . $order->id . ': ' . $e->getMessage());
+        }
+
+        \Log::info('Online payment order finalized: ' . $order->order_number);
     }
 }
