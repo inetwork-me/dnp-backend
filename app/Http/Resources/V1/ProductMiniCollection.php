@@ -15,10 +15,13 @@ class ProductMiniCollection extends ResourceCollection
 
                 $avgRating = $data->avg_rating ?? (float) $data->rating;
 
+                // Try to get authenticated user (works even without auth middleware)
+                $user = $request->user() ?? auth('sanctum')->user();
+
                 // Check if product is in user's cart
                 $isInCart = false;
-                if ($request->user()) {
-                    $isInCart = $request->user()->cart()
+                if ($user) {
+                    $isInCart = $user->cart()
                         ->whereHas('items', function ($query) use ($data) {
                             $query->where('product_id', $data->id);
                         })
@@ -27,8 +30,8 @@ class ProductMiniCollection extends ResourceCollection
 
                 // Check if product is in user's wishlist
                 $isInWishlist = false;
-                if ($request->user()) {
-                    $isInWishlist = $request->user()->wishlists()
+                if ($user) {
+                    $isInWishlist = $user->wishlists()
                         ->where('product_id', $data->id)
                         ->exists();
                 }
