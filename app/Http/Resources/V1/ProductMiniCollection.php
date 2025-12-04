@@ -42,6 +42,8 @@ class ProductMiniCollection extends ResourceCollection
                     // 'thumbnail_image' => uploaded_asset($data->thumbnail_img),
                     'has_discount' => home_base_price($data, false) != home_discounted_base_price($data, false),
                     'discount' => discount_in_percentage($data),
+                    'discount_raw' => $data->discount,
+                    'discount_type' => $data->discount_type,
                     'stroked_price' => home_base_price($data),
                     'main_price' => $data->unit_price,
                     'discounted_price' => home_discounted_base_price($data),
