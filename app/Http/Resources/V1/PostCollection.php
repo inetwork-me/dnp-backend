@@ -17,17 +17,13 @@ class PostCollection extends ResourceCollection
                     'slug' => $data->slug,
                     'description' => $data->description,
                     'content' => $data->content,
-                    // 'blocks' => $data->blocks,
+                    'blocks' => $data->blocks,
                     'featured_image' => $data->featured_image,
                     'created_at' => $data->created_at,
                     'author' => $data->author,
                     'category' => $data->category,
                     'fields' => $data->fields,
                     'seo' => $data->seo
-                    // $data
-                    // 'author'         => new UserResource($data->author),
-
-
                 ];
             })
         ];
