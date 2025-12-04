@@ -21,7 +21,8 @@ class ProductMiniCollection extends ResourceCollection
                 // Check if product is in user's cart
                 $isInCart = false;
                 if ($user) {
-                    $isInCart = $user->cart()
+                    $isInCart = \App\Models\Cart::where('user_id', $user->id)
+                        ->where('status', 'open')
                         ->whereHas('items', function ($query) use ($data) {
                             $query->where('product_id', $data->id);
                         })
@@ -31,7 +32,7 @@ class ProductMiniCollection extends ResourceCollection
                 // Check if product is in user's wishlist
                 $isInWishlist = false;
                 if ($user) {
-                    $isInWishlist = $user->wishlists()
+                    $isInWishlist = \App\Models\Wishlist::where('user_id', $user->id)
                         ->where('product_id', $data->id)
                         ->exists();
                 }
