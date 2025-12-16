@@ -16,16 +16,20 @@ class FormFieldResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'          => $this->id,
-            'form_id'     => $this->form_id,
-            'label'       => $this->label,       // array of locales
-            'name'        => $this->name,
-            'type'        => $this->type,
-            'options'     => $this->options,     // array for selects/radios
-            'validation'  => $this->validation,  // array of rules
-            'order'       => $this->order,
-            'created_at'  => $this->created_at->toDateTimeString(),
-            'updated_at'  => $this->updated_at->toDateTimeString(),
+            'id'                 => $this->id,
+            'form_id'            => $this->form_id,
+            'label'              => $this->label,       // array of locales
+            'name'               => $this->name,
+            'type'               => $this->type,
+            'required'           => $this->required,
+            'supports_multilang' => $this->supports_multilang,
+            'multiple'           => $this->multiple,
+            'conditional_logic'  => $this->conditional_logic,
+            'options'            => $this->options,     // array for selects/radios
+            'validation'         => $this->validation,  // array of rules
+            'order'              => $this->order,
+            'created_at'         => $this->created_at->toDateTimeString(),
+            'updated_at'         => $this->updated_at->toDateTimeString(),
         ];
     }
 }

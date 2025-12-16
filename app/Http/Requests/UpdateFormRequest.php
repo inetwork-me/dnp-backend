@@ -21,6 +21,17 @@ class UpdateFormRequest extends FormRequest
                 Rule::unique('forms', 'slug')->ignore($this->route('form')->id)
             ],
             'settings' => 'nullable|array',
+            'fields' => 'sometimes|array',
+            'fields.*.label' => 'required|array',
+            'fields.*.name' => 'required|string',
+            'fields.*.type' => 'required|string',
+            'fields.*.required' => 'nullable|boolean',
+            'fields.*.supports_multilang' => 'nullable|boolean',
+            'fields.*.multiple' => 'nullable|boolean',
+            'fields.*.conditional_logic' => 'nullable|array',
+            'fields.*.options' => 'nullable|array',
+            'fields.*.validation' => 'nullable|array',
+            'fields.*.order' => 'nullable|integer',
         ];
     }
 }
