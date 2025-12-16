@@ -19,9 +19,13 @@ class ApiFormSubmissionController extends Controller
      */
     public function index(Form $form)
     {
-        // eager-load nothing extra; return all submissions
+        $perPage = request('per_page', 10);
+
+        // eager-load nothing extra; return paginated submissions
         return FormSubmissionResource::collection(
-            $form->submissions()->orderBy('created_at', 'desc')->get()
+            $form->submissions()
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage)
         );
     }
 
