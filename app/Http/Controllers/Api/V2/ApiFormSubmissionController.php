@@ -75,4 +75,21 @@ class ApiFormSubmissionController extends Controller
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
+
+    /**
+     * Delete a form submission.
+     *
+     * @param  \App\Models\Form  $form
+     * @param  int  $submissionId
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Form $form, int $submissionId)
+    {
+        $submission = $form->submissions()->findOrFail($submissionId);
+        $submission->delete();
+
+        return response()->json([
+            'message' => 'Submission deleted successfully'
+        ], Response::HTTP_OK);
+    }
 }
