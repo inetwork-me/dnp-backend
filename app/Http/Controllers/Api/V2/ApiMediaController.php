@@ -143,19 +143,32 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
-        $metadata = is_array($media->metadata) ? $media->metadata : [];
-        $derivatives = $metadata['derivatives'] ?? [];
-        $paths = array_filter([
-            $media->path,
-            $derivatives['thumb'] ?? null,
-            $derivatives['preview'] ?? null,
-            $derivatives['webp'] ?? null,
-        ], fn ($p) => is_string($p) && $p !== '');
+        try {
+            $mediaId = $media->id;
+            $metadata = is_array($media->metadata) ? $media->metadata : [];
+            $derivatives = $metadata['derivatives'] ?? [];
+            $paths = array_filter([
+                $media->path,
+                $derivatives['thumb'] ?? null,
+                $derivatives['preview'] ?? null,
+                $derivatives['webp'] ?? null,
+            ], fn ($p) => is_string($p) && $p !== '');
 
-        Storage::disk('public')->delete($paths);
-        $media->delete();
+            Storage::disk('public')->delete($paths);
+            $media->delete();
 
-        return response()->json(null, 204);
+            return response()->json([
+                'success' => true,
+                'message' => 'Media deleted successfully',
+                'id' => $mediaId,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete media',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
