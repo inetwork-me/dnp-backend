@@ -143,11 +143,12 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
+        $derivatives = $media->metadata['derivatives'] ?? [];
         $paths = array_filter([
             $media->path,
-            $media->metadata['derivatives']['thumb']   ?? null,
-            $media->metadata['derivatives']['preview'] ?? null,
-            $media->metadata['derivatives']['webp']    ?? null,
+            $derivatives['thumb']   ?? null,
+            $derivatives['preview'] ?? null,
+            $derivatives['webp']    ?? null,
         ], fn ($p) => is_string($p) && $p !== '');
 
         Storage::disk('public')->delete($paths);
@@ -161,7 +162,6 @@ class ApiMediaController extends Controller
      */
     public function bulkDestroy(Request $req)
     {
-        dd('ss');
         $ids = $req->input('ids', []);
         $items = Media::whereIn('id', $ids)->get();
 
