@@ -144,26 +144,14 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
-        Log::info('DELETE MEDIA START', ['media_id' => $media->id, 'exists' => $media->exists]);
-
-        $mediaId = $media->id;
-
-        Log::info('DELETE MEDIA BEFORE DELETE', ['mediaId_var' => $mediaId]);
-
-        $deleted = $media->delete();
-
-        Log::info('DELETE MEDIA AFTER DELETE', ['deleted_result' => $deleted, 'mediaId' => $mediaId]);
-
-        // Check if still exists
-        $stillExists = Media::find($mediaId);
-        Log::info('DELETE MEDIA CHECK', ['still_exists' => $stillExists ? true : false]);
-
+        // Return ALL debug info
         return response()->json([
-            'success' => true,
-            'message' => 'Media deleted successfully',
-            'id' => $mediaId,
-            'debug_deleted' => $deleted,
-            'debug_still_exists' => $stillExists ? true : false,
+            'debug_media_class' => get_class($media),
+            'debug_media_attributes' => $media->getAttributes(),
+            'debug_media_id' => $media->id,
+            'debug_media_getKey' => $media->getKey(),
+            'debug_media_exists' => $media->exists,
+            'debug_media_table' => $media->getTable(),
         ], 200);
     }
 
