@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\V2\UserCollection;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
@@ -88,7 +89,7 @@ class ApiUserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user->update(array_except($validated, ['roles']));
+        $user->update(Arr::except($validated, ['roles']));
 
         if (isset($validated['roles'])) {
             $user->syncRoles($validated['roles']);
