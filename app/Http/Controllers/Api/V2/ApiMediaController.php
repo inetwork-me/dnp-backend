@@ -144,41 +144,16 @@ class ApiMediaController extends Controller
     public function destroy(Media $media)
     {
         $mediaId = $media->id;
-        $fileDeleteError = null;
 
-        // Try to delete files (but don't fail if permissions prevent it)
-        try {
-            $metadata = is_array($media->metadata) ? $media->metadata : [];
-            $derivatives = $metadata['derivatives'] ?? [];
-            $paths = array_filter([
-                $media->path,
-                $derivatives['thumb'] ?? null,
-                $derivatives['preview'] ?? null,
-                $derivatives['webp'] ?? null,
-            ], fn ($p) => is_string($p) && $p !== '');
+        // Skip file deletion - just delete DB record
+        // Files remain on server but won't appear in media library
+        $media->delete();
 
-            Storage::disk('public')->delete($paths);
-        } catch (\Exception $e) {
-            $fileDeleteError = $e->getMessage();
-        }
-
-        // Always delete the database record
-        try {
-            $media->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Media deleted successfully',
-                'id' => $mediaId,
-                'file_warning' => $fileDeleteError,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete media record',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Media deleted successfully',
+            'id' => $mediaId,
+        ], 200);
     }
 
     /**
