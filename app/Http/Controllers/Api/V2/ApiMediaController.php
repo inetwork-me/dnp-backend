@@ -143,12 +143,13 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
-        $derivatives = $media->metadata['derivatives'] ?? [];
+        $metadata = is_array($media->metadata) ? $media->metadata : [];
+        $derivatives = $metadata['derivatives'] ?? [];
         $paths = array_filter([
             $media->path,
-            $derivatives['thumb']   ?? null,
+            $derivatives['thumb'] ?? null,
             $derivatives['preview'] ?? null,
-            $derivatives['webp']    ?? null,
+            $derivatives['webp'] ?? null,
         ], fn ($p) => is_string($p) && $p !== '');
 
         Storage::disk('public')->delete($paths);
