@@ -8,7 +8,8 @@ use App\Models\Media;
 use App\Jobs\ProcessMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;    // ← add this
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ApiMediaController extends Controller
 {
@@ -143,16 +144,26 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
+        Log::info('DELETE MEDIA START', ['media_id' => $media->id, 'exists' => $media->exists]);
+
         $mediaId = $media->id;
 
-        // Skip file deletion - just delete DB record
-        // Files remain on server but won't appear in media library
-        $media->delete();
+        Log::info('DELETE MEDIA BEFORE DELETE', ['mediaId_var' => $mediaId]);
+
+        $deleted = $media->delete();
+
+        Log::info('DELETE MEDIA AFTER DELETE', ['deleted_result' => $deleted, 'mediaId' => $mediaId]);
+
+        // Check if still exists
+        $stillExists = Media::find($mediaId);
+        Log::info('DELETE MEDIA CHECK', ['still_exists' => $stillExists ? true : false]);
 
         return response()->json([
             'success' => true,
             'message' => 'Media deleted successfully',
             'id' => $mediaId,
+            'debug_deleted' => $deleted,
+            'debug_still_exists' => $stillExists ? true : false,
         ], 200);
     }
 
