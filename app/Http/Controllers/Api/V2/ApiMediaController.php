@@ -8,7 +8,6 @@ use App\Models\Media;
 use App\Jobs\ProcessMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ApiMediaController extends Controller
@@ -144,14 +143,13 @@ class ApiMediaController extends Controller
      */
     public function destroy(Media $media)
     {
-        // Return ALL debug info
+        $mediaId = $media->id;
+        $media->delete();
+
         return response()->json([
-            'debug_media_class' => get_class($media),
-            'debug_media_attributes' => $media->getAttributes(),
-            'debug_media_id' => $media->id,
-            'debug_media_getKey' => $media->getKey(),
-            'debug_media_exists' => $media->exists,
-            'debug_media_table' => $media->getTable(),
+            'success' => true,
+            'message' => 'Media deleted successfully',
+            'id' => $mediaId,
         ], 200);
     }
 

@@ -213,7 +213,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
 
 
-        Route::apiResource('media', ApiMediaController::class);
+        Route::apiResource('media', ApiMediaController::class)->parameters(['media' => 'media']);
         Route::delete('media/bulk', [ApiMediaController::class, 'bulkDestroy']);
         Route::apiResource('folders', ApiFolderController::class);
         Route::post('folders/reorder', [ApiFolderController::class, 'reorder']);
