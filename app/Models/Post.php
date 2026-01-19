@@ -29,7 +29,7 @@ class Post extends Model
     'content'       => 'array',   // your block JSON
     'published_at'  => 'datetime',
     'blocks'       => 'array',
-    'featured_image' => 'array',
+    // featured_image handled by accessor to check media existence
     'seo'            => 'array',
     'fields'            => 'array'
 
@@ -56,5 +56,38 @@ class Post extends Model
   public function author()
   {
     return $this->belongsTo(User::class, 'author_id');
+  }
+
+  /**
+   * Get the featured image, checking if the media still exists.
+   */
+  public function getFeaturedImageAttribute($value)
+  {
+    $data = is_string($value) ? json_decode($value, true) : $value;
+
+    \Log::info('Featured image accessor called', ['data' => $data]);
+
+    if (empty($data) || !isset($data['id'])) {
+      \Log::info('No id found in featured_image, returning data as-is');
+      return $data;
+    }
+
+    // Check if media still exists
+    $mediaExists = Media::where('id', $data['id'])->exists();
+    \Log::info('Media exists check', ['id' => $data['id'], 'exists' => $mediaExists]);
+
+    if (!$mediaExists) {
+      return null;
+    }
+
+    return $data;
+  }
+
+  /**
+   * Set the featured image attribute.
+   */
+  public function setFeaturedImageAttribute($value)
+  {
+    $this->attributes['featured_image'] = is_array($value) ? json_encode($value) : $value;
   }
 }
