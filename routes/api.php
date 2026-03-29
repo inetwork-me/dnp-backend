@@ -207,6 +207,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
         Route::apiResource('post-types', ApiPostTypesController::class);
 
         Route::apiResource('posts', ApiPostsController::class);
+        Route::post('posts/{post}/duplicate', [ApiPostsController::class, 'duplicate']);
 
         // Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoryController::class);
         Route::apiResource('post-types/{postType}/categories', ApiPostTypeCategoriesController::class);

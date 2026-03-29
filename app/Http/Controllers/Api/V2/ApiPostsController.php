@@ -90,6 +90,21 @@ class ApiPostsController extends Controller
         return $post;
     }
 
+    public function duplicate(Post $post)
+    {
+        $clone = $post->replicate();
+        $clone->slug = $post->slug . '-copy-' . time();
+
+        if (is_array($clone->title)) {
+            $clone->title = collect($clone->title)->map(fn($v) => $v . ' (copy)')->all();
+        }
+
+        $clone->status = 'draft';
+        $clone->save();
+
+        return response()->json($clone->load('postType'), 201);
+    }
+
     public function destroy(Post $post)
     {
         $post->delete();
