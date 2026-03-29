@@ -8,6 +8,7 @@ use App\Http\Requests\StoreFormSubmissionRequest;
 use App\Models\Form;
 use App\Http\Resources\V2\FormSubmissionResource;
 use Illuminate\Http\Response;
+use Illuminate\Http\Request;
 
 class ApiFormSubmissionController extends Controller
 {
@@ -17,16 +18,41 @@ class ApiFormSubmissionController extends Controller
      * @param  \App\Models\Form  $form
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index(Form $form)
+    public function index(Request $request, Form $form)
     {
-        $perPage = request('per_page', 10);
+        $perPage = $request->input('per_page', 10);
 
-        // eager-load nothing extra; return paginated submissions
+        $query = $form->submissions()->orderBy('created_at', 'desc');
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->input('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->input('to'));
+        }
+
         return FormSubmissionResource::collection(
-            $form->submissions()
-                ->orderBy('created_at', 'desc')
-                ->paginate($perPage)
+            $query->paginate($perPage)
         );
+    }
+
+    /**
+     * Export submissions for a given form as JSON (for client-side Excel generation).
+     */
+    public function export(Request $request, Form $form)
+    {
+        $query = $form->submissions()->orderBy('created_at', 'desc');
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->input('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->input('to'));
+        }
+
+        return FormSubmissionResource::collection($query->get());
     }
 
     /**

@@ -235,6 +235,7 @@ Route::prefix('v2')->name('api.v2.')->middleware(['app_language'])->group(functi
             Route::delete('{form}/fields/{field}', [ApiFormFieldController::class, 'destroy']);
 
             Route::get('{form}/submissions', [ApiFormSubmissionController::class, 'index']);
+            Route::get('{form}/submissions/export', [ApiFormSubmissionController::class, 'export']);
             Route::delete('{form}/submissions/{submissionId}', [ApiFormSubmissionController::class, 'destroy']);
         });
 
