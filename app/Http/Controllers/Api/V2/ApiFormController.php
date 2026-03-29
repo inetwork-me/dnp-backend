@@ -98,6 +98,31 @@ class ApiFormController extends Controller
     //     return new FormResource($form->load('fields'));
     // }
 
+    public function duplicate(Form $form)
+    {
+        $newForm = DB::transaction(function () use ($form) {
+            $clone = $form->replicate();
+            $clone->slug = $form->slug . '-copy-' . time();
+
+            // Append " (copy)" to each language in the label
+            if (is_array($clone->label)) {
+                $clone->label = collect($clone->label)->map(fn($v) => $v . ' (copy)')->all();
+            }
+
+            $clone->save();
+
+            foreach ($form->fields as $field) {
+                $newField = $field->replicate();
+                $newField->form_id = $clone->id;
+                $newField->save();
+            }
+
+            return $clone;
+        });
+
+        return new FormResource($newForm->load('fields'));
+    }
+
     public function destroy(Form $form)
     {
         $form->delete();
