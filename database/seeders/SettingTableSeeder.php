@@ -52,5 +52,13 @@ class SettingTableSeeder extends Seeder
             ['key' => 'social_instagram'],
             ['value' => ['default' => 'https://instagram.com/']]
         );
+        Setting::updateOrCreate(
+            ['key' => 'social_whatsapp'],
+            ['value' => ['default' => '']]
+        );
+        Setting::updateOrCreate(
+            ['key' => 'social_linkedin'],
+            ['value' => ['default' => '']]
+        );
     }
 }
