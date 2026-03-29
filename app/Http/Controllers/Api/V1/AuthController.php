@@ -94,9 +94,10 @@ class AuthController extends Controller
 
     //     return $this->loginSuccess($user);
     // }
-    
+
     public function signup(Request $request)
     {
+        // Custom error messages
         $messages = array(
             'name.required' => translate('Name is required'),
             'email.required' => translate('Email is required'),
@@ -106,31 +107,35 @@ class AuthController extends Controller
             'password.confirmed' => translate('Password confirmation does not match'),
             'password.min' => translate('Minimum 6 digits required for password')
         );
+
+        // Validate name, email+unique, password+confirmation
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|string',
+            'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
-            'email_or_phone' => [
-                'required',
-                ['email', 'unique:users,email'],
-            ],
+
         ], $messages);
 
         if ($validator->fails()) {
             return response()->json([
                 'result' => false,
                 'message' => $validator->errors()->all()
-            ]);
+            ], 422);
         }
 
+        // create user 
         $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->verification_code = rand(100000, 999999);
+
+        // At this point, if you want to enforce email verification, you could
+        // check a BusinessSetting. For now, we'll mark email_verified_at immediately.
+        $user->email_verified_at = Carbon::now();
         $user->save();
 
 
-        $user->email_verified_at = Carbon::now();
         // if ($user->email != null) {
         //     if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
         //         $user->email_verified_at = date('Y-m-d H:m:s');
@@ -201,70 +206,72 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // 1) Default login_by, validation, etc.  (unchanged)  
         $request->login_by = $request->login_by ?? 'email';
-        $messages = array(
-            'email.required' => $request->login_by == 'email' ? translate('Email is required') : translate('Phone is required'),
-            'email.email' => translate('Email must be a valid email address'),
-            'email.numeric' => translate('Phone must be a number.'),
+        $messages = [
+            'email.required'    => $request->login_by == 'email'
+                ? translate('Email is required')
+                : translate('Phone is required'),
+            'email.email'       => translate('Email must be a valid email address'),
+            'email.numeric'     => translate('Phone must be a number.'),
             'password.required' => translate('Password is required'),
-        );
+        ];
         $validator = Validator::make($request->all(), [
             'password' => 'required',
             'login_by' => 'nullable',
-            'email' => [
+            'email'    => [
                 'required',
-                Rule::when($request->login_by === 'email', ['email', 'required']),
-                Rule::when($request->login_by === 'phone', ['numeric', 'required']),
-            ]
+                Rule::when($request->login_by === 'email', ['email']),
+                Rule::when($request->login_by === 'phone', ['numeric']),
+            ],
         ], $messages);
 
         if ($validator->fails()) {
             return response()->json([
-                'result' => false,
-                'message' => $validator->errors()->all()
+                'result'  => false,
+                'message' => $validator->errors()->all(),
             ]);
         }
 
-        $delivery_boy_condition = $request->has('user_type') && $request->user_type == 'delivery_boy';
-        $seller_condition = $request->has('user_type') && $request->user_type == 'seller';
-        $req_email = $request->email;
+        // 2) TODO  only let customer works here
+        $credential = $request->email;
 
-        if ($delivery_boy_condition) {
-            $user = User::whereIn('user_type', ['delivery_boy'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
-        } elseif ($seller_condition) {
-            $user = User::whereIn('user_type', ['seller'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
-        } else {
-            $user = User::whereIn('user_type', ['customer'])
-                ->where(function ($query) use ($req_email) {
-                    $query->where('email', $req_email)
-                        ->orWhere('phone', $req_email);
-                })
-                ->first();
+        // 3) Single lookup for either vendor or customer
+        $user = User::where(function ($q) use ($credential) {
+            $q->where('email', $credential)
+                ->orWhere('phone', $credential);
+        })
+            ->first();
+
+        // 4) If no user found
+        if (!$user) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('User not found'),
+                'user'    => null,
+            ], 401);
         }
 
-        if ($user != null) {
-            if (!$user->banned) {
-                if (Hash::check($request->password, $user->password)) {
-                    return $this->loginSuccess($user);
-                } else {
-                    return response()->json(['result' => false, 'message' => translate('Unauthorized'), 'user' => null], 401);
-                }
-            } else {
-                return response()->json(['result' => false, 'message' => translate('User is banned'), 'user' => null], 401);
-            }
-        } else {
-            return response()->json(['result' => false, 'message' => translate('User not found'), 'user' => null], 401);
+        // 5) Check banned
+        if ($user->banned) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('User is banned'),
+                'user'    => null,
+            ], 401);
         }
+
+        // 6) Verify password
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'result'  => false,
+                'message' => translate('Unauthorized'),
+                'user'    => null,
+            ], 401);
+        }
+
+        // 7) Success
+        return $this->loginSuccess($user);
     }
 
     public function user(Request $request)

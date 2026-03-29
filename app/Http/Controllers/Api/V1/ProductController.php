@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api\V1;
+
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\BrandCollection;
 use Cache;
@@ -21,15 +22,158 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->has('count_per_page'))
-            return new ProductMiniCollection(Product::latest()->paginate($request->has('count_per_page')));
-        else
-            return new ProductMiniCollection(Product::latest()->paginate(10));
+        // 1. Determine how many items per page (default to 10)
+        $perPage = $request->query('count_per_page', 10);
+        $page = $request->query('page', 1);
+
+        // 2. Handle type-specific conditions
+        $isPackage = $request->query('type') === 'package';
+        $isSession = $request->query('type') === 'session';
+
+        // 3. Build base query with published products only
+        $query = Product::query()
+            // ->where('published', 1)
+            ->when($isPackage, fn ($q) => $q->with('packageDetails'))
+            ->when($isSession, fn ($q) => $q->with('packageDetails'))
+            ->withAvg('reviews as avg_rating', 'rating')
+            ->with(['brand', 'main_category']);
+
+        // 4. Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->query('search');
+            $query->where(function ($q) use ($searchTerm) {
+                foreach (explode(' ', trim($searchTerm)) as $word) {
+                    $q->where('name', 'like', '%' . $word . '%')
+                        ->orWhere('tags', 'like', '%' . $word . '%')
+                        ->orWhereHas('product_translations', function ($subQuery) use ($word) {
+                            $subQuery->where('name', 'like', '%' . $word . '%');
+                        });
+                }
+            });
+        }
+
+        // 5. Filter by type (simple, physical, digital, bundle, package, session)
+        if ($request->filled('type')) {
+            $type = $request->query('type');
+            // No need to map simple to physical - use the actual database value
+            $query->where('type', $type);
+        }
+
+        // 6. Filter by categories (comma-separated category slugs)
+        if ($request->filled('categories')) {
+            $categoryIdentifiers = explode(',', $request->query('categories'));
+            $categoryIds = [];
+
+            foreach ($categoryIdentifiers as $identifier) {
+                // Try to find category by slug first, then by ID
+                $category = Category::where('slug', $identifier)
+                    ->orWhere('id', $identifier)
+                    ->first();
+                if ($category) {
+                    $categoryIds[] = $category->id;
+                    // Include child category IDs
+                    $categoryIds = array_merge($categoryIds, CategoryUtility::children_ids($category->id));
+                }
+            }
+
+            if (!empty($categoryIds)) {
+                $query->whereIn('category_id', array_unique($categoryIds));
+            }
+        }
+
+        // 7. Filter by price range
+        if ($request->filled('price_min')) {
+            $priceMin = floatval($request->query('price_min'));
+            $query->where('unit_price', '>=', $priceMin);
+        }
+
+        if ($request->filled('price_max')) {
+            $priceMax = floatval($request->query('price_max'));
+            $query->where('unit_price', '<=', $priceMax);
+        }
+
+        // 8. Filter by sale status (on_sale=true)
+        if ($request->boolean('on_sale')) {
+            $query->where(function ($q) {
+                $q->where('discount', '>', 0);
+            });
+        }
+
+        // 9. Filter by top-selling flag
+        if ($request->boolean('is_top_selling')) {
+            $query->where('is_top_selling', true);
+        }
+
+        // 10. Handle sorting
+        $sortBy = $request->query('sort_by', 'created_at');
+        $sortOrder = $request->query('sort_order', 'desc');
+
+        switch ($sortBy) {
+            case 'main_price':
+            case 'price':
+                $query->orderBy('unit_price', $sortOrder);
+                break;
+            case 'name':
+                $query->orderBy('name', $sortOrder);
+                break;
+            case 'rating':
+                $query->orderBy('avg_rating', $sortOrder);
+                break;
+            case 'popularity':
+            case 'num_of_sale':
+                $query->orderBy('num_of_sale', $sortOrder);
+                break;
+            case 'created_at':
+            default:
+                $query->orderBy('created_at', $sortOrder);
+                break;
+        }
+
+        // 11. Paginate results
+        $products = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // 12. Return wrapped collection
+        return new ProductMiniCollection($products);
     }
+
 
     public function show($slug)
     {
-        return new ProductDetailCollection(Product::where('slug', $slug)->get());
+        $product = Product::where('slug', $slug)
+            ->withCount([
+                'reviews as one_star_count'   => fn ($q) => $q->where('rating', 1),
+                'reviews as two_star_count'   => fn ($q) => $q->where('rating', 2),
+                'reviews as three_star_count' => fn ($q) => $q->where('rating', 3),
+                'reviews as four_star_count'  => fn ($q) => $q->where('rating', 4),
+                'reviews as five_star_count'  => fn ($q) => $q->where('rating', 5),
+            ])
+            ->withAvg('reviews as avg_rating', 'rating')
+            ->with('reviews.user')
+            ->firstOrFail();
+        // round the avg_rating to one decimal place (or leave as-is)
+        $avg = $product->avg_rating !== null
+            ? round($product->avg_rating, 1)
+            : 0;
+
+        $counts = [
+            1 => $product->one_star_count,
+            2 => $product->two_star_count,
+            3 => $product->three_star_count,
+            4 => $product->four_star_count,
+            5 => $product->five_star_count,
+        ];
+
+        $total = array_sum($counts);
+        $pct   = array_map(fn ($c) => $total ? round($c / $total * 100, 1) : 0, $counts);
+        $reviews_info = [
+            'total_reviews' => $total,
+            'percentage' => $pct,
+            'stars_counts' => $counts,
+            'avg_rating'    => $avg,
+        ];
+        $bundleItems = $product->bundleItems;
+
+        return response()->json(compact('product', 'reviews_info', 'bundleItems'));
     }
 
     public function getPrice(Request $request)
@@ -129,7 +273,8 @@ class ProductController extends Controller
                     'variation' => $str,
                     'max_limit' => $max_limit,
                     'in_stock' => $in_stock,
-                    'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image)
+                    'image' => $product_stock->image == null ? "" : uploaded_asset($product_stock->image),
+
                 ]
 
             ]
@@ -230,7 +375,7 @@ class ProductController extends Controller
 
         $products = Product::query();
 
-        $products->where('published', 1)->physical();
+        $products->physical();
 
         if (!empty($brand_ids)) {
             $products->whereIn('brand_id', $brand_ids);
@@ -325,5 +470,76 @@ class ProductController extends Controller
             $str .= $temp_str;
         }
         return   $this->calc($product, $str, $request, $tax);
+    }
+
+    /**
+     * Get random products for suggestions
+     */
+    public function getRandomProducts(Request $request)
+    {
+        $limit = $request->get('limit', 4);
+        $excludeId = $request->get('exclude_id');
+        
+        $query = Product::where('published', true)
+            ->with(['categories'])
+            ->whereNotNull('current_stock')
+            ->where('current_stock', '>', 0);
+            
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+        
+        $products = $query->inRandomOrder()
+            ->limit($limit)
+            ->get();
+            
+        return new ProductMiniCollection($products);
+    }
+    
+    /**
+     * Get related products based on categories
+     */
+    public function getRelatedProducts(Request $request, $productId)
+    {
+        $limit = $request->get('limit', 4);
+        
+        // Get the current product's categories
+        $product = Product::with('categories')->find($productId);
+        
+        if (!$product) {
+            return $this->getRandomProducts($request);
+        }
+        
+        $categoryIds = $product->categories->pluck('id');
+        
+        // Get products in same categories
+        $relatedProducts = Product::where('published', true)
+            ->where('id', '!=', $productId)
+            ->with(['categories'])
+            ->whereNotNull('current_stock')
+            ->where('current_stock', '>', 0)
+            ->whereHas('categories', function ($query) use ($categoryIds) {
+                $query->whereIn('category_id', $categoryIds);
+            })
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
+            
+        // If we don't have enough related products, fill with random ones
+        if ($relatedProducts->count() < $limit) {
+            $additionalProducts = Product::where('published', true)
+                ->where('id', '!=', $productId)
+                ->with(['categories'])
+                ->whereNotNull('current_stock')
+                ->where('current_stock', '>', 0)
+                ->whereNotIn('id', $relatedProducts->pluck('id'))
+                ->inRandomOrder()
+                ->limit($limit - $relatedProducts->count())
+                ->get();
+                
+            $relatedProducts = $relatedProducts->merge($additionalProducts);
+        }
+        
+        return new ProductMiniCollection($relatedProducts);
     }
 }

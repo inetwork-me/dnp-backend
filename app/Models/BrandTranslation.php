@@ -6,9 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class BrandTranslation extends Model
 {
-  protected $fillable = ['name', 'lang', 'brand_id'];
+  protected $fillable = [
+    'brand_id',
+    'lang',
+    'name',
+    'meta_title',
+    'meta_description',
+  ];
 
-  public function brand(){
+  public function brand()
+  {
     return $this->belongsTo(Brand::class);
   }
 }

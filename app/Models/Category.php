@@ -7,28 +7,46 @@ use App;
 
 class Category extends Model
 {
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'label',
+    ];
+
+    protected $casts = [
+
+        'label' => 'array',
+    ];
+
+
     protected $with = ['category_translations'];
 
-    public function getTranslation($field = '', $lang = false){
+    public function getTranslation($field = '', $lang = false)
+    {
         $lang = $lang == false ? App::getLocale() : $lang;
         $category_translation = $this->category_translations->where('lang', $lang)->first();
         return $category_translation != null ? $category_translation->$field : $this->$field;
     }
 
-    public function category_translations(){
-    	return $this->hasMany(CategoryTranslation::class);
+    public function category_translations()
+    {
+        return $this->hasMany(CategoryTranslation::class);
     }
 
-    public function coverImage(){
-    	return $this->belongsTo(Upload::class, 'cover_image');
+    public function coverImage()
+    {
+        return $this->belongsTo(Upload::class, 'cover_image');
     }
 
-    public function catIcon(){
-    	return $this->belongsTo(Upload::class, 'icon');
+    public function catIcon()
+    {
+        return $this->belongsTo(Upload::class, 'icon');
     }
-    
-    public function bannerImage(){
-    	return $this->belongsTo(Upload::class, 'banner');
+
+    public function bannerImage()
+    {
+        return $this->belongsTo(Upload::class, 'banner');
     }
 
     public function categories()

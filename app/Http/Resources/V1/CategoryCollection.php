@@ -14,14 +14,15 @@ class CategoryCollection extends ResourceCollection
                 return [
                     'id' => $data->id,
                     'slug' => $data->slug,
+                    'label' => $data->label,
                     'name' => $data->getTranslation('name'),
-                    'banner' => uploaded_asset($data->banner),
-                    'icon' => uploaded_asset($data->icon),
+                    // 'banner' => uploaded_asset($data->banner),
+                    // 'icon' => uploaded_asset($data->icon),
                     'number_of_children' => CategoryUtility::get_immediate_children_count($data->id),
-                    'links' => [
-                        'products' => route('api.products.category', $data->id),
-                        'sub_categories' => route('subCategories.index', $data->id)
-                    ]
+                    // 'links' => [
+                    //     'products' => route('api.products.category', $data->id),
+                    //     'sub_categories' => route('subCategories.index', $data->id)
+                    // ]
                 ];
             })
         ];

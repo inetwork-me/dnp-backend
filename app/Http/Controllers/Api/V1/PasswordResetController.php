@@ -15,12 +15,34 @@ use Hash;
 
 class PasswordResetController extends Controller
 {
+
+
+    public function changepassword(Request $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if ($user != null) {
+            $user->password = Hash::make($request->password);
+            $user->save();
+            return response()->json([
+                'result' => true,
+                'message' => translate('Your password is reset.Please login'),
+            ], 200);
+        } else {
+            return response()->json([
+                'result' => false,
+                'message' => translate('No user is found'),
+            ], 200);
+        }
+    }
+
+
     public function forgetRequest(Request $request)
     {
-        if ($request->send_code_by == 'email') {
-            $user = User::where('email', $request->email_or_phone)->first();
-        } else {
+        if ($request->send_code_by == 'phone') {
             $user = User::where('phone', $request->email_or_phone)->first();
+        } else {
+            $user = User::where('email', $request->email_or_phone)->first();
         }
 
 
@@ -35,6 +57,9 @@ class PasswordResetController extends Controller
             $user->verification_code = rand(100000, 999999);
             $user->save();
         }
+
+        $user->notify(new AppEmailVerificationNotification($user->verification_code));
+
 
         return response()->json([
             'result' => true,
